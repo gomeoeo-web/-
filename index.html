@@ -522,6 +522,23 @@
             </div>
             <button type="button" id="btnToggleNotification" class="btn-switch-theme">開啟</button>
           </div>
+
+          <div class="settings-row" id="rowScreenFit">
+            <div class="settings-icon">📐</div>
+            <div class="settings-info">
+              <span class="settings-title">視窗寬度與比例</span>
+              <span class="settings-desc" id="settingsScreenFitText">大螢幕 440px</span>
+            </div>
+            <div class="screen-fit-select-wrap">
+              <select id="selectScreenFit" class="screen-fit-select" title="選擇視窗寬度與比例">
+                <option value="standard">標準手機 390px</option>
+                <option value="plus" selected>大螢幕 440px</option>
+                <option value="tablet">平板寬幅 680px</option>
+                <option value="full">滿版自適應 100%</option>
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+          </div>
         </div>
 
         <!-- Group 2: Backup & Restore -->
@@ -579,9 +596,9 @@
         <div class="studio-controls">
           <!-- Quick Action Buttons -->
           <div class="studio-action-pills">
-            <button type="button" id="btnAiBgRemoval" class="studio-pill-btn primary">
+            <button type="button" id="btnAiBgRemoval" class="studio-pill-btn primary" title="使用 @imgly/background-removal 執行 AI 智慧去背">
               <span class="pill-btn-icon">🤖</span>
-              <span>AI 智慧一鍵去背</span>
+              <span>AI 智慧去背</span>
             </button>
             <button type="button" id="btnColorPickRemoval" class="studio-pill-btn">
               <span class="pill-btn-icon">🎯</span>
@@ -704,6 +721,57 @@
           <div class="category-manage-list" id="categoryManageList">
             <!-- Rendered by JS -->
           </div>
+
+          <div style="margin-top: 1.35rem; text-align: center;">
+            <button type="button" id="btnResetDefaultCategories" class="btn-reset-default-cats" title="復原所有系統預設群組">
+              ↺ 還原所有預設群組
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Edit Category Modal (編輯群組名稱、圖示與細項) -->
+  <div id="editCategoryModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-sm">
+      <div class="ios-modal-header">
+        <h2 id="editCategoryModalTitle">編輯群組資訊</h2>
+        <button type="button" id="btnCloseEditCategoryModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+      <div class="ios-modal-scroll" style="padding: 1.25rem;">
+        <input type="hidden" id="editCatId">
+        <div class="ios-field">
+          <label for="editCatName">群組名稱</label>
+          <input type="text" id="editCatName" placeholder="輸入群組名稱" required>
+        </div>
+
+        <div class="ios-field" style="margin-top: 0.85rem;">
+          <label>群組圖示</label>
+          <div class="emoji-select-row">
+            <input type="text" id="editCatEmoji" class="emoji-input-box" value="🏷️" maxlength="4">
+            <div class="emoji-quick-pills" id="editEmojiQuickPills">
+              <button type="button" class="quick-emoji-btn" data-emoji="⛺">⛺</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🐱">🐱</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🪴">🪴</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🎮">🎮</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="📚">📚</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🧸">🧸</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="👟">👟</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="💼">💼</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🏷️">🏷️</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ios-field" style="margin-top: 0.85rem;">
+          <label for="editCatSubItems">常用細項項目, 以逗號分隔</label>
+          <input type="text" id="editCatSubItems" placeholder="例如：帳篷, 睡袋, 充氣墊, 營燈">
+        </div>
+
+        <div style="display: flex; gap: 0.65rem; margin-top: 1.35rem;">
+          <button type="button" id="btnCancelEditCategory" class="btn-ios-secondary" style="flex: 1;">取消</button>
+          <button type="button" id="btnSaveEditCategory" class="btn-ios-primary" style="flex: 1.5;">儲存修改</button>
         </div>
       </div>
     </div>

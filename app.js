@@ -233,7 +233,9 @@
     }
   };
 
-  // 使用者自訂分類管理器 (Custom Category Store)
+  // 使用者自訂分類與預設分類覆寫管理器 (Custom & Preset Category Store)
+  const PRESET_OVERRIDES_KEY = 'lifespan_preset_category_overrides';
+  const DELETED_PRESETS_KEY = 'lifespan_deleted_preset_categories';
   let customCategories = {};
 
   function loadCustomCategories() {
@@ -259,8 +261,53 @@
     }
   }
 
+  function loadPresetOverrides() {
+    try {
+      const stored = localStorage.getItem(PRESET_OVERRIDES_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return {};
+  }
+
+  function savePresetOverrides(overrides) {
+    try {
+      localStorage.setItem(PRESET_OVERRIDES_KEY, JSON.stringify(overrides));
+    } catch (e) {
+      console.error('Save preset overrides failed:', e);
+    }
+  }
+
+  function loadDeletedPresets() {
+    try {
+      const stored = localStorage.getItem(DELETED_PRESETS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return [];
+  }
+
+  function saveDeletedPresets(deleted) {
+    try {
+      localStorage.setItem(DELETED_PRESETS_KEY, JSON.stringify(deleted));
+    } catch (e) {
+      console.error('Save deleted presets failed:', e);
+    }
+  }
+
   function getAllCategories() {
-    return { ...DEFAULT_CATEGORIES, ...loadCustomCategories() };
+    const custom = loadCustomCategories();
+    const overrides = loadPresetOverrides();
+    const deleted = loadDeletedPresets();
+
+    const combined = {};
+    for (const [key, cat] of Object.entries(DEFAULT_CATEGORIES)) {
+      if (!deleted.includes(key)) {
+        combined[key] = { ...cat, ...(overrides[key] || {}), isPreset: true };
+      }
+    }
+    for (const [key, cat] of Object.entries(custom)) {
+      combined[key] = { ...cat, isCustom: true };
+    }
+    return combined;
   }
 
   function getCustomCategoryOrder() {
@@ -487,6 +534,30 @@
   let currentSortMode = localStorage.getItem(HOME_SORT_KEY) || 'expiry_asc';
   let searchQuery = '';
   let activeSheetItemId = null;
+  let hasSwipedHorizontally = false;
+
+  // 螢幕比例與視窗大小適配狀態
+  const SCREEN_FIT_KEY = 'lifespan_screen_fit';
+  const SCREEN_FIT_LABELS = {
+    standard: '標準手機 390px',
+    plus: '大螢幕 440px',
+    tablet: '平板寬幅 680px',
+    full: '滿版自適應 100%'
+  };
+
+  function setScreenFit(fitMode, save = true) {
+    const validModes = ['standard', 'plus', 'tablet', 'full'];
+    const mode = validModes.includes(fitMode) ? fitMode : 'plus';
+    document.documentElement.setAttribute('data-screen-fit', mode);
+    const selectScreenFit = document.getElementById('selectScreenFit');
+    const settingsScreenFitText = document.getElementById('settingsScreenFitText');
+    if (selectScreenFit) selectScreenFit.value = mode;
+    if (settingsScreenFitText) settingsScreenFitText.textContent = SCREEN_FIT_LABELS[mode] || '大螢幕 440px';
+    if (save) {
+      localStorage.setItem(SCREEN_FIT_KEY, mode);
+      showToast(`已套用視窗比例：${SCREEN_FIT_LABELS[mode]}`);
+    }
+  }
 
   // 新增/編輯 Modal 暫存狀態
   let currentModalMode = 'expiry'; // 'expiry' 或 'elapsed'
@@ -889,6 +960,11 @@
       </div>
     `;
 
+    card.addEventListener('click', function (e) {
+      if (hasSwipedHorizontally) return;
+      openActionSheet(item.id);
+    });
+
     return card;
   }
 
@@ -953,29 +1029,37 @@
     const inventorySortToolbarCount = document.getElementById('inventorySortToolbarCount');
     const inventorySortPillLabel = document.getElementById('inventorySortPillLabel');
 
+    const allCats = getAllCategories();
+    const catObj = allCats[currentCategoryChip] || { label: '此群組' };
+
     let invList = items.filter(item => {
-      if (item.category !== currentCategoryChip) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const name = (item.name || '').toLowerCase();
         const brand = (item.brand || '').toLowerCase();
         const loc = (item.location || '').toLowerCase();
-        if (!name.includes(q) && !brand.includes(q) && !loc.includes(q)) return false;
+        const subCat = (item.subCategory || '').toLowerCase();
+        const itemCat = allCats[item.category] || {};
+        const catLabel = (itemCat.label || '').toLowerCase();
+        return name.includes(q) || brand.includes(q) || loc.includes(q) || subCat.includes(q) || catLabel.includes(q);
       }
-      return true;
+      return item.category === currentCategoryChip;
     });
     invList = sortItemsList(invList);
-
-    const allCats = getAllCategories();
-    const catObj = allCats[currentCategoryChip] || { label: '此群組' };
 
     if (inventoryItemsGrid) {
       inventoryItemsGrid.innerHTML = '';
       if (invList.length === 0) {
         if (emptyStateInventory) emptyStateInventory.style.display = 'flex';
-        if (emptyTitleInventory) emptyTitleInventory.textContent = `${catObj.label}群組 目前沒有物品`;
-        if (emptyDescInventory) emptyDescInventory.textContent = '您可以從現有物品中勾選加入，或點擊右上角的「＋」新增！';
-        if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'inline-flex';
+        if (searchQuery) {
+          if (emptyTitleInventory) emptyTitleInventory.textContent = `找不到符合「${searchQuery}」的物品`;
+          if (emptyDescInventory) emptyDescInventory.textContent = '已為您搜尋所有群組，請嘗試其他關鍵字或名稱！';
+          if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'none';
+        } else {
+          if (emptyTitleInventory) emptyTitleInventory.textContent = `${catObj.label}群組 目前沒有物品`;
+          if (emptyDescInventory) emptyDescInventory.textContent = '您可以從現有物品中勾選加入，或點擊右上角的「＋」新增！';
+          if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'inline-flex';
+        }
       } else {
         if (emptyStateInventory) emptyStateInventory.style.display = 'none';
         if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'none';
@@ -986,13 +1070,17 @@
     }
 
     if (inventorySortToolbarCount) {
-      inventorySortToolbarCount.textContent = `${catObj.label}群組 共 ${invList.length} 項物品`;
+      if (searchQuery) {
+        inventorySortToolbarCount.textContent = `搜尋「${searchQuery}」共 ${invList.length} 項物品 · 全部群組`;
+      } else {
+        inventorySortToolbarCount.textContent = `${catObj.label}群組 共 ${invList.length} 項物品`;
+      }
     }
     if (inventorySortPillLabel) {
       inventorySortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
     }
     if (catActiveCount) {
-      catActiveCount.textContent = `${invList.length} 項物品`;
+      catActiveCount.textContent = searchQuery ? `搜尋到 ${invList.length} 項` : `${invList.length} 項物品`;
     }
   }
 
@@ -1651,18 +1739,73 @@
   if (btnCloseBgRemovalModal) btnCloseBgRemovalModal.addEventListener('click', closeBgRemovalStudio);
   if (btnCancelBgRemoval) btnCancelBgRemoval.addEventListener('click', closeBgRemovalStudio);
 
-  // 一鍵 AI 去背
-  if (btnAiBgRemoval) {
-    btnAiBgRemoval.addEventListener('click', function () {
-      if (!bgOriginalImageData) return;
-      isColorPickMode = false;
-      if (btnColorPickRemoval) btnColorPickRemoval.classList.remove('active-tool');
+  // 增強 AI 去背：使用 @imgly/background-removal 執行圖片去背
+  let isImglyProcessing = false;
+
+  async function performImglyBackgroundRemoval() {
+    if (!bgOriginalImageData || !bgRemovalCanvas || isImglyProcessing) return;
+    isColorPickMode = false;
+    if (btnColorPickRemoval) btnColorPickRemoval.classList.remove('active-tool');
+
+    isImglyProcessing = true;
+    const origHtml = btnAiBgRemoval.innerHTML;
+    btnAiBgRemoval.disabled = true;
+    btnAiBgRemoval.classList.add('active-tool');
+    btnAiBgRemoval.innerHTML = '<span class="pill-btn-icon">⏳</span><span>模型載入中...</span>';
+    showToast('🤖 正在以 @imgly/background-removal AI 進行精準去背...');
+
+    try {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = bgRemovalCanvas.width;
+      tempCanvas.height = bgRemovalCanvas.height;
+      const tCtx = tempCanvas.getContext('2d');
+      tCtx.putImageData(bgOriginalImageData, 0, 0);
+
+      const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+      const { default: removeBackground } = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@latest/+esm');
+
+      const resultBlob = await removeBackground(blob, {
+        progress: (key, current, total) => {
+          if (total > 0) {
+            const pct = Math.min(100, Math.round((current / total) * 100));
+            btnAiBgRemoval.innerHTML = `<span class="pill-btn-icon">⏳</span><span>AI 運算 ${pct}%</span>`;
+          }
+        }
+      });
+
+      const resultUrl = URL.createObjectURL(resultBlob);
+      const img = new Image();
+      img.onload = () => {
+        bgCanvasCtx.clearRect(0, 0, bgRemovalCanvas.width, bgRemovalCanvas.height);
+        bgCanvasCtx.drawImage(img, 0, 0, bgRemovalCanvas.width, bgRemovalCanvas.height);
+        URL.revokeObjectURL(resultUrl);
+        showToast('✨ @imgly/background-removal AI 去背完成！');
+        btnAiBgRemoval.innerHTML = origHtml;
+        btnAiBgRemoval.disabled = false;
+        btnAiBgRemoval.classList.remove('active-tool');
+        isImglyProcessing = false;
+      };
+      img.onerror = () => {
+        throw new Error('無法讀取去背結果圖片');
+      };
+      img.src = resultUrl;
+    } catch (err) {
+      console.warn('imgly background removal error, falling back to local matting:', err);
+      // 離線或環境受限時自動啟動本機取色邊界去背
       const w = bgRemovalCanvas.width;
       const h = bgRemovalCanvas.height;
       bgTargetColors = autoDetectBackgroundColors(bgOriginalImageData, w, h);
       applyBackgroundMatting();
-      showToast('🤖 AI 智慧邊界去背已完成！');
-    });
+      showToast('⚠️ 已使用本機邊界取色去背完成！');
+      btnAiBgRemoval.innerHTML = origHtml;
+      btnAiBgRemoval.disabled = false;
+      btnAiBgRemoval.classList.remove('active-tool');
+      isImglyProcessing = false;
+    }
+  }
+
+  if (btnAiBgRemoval) {
+    btnAiBgRemoval.addEventListener('click', performImglyBackgroundRemoval);
   }
 
   // 點按取色去背模式
@@ -2565,24 +2708,15 @@
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-    if (viewsSliderViewport) viewsSliderViewport.scrollLeft = 0;
-    document.documentElement.scrollLeft = 0;
     const iosMain = document.querySelector('.ios-main');
     if (iosMain) iosMain.scrollTop = 0;
 
-    if (viewsSliderTrack) {
-      if (!smooth) {
-        viewsSliderTrack.classList.add('dragging');
-      }
-      if (tab === 'today') {
-        viewsSliderTrack.style.transform = 'translateX(0%)';
-      } else {
-        viewsSliderTrack.style.transform = 'translateX(-50%)';
-      }
-      if (!smooth) {
-        void viewsSliderTrack.offsetWidth;
-        viewsSliderTrack.classList.remove('dragging');
-      }
+    if (viewsSliderViewport) {
+      const targetLeft = (tab === 'today') ? 0 : viewsSliderViewport.clientWidth;
+      viewsSliderViewport.scrollTo({
+        left: targetLeft,
+        behavior: smooth ? 'smooth' : 'instant'
+      });
     }
 
     if (tab === 'today') {
@@ -2597,20 +2731,23 @@
       if (headerMainTitle) headerMainTitle.textContent = '分類清單';
       currentCategoryChip = getFirstPageCategory();
       renderCategoryChips();
+      if (categoryChipRow) {
+        categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
+      }
       updateCategoryActionBar();
     }
     renderApp();
   }
 
   dockTabToday.addEventListener('click', function () {
-    switchViewTab('today');
+    switchViewTab('today', true);
   });
 
   dockTabInventory.addEventListener('click', function () {
-    switchViewTab('inventory');
+    switchViewTab('inventory', true);
   });
 
-  // 動態渲染分類膠囊標籤（支援自訂排序、第一頁預設置前與左右滑動對齊）
+  // 動態渲染分類膠囊標籤, 第一個群組預設在最左側, 點擊切換與平滑對齊
   function renderCategoryChips() {
     const chipRow = document.getElementById('categoryChipRow');
     if (!chipRow) return;
@@ -2635,7 +2772,7 @@
       currentCategoryChip = orderedKeys[0] || firstPageCat;
     }
 
-    orderedKeys.forEach(catKey => {
+    orderedKeys.forEach((catKey, chipIdx) => {
       const cat = allCats[catKey];
       const btn = document.createElement('button');
       btn.className = `category-chip ${catKey === currentCategoryChip ? 'active' : ''}`;
@@ -2645,8 +2782,12 @@
         document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
         this.classList.add('active');
         currentCategoryChip = this.dataset.cat;
-        const targetLeft = this.offsetLeft - (chipRow.clientWidth / 2) + (this.clientWidth / 2);
-        chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        if (chipIdx === 0) {
+          chipRow.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          const targetLeft = this.offsetLeft - 16;
+          chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        }
         updateCategoryActionBar();
         renderCards();
       });
@@ -2655,15 +2796,19 @@
 
     updateCategoryActionBar();
 
-    // 僅在當前視圖為物品分類時平滑移動膠囊內部，絕不對外層使用 scrollIntoView
+    // 僅在當前視圖為物品分類時移動膠囊, 第一個預設在最左側
     if (currentNavTab === 'inventory') {
       setTimeout(() => {
         const activeChip = chipRow.querySelector('.category-chip.active');
         if (activeChip) {
-          const targetLeft = activeChip.offsetLeft - (chipRow.clientWidth / 2) + (activeChip.clientWidth / 2);
-          chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+          if (activeChip === chipRow.firstElementChild) {
+            chipRow.scrollTo({ left: 0, behavior: 'instant' });
+          } else {
+            const targetLeft = activeChip.offsetLeft - 16;
+            chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+          }
         }
-      }, 60);
+      }, 30);
     }
   }
 
@@ -3037,7 +3182,7 @@
       const itemEl = document.createElement('div');
       itemEl.className = 'cat-manage-item';
 
-      const isCustom = !!cat.isCustom;
+      const isPreset = !!cat.isPreset;
       const subCount = cat.items ? cat.items.length : 0;
       const isFirstPage = key === firstPageKey;
       const isFirst = idx === 0;
@@ -3054,32 +3199,34 @@
 
       itemEl.innerHTML = `
         <div class="cat-manage-info">
-          <span class="cat-manage-emoji">${cat.emoji}</span>
-          <div>
-            <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.15rem;">
-              <span class="group-page-badge">${pageName}</span>
-              <span class="cat-manage-label">${escapeHtml(cat.label)}</span>
-            </div>
-            <span class="cat-manage-subcount">${subCount} 項細項</span>
+          <div class="cat-manage-title-wrap">
+            <span class="cat-manage-emoji">${cat.emoji}</span>
+            <span class="group-page-badge">${pageName}</span>
+            <span class="cat-manage-label" title="${escapeHtml(cat.label)}">${escapeHtml(cat.label)}</span>
+            ${isPreset ? `<span class="cat-badge-default" style="font-size:0.7rem;padding:0.15rem 0.4rem;">預設</span>` : ''}
           </div>
+          <span class="cat-manage-subcount">${subCount} 項細項</span>
         </div>
         <div class="cat-actions-group">
-          <div class="group-page-select-wrap" title="快速指定頁面">
-            <select class="group-page-select" data-cat-id="${key}">
-              ${pageOptions}
-            </select>
-            <span class="select-arrow">▾</span>
+          <div class="cat-actions-left">
+            <div class="group-page-select-wrap" title="快速指定頁面">
+              <select class="group-page-select" data-cat-id="${key}">
+                ${pageOptions}
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+            <div class="cat-order-btn-group">
+              <button type="button" class="btn-cat-order btn-cat-up" data-cat-id="${key}" ${isFirst ? 'disabled' : ''} title="群組順序上移一頁">▲</button>
+              <button type="button" class="btn-cat-order btn-cat-down" data-cat-id="${key}" ${isLast ? 'disabled' : ''} title="群組順序下移一頁">▼</button>
+            </div>
           </div>
-          <div class="cat-order-btn-group">
-            <button type="button" class="btn-cat-order btn-cat-up" data-cat-id="${key}" ${isFirst ? 'disabled' : ''} title="群組順序上移一頁">▲</button>
-            <button type="button" class="btn-cat-order btn-cat-down" data-cat-id="${key}" ${isLast ? 'disabled' : ''} title="群組順序下移一頁">▼</button>
+          <div class="cat-actions-right">
+            ${isFirstPage 
+              ? `<span class="badge-first-page">⭐️ 第一頁預設</span>` 
+              : `<button type="button" class="btn-set-first-page" data-cat-id="${key}">設為第一頁</button>`}
+            <button type="button" class="btn-edit-cat" data-cat-id="${key}" title="編輯此群組名稱、圖示與細項">✏️ 編輯</button>
+            <button type="button" class="btn-delete-custom-cat" data-cat-id="${key}" title="刪除此群組">🗑️ 刪除</button>
           </div>
-          ${isFirstPage 
-            ? `<span class="badge-first-page">⭐️ 第一頁預設</span>` 
-            : `<button type="button" class="btn-set-first-page" data-cat-id="${key}">設為第一頁</button>`}
-          ${isCustom 
-            ? `<button type="button" class="btn-delete-custom-cat" data-cat-id="${key}">🗑️ 刪除</button>` 
-            : `<span class="cat-badge-default">預設群組</span>`}
         </div>
       `;
 
@@ -3169,210 +3316,294 @@
       });
     });
 
+    // 綁定編輯群組按鈕
+    categoryManageList.querySelectorAll('.btn-edit-cat').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const catId = this.dataset.catId;
+        openEditCategoryModal(catId);
+      });
+    });
+
+    // 綁定刪除群組按鈕 (支援預設群組與自訂群組刪除)
     categoryManageList.querySelectorAll('.btn-delete-custom-cat').forEach(btn => {
       btn.addEventListener('click', function () {
         const catId = this.dataset.catId;
-        const customCats = loadCustomCategories();
-        const catName = customCats[catId] ? customCats[catId].label : '';
-
-        if (confirm(`確定要刪除自訂群組「${catName}」嗎？若有該群組的物品將移至「其他」`)) {
-          delete customCats[catId];
-          saveCustomCategories(customCats);
-
-          if (getFirstPageCategory() === catId) {
-            localStorage.removeItem(FIRST_PAGE_CAT_KEY);
-          }
-
-          let updated = false;
-          items.forEach(it => {
-            if (it.category === catId) {
-              it.category = 'other';
-              updated = true;
-            }
-          });
-          if (updated) saveItems();
-
-          const curOrder = getCustomCategoryOrder();
-          if (curOrder) {
-            const newOrder = curOrder.filter(k => k !== catId);
-            saveCustomCategoryOrder(newOrder);
-          }
-
-          if (currentCategoryChip === catId) {
-            currentCategoryChip = getFirstPageCategory();
-          }
-
-          renderCategoryChips();
-          populateCategorySelect();
-          populateFirstPageCategorySelect();
-          renderCategoryManageList();
-          renderCards();
-          showToast(`已刪除「${catName}」群組`);
-        }
+        deleteCategory(catId);
       });
     });
   }
 
-  // ==========================================
-  // 主頁與物品分類 左右滑動切換控制器 (Swipe Navigation)
-  // ==========================================
-  // ==========================================
-  // ==========================================
-  // 主頁與物品分類 左右直接拖曳滑動切換 (Direct Slider Gesture)
-  // ==========================================
-  if (viewsSliderViewport && viewsSliderTrack) {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isTrackingTouch = false;
-    let isHorizontalSwipe = false;
-    let startTrackOffset = 0;
-    let hasSwipedHorizontally = false;
-    let suppressClickTimer = null;
-
-    function isAnyModalOpen() {
-      const openModal = document.querySelector('.ios-modal-backdrop[style*="display: flex"], .ios-modal-backdrop[style*="display: block"]');
-      const actionSheetEl = document.getElementById('actionSheet');
-      const isSheetOpen = actionSheetEl && actionSheetEl.style.display !== 'none';
-      return !!openModal || isSheetOpen;
+  // 刪除群組 (可刪除預設群組與自訂群組)
+  function deleteCategory(catId) {
+    const allCats = getAllCategories();
+    const cat = allCats[catId];
+    if (!cat) return;
+    const catKeys = Object.keys(allCats);
+    if (catKeys.length <= 1) {
+      alert('請至少保留一個群組！');
+      return;
     }
 
-    // 捕獲階段攔截滑動後的點擊事件，避免滑動時誤觸開啟物品操作選單
-    viewsSliderViewport.addEventListener('click', function (e) {
-      if (hasSwipedHorizontally) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+    const catName = cat.label;
+    if (!confirm(`確定要刪除群組「${catName}」嗎？若該群組內有物品，將自動移至其他群組。`)) {
+      return;
+    }
+
+    // 尋找接替物品的備用群組 (優先 other, 否則第一個非當前群組)
+    let fallbackCat = 'other';
+    if (catId === 'other' || !allCats['other']) {
+      fallbackCat = catKeys.find(k => k !== catId) || '';
+    }
+
+    if (cat.isPreset || DEFAULT_CATEGORIES[catId]) {
+      // 記錄至已刪除預設清單
+      const deletedPresets = loadDeletedPresets();
+      if (!deletedPresets.includes(catId)) {
+        deletedPresets.push(catId);
+        saveDeletedPresets(deletedPresets);
       }
-    }, true);
-
-    viewsSliderViewport.addEventListener('touchstart', function (e) {
-      if (isAnyModalOpen()) return;
-      // 僅排除輸入框、選單與群組橫向膠囊列，允許觸摸物品卡片進行左右滑動
-      if (e.target.closest('#categoryChipRow') || e.target.closest('.emoji-quick-pills') || e.target.closest('input') || e.target.closest('select')) return;
-
-      const touch = e.touches[0];
-      touchStartX = touch.pageX;
-      touchStartY = touch.pageY;
-      startTrackOffset = (currentNavTab === 'today') ? 0 : -50;
-      isTrackingTouch = true;
-      isHorizontalSwipe = false;
-    }, { passive: true });
-
-    viewsSliderViewport.addEventListener('touchmove', function (e) {
-      if (!isTrackingTouch || isAnyModalOpen()) return;
-      const touch = e.touches[0];
-      const deltaX = touch.pageX - touchStartX;
-      const deltaY = touch.pageY - touchStartY;
-
-      if (!isHorizontalSwipe) {
-        if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-          isHorizontalSwipe = true;
-        } else if (Math.abs(deltaY) > 8) {
-          isTrackingTouch = false;
-          return;
-        }
+      const overrides = loadPresetOverrides();
+      if (overrides[catId]) {
+        delete overrides[catId];
+        savePresetOverrides(overrides);
       }
+    } else {
+      // 自訂群組刪除
+      const customCats = loadCustomCategories();
+      delete customCats[catId];
+      saveCustomCategories(customCats);
+    }
 
-      if (isHorizontalSwipe) {
-        if (e.cancelable) e.preventDefault();
-        hasSwipedHorizontally = true;
-        viewsSliderTrack.classList.add('dragging');
-        const viewportWidth = viewsSliderViewport.clientWidth || 375;
-        const deltaPercent = (deltaX / viewportWidth) * 50;
-        let targetPercent = startTrackOffset + deltaPercent;
-
-        // 邊界彈性阻尼 (Elastic resistance)
-        if (targetPercent > 0) {
-          targetPercent = targetPercent * 0.25;
-        } else if (targetPercent < -50) {
-          targetPercent = -50 + (targetPercent - (-50)) * 0.25;
-        }
-        viewsSliderTrack.style.transform = `translateX(${targetPercent}%)`;
-      }
-    }, { passive: false });
-
-    viewsSliderViewport.addEventListener('touchend', function (e) {
-      if (!isTrackingTouch) return;
-      isTrackingTouch = false;
-      viewsSliderTrack.classList.remove('dragging');
-
-      if (isHorizontalSwipe) {
-        hasSwipedHorizontally = true;
-        clearTimeout(suppressClickTimer);
-        suppressClickTimer = setTimeout(() => {
-          hasSwipedHorizontally = false;
-        }, 160);
-
-        const touch = e.changedTouches[0];
-        const deltaX = touch.pageX - touchStartX;
-        if (currentNavTab === 'today' && deltaX < -45) {
-          switchViewTab('inventory');
-        } else if (currentNavTab === 'inventory' && deltaX > 45) {
-          switchViewTab('today');
-        } else {
-          switchViewTab(currentNavTab); // snap back
-        }
-      }
-    }, { passive: true });
-
-    // 桌面端滑鼠拖移支援（亦允許點擊物品卡片拖曳切換）
-    let mouseStartX = 0;
-    let mouseStartY = 0;
-    let isTrackingMouse = false;
-    let isHorizontalMouseDrag = false;
-
-    viewsSliderViewport.addEventListener('mousedown', function (e) {
-      if (isAnyModalOpen() || e.target.closest('#categoryChipRow') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
-      mouseStartX = e.pageX;
-      mouseStartY = e.pageY;
-      startTrackOffset = (currentNavTab === 'today') ? 0 : -50;
-      isTrackingMouse = true;
-      isHorizontalMouseDrag = false;
-    });
-
-    window.addEventListener('mousemove', function (e) {
-      if (!isTrackingMouse) return;
-      const deltaX = e.pageX - mouseStartX;
-      const deltaY = e.pageY - mouseStartY;
-
-      if (!isHorizontalMouseDrag) {
-        if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-          isHorizontalMouseDrag = true;
-        }
-      }
-
-      if (isHorizontalMouseDrag) {
-        hasSwipedHorizontally = true;
-        viewsSliderTrack.classList.add('dragging');
-        const viewportWidth = viewsSliderViewport.clientWidth || 375;
-        const deltaPercent = (deltaX / viewportWidth) * 50;
-        let targetPercent = startTrackOffset + deltaPercent;
-        if (targetPercent > 0) targetPercent = targetPercent * 0.25;
-        else if (targetPercent < -50) targetPercent = -50 + (targetPercent - (-50)) * 0.25;
-        viewsSliderTrack.style.transform = `translateX(${targetPercent}%)`;
+    // 遷移該分類物品
+    let itemsUpdated = false;
+    items.forEach(it => {
+      if (it.category === catId) {
+        it.category = fallbackCat;
+        itemsUpdated = true;
       }
     });
+    if (itemsUpdated) saveItems();
 
-    window.addEventListener('mouseup', function (e) {
-      if (!isTrackingMouse) return;
-      isTrackingMouse = false;
-      viewsSliderTrack.classList.remove('dragging');
+    // 更新自訂順序
+    const curOrder = getCustomCategoryOrder();
+    if (curOrder && Array.isArray(curOrder)) {
+      const newOrder = curOrder.filter(k => k !== catId);
+      saveCustomCategoryOrder(newOrder);
+    }
 
-      if (isHorizontalMouseDrag) {
-        hasSwipedHorizontally = true;
-        clearTimeout(suppressClickTimer);
-        suppressClickTimer = setTimeout(() => {
-          hasSwipedHorizontally = false;
-        }, 160);
+    // 重設首頁預設分類
+    if (getFirstPageCategory() === catId) {
+      localStorage.removeItem(FIRST_PAGE_CAT_KEY);
+      const remainingCats = getAllCategories();
+      const remainingKeys = Object.keys(remainingCats);
+      if (remainingKeys.length > 0) {
+        localStorage.setItem(FIRST_PAGE_CAT_KEY, remainingKeys[0]);
+      }
+    }
 
-        const deltaX = e.pageX - mouseStartX;
-        if (currentNavTab === 'today' && deltaX < -50) {
-          switchViewTab('inventory');
-        } else if (currentNavTab === 'inventory' && deltaX > 50) {
-          switchViewTab('today');
-        } else {
-          switchViewTab(currentNavTab);
+    if (currentCategoryChip === catId) {
+      currentCategoryChip = getFirstPageCategory();
+    }
+
+    renderCategoryChips();
+    populateCategorySelect();
+    populateFirstPageCategorySelect();
+    renderCategoryManageList();
+    renderCards();
+    showToast(`已刪除「${catName}」群組`);
+  }
+
+  // 還原所有系統預設群組
+  function resetDefaultCategories() {
+    if (!confirm('確定要還原所有預設群組嗎？這將會復原被刪除的預設群組並重設為初始名稱與細項。自訂新增的群組將會保留。')) {
+      return;
+    }
+
+    saveDeletedPresets([]);
+    savePresetOverrides({});
+
+    renderCategoryChips();
+    populateCategorySelect();
+    populateFirstPageCategorySelect();
+    renderCategoryManageList();
+    renderCards();
+    showToast('↺ 已成功還原所有預設群組！');
+  }
+
+  const btnResetDefaultCategories = document.getElementById('btnResetDefaultCategories');
+  if (btnResetDefaultCategories) {
+    btnResetDefaultCategories.addEventListener('click', resetDefaultCategories);
+  }
+
+  // ==========================================
+  // Modal 9: 編輯群組資訊 (Edit Category Modal)
+  // ==========================================
+  const editCategoryModal = document.getElementById('editCategoryModal');
+  const editCategoryModalTitle = document.getElementById('editCategoryModalTitle');
+  const btnCloseEditCategoryModal = document.getElementById('btnCloseEditCategoryModal');
+  const editCatId = document.getElementById('editCatId');
+  const editCatName = document.getElementById('editCatName');
+  const editCatEmoji = document.getElementById('editCatEmoji');
+  const editEmojiQuickPills = document.getElementById('editEmojiQuickPills');
+  const editCatSubItems = document.getElementById('editCatSubItems');
+  const btnCancelEditCategory = document.getElementById('btnCancelEditCategory');
+  const btnSaveEditCategory = document.getElementById('btnSaveEditCategory');
+
+  function openEditCategoryModal(catId) {
+    const allCats = getAllCategories();
+    const cat = allCats[catId];
+    if (!cat || !editCategoryModal) return;
+
+    if (editCatId) editCatId.value = catId;
+    if (editCatName) editCatName.value = cat.label || '';
+    if (editCatEmoji) editCatEmoji.value = cat.emoji || '🏷️';
+
+    let subItemNames = [];
+    if (cat.items && Array.isArray(cat.items)) {
+      subItemNames = cat.items.map(it => it.subCat || it.name).filter(Boolean);
+    }
+    if (editCatSubItems) editCatSubItems.value = subItemNames.join(', ');
+
+    if (editCategoryModalTitle) {
+      editCategoryModalTitle.textContent = `編輯「${cat.label}」群組`;
+    }
+
+    editCategoryModal.style.display = 'flex';
+  }
+
+  function closeEditCategoryModal() {
+    if (editCategoryModal) editCategoryModal.style.display = 'none';
+  }
+
+  if (btnCloseEditCategoryModal) {
+    btnCloseEditCategoryModal.addEventListener('click', closeEditCategoryModal);
+  }
+  if (btnCancelEditCategory) {
+    btnCancelEditCategory.addEventListener('click', closeEditCategoryModal);
+  }
+  if (editCategoryModal) {
+    editCategoryModal.addEventListener('click', function (e) {
+      if (e.target === editCategoryModal) closeEditCategoryModal();
+    });
+  }
+
+  if (editEmojiQuickPills && editCatEmoji) {
+    editEmojiQuickPills.addEventListener('click', function (e) {
+      const btn = e.target.closest('.quick-emoji-btn');
+      if (btn && btn.dataset.emoji) {
+        editCatEmoji.value = btn.dataset.emoji;
+      }
+    });
+  }
+
+  if (btnSaveEditCategory) {
+    btnSaveEditCategory.addEventListener('click', function () {
+      const catId = editCatId ? editCatId.value : '';
+      const allCats = getAllCategories();
+      const cat = allCats[catId];
+      if (!catId || !cat) return;
+
+      const newName = editCatName ? editCatName.value.trim() : '';
+      if (!newName) {
+        showToast('請輸入群組名稱！');
+        if (editCatName) editCatName.focus();
+        return;
+      }
+
+      const newEmoji = (editCatEmoji && editCatEmoji.value.trim()) || '🏷️';
+      const subItemsRaw = editCatSubItems ? editCatSubItems.value.trim() : '';
+
+      const subItemList = [];
+      if (subItemsRaw) {
+        subItemsRaw.split(/[,，\n]+/).forEach(s => {
+          const itemText = s.trim();
+          if (itemText) {
+            subItemList.push({
+              name: itemText,
+              subCat: itemText,
+              emoji: newEmoji,
+              duration: 90,
+              hasEndDate: true,
+              warnDays: 14
+            });
+          }
+        });
+      }
+
+      if (cat.isPreset || DEFAULT_CATEGORIES[catId]) {
+        // 預設群組覆寫
+        const overrides = loadPresetOverrides();
+        overrides[catId] = {
+          label: newName,
+          emoji: newEmoji,
+          items: subItemList.length > 0 ? subItemList : (cat.items || [])
+        };
+        savePresetOverrides(overrides);
+      } else {
+        // 自訂群組修改
+        const customCats = loadCustomCategories();
+        if (customCats[catId]) {
+          customCats[catId].label = newName;
+          customCats[catId].emoji = newEmoji;
+          if (subItemList.length > 0) {
+            customCats[catId].items = subItemList;
+          }
+          saveCustomCategories(customCats);
         }
+      }
+
+      closeEditCategoryModal();
+      renderCategoryChips();
+      populateCategorySelect();
+      populateFirstPageCategorySelect();
+      renderCategoryManageList();
+      renderCards();
+      showToast(`🎉 已更新「${newName}」群組資訊！`);
+    });
+  }
+
+  // ==========================================
+  // 主頁與物品分類 原生 CSS Scroll Snap 滾動監聽器 (Native GPU Scroll Snap)
+  // ==========================================
+  if (viewsSliderViewport) {
+    let scrollSnapTimer = null;
+
+    viewsSliderViewport.addEventListener('scroll', function () {
+      hasSwipedHorizontally = true;
+      clearTimeout(scrollSnapTimer);
+      scrollSnapTimer = setTimeout(() => {
+        hasSwipedHorizontally = false;
+        const scrollLeft = viewsSliderViewport.scrollLeft;
+        const width = viewsSliderViewport.clientWidth || 375;
+        const targetTab = (scrollLeft >= width * 0.5) ? 'inventory' : 'today';
+        if (targetTab !== currentNavTab) {
+          currentNavTab = targetTab;
+          if (targetTab === 'today') {
+            dockTabToday.classList.add('active');
+            dockTabInventory.classList.remove('active');
+            if (headerSublabel) headerSublabel.textContent = '主頁';
+            if (headerMainTitle) headerMainTitle.textContent = '物品天數';
+          } else {
+            dockTabToday.classList.remove('active');
+            dockTabInventory.classList.add('active');
+            if (headerSublabel) headerSublabel.textContent = '物品分類';
+            if (headerMainTitle) headerMainTitle.textContent = '分類清單';
+            currentCategoryChip = getFirstPageCategory();
+            renderCategoryChips();
+            if (categoryChipRow) {
+              categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
+            }
+            updateCategoryActionBar();
+          }
+          renderApp();
+        }
+      }, 50);
+    }, { passive: true });
+
+    // 視窗大小改變時重置滾動位置, 保持在對應分頁
+    window.addEventListener('resize', () => {
+      if (viewsSliderViewport && currentNavTab === 'inventory') {
+        viewsSliderViewport.scrollTo({ left: viewsSliderViewport.clientWidth, behavior: 'instant' });
       }
     });
   }
@@ -3450,6 +3681,16 @@
   renderCategoryChips();
   populateCategorySelect();
   populateFirstPageCategorySelect();
+
+  // 視窗寬度比例初始化與監聽
+  const selectScreenFitEl = document.getElementById('selectScreenFit');
+  if (selectScreenFitEl) {
+    selectScreenFitEl.addEventListener('change', function () {
+      setScreenFit(this.value, true);
+    });
+  }
+  const savedScreenFit = localStorage.getItem(SCREEN_FIT_KEY) || 'plus';
+  setScreenFit(savedScreenFit, false);
 
   renderApp();
 

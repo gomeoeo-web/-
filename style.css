@@ -33,6 +33,23 @@
   --radius-sm: 10px;
 
   --transition-ios: 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  --app-max-width: 440px;
+}
+
+[data-screen-fit="standard"] {
+  --app-max-width: 390px;
+}
+
+[data-screen-fit="plus"] {
+  --app-max-width: 440px;
+}
+
+[data-screen-fit="tablet"] {
+  --app-max-width: 680px;
+}
+
+[data-screen-fit="full"] {
+  --app-max-width: 100%;
 }
 
 [data-theme="light"] {
@@ -88,11 +105,12 @@ html, body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  transition: max-width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 500px) {
   .ios-app-container {
-    max-width: 440px;
+    max-width: var(--app-max-width, 440px);
     padding: 2rem 1.25rem 8rem 1.25rem;
   }
 }
@@ -1759,6 +1777,48 @@ html, body {
   cursor: pointer;
 }
 
+.screen-fit-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.screen-fit-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--ios-surface-elevated);
+  color: var(--ios-text-primary);
+  border: 1px solid var(--ios-border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.38rem 1.6rem 0.38rem 0.75rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.screen-fit-select:focus {
+  border-color: #0a84ff;
+}
+.screen-fit-select-wrap .select-arrow {
+  position: absolute;
+  right: 0.55rem;
+  font-size: 0.68rem;
+  color: var(--ios-text-secondary);
+  pointer-events: none;
+}
+[data-theme="light"] .screen-fit-select {
+  background: #f2f2f7;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1c1c1e;
+}
+
+[data-screen-fit="tablet"] .items-compact-grid,
+[data-screen-fit="full"] .items-compact-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
 /* ==========================================================================
    Toast
    ========================================================================== */
@@ -2122,55 +2182,126 @@ html, body {
 
 .cat-manage-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.65rem;
   background: var(--ios-surface-secondary);
   border: 1px solid var(--ios-border);
   border-radius: var(--radius-card);
-  padding: 0.8rem 1rem;
+  padding: 0.85rem 1rem;
   transition: background 0.15s ease;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 [data-theme="light"] .cat-manage-item {
   background: #f2f2f7;
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .cat-manage-info {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cat-manage-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .cat-manage-emoji {
   font-size: 1.3rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .cat-manage-label {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--ios-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .cat-manage-subcount {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--ios-text-secondary);
-  margin-left: 0.35rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-edit-cat {
+  background: var(--ios-surface-elevated);
+  border: 1px solid var(--ios-border);
+  color: var(--ios-text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.btn-edit-cat:hover {
+  background: #0a84ff;
+  color: #ffffff;
+  border-color: #0a84ff;
+}
+[data-theme="light"] .btn-edit-cat {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #000000;
+}
+[data-theme="light"] .btn-edit-cat:hover {
+  background: #007aff;
+  color: #ffffff;
 }
 
 .btn-delete-custom-cat {
   background: rgba(255, 69, 58, 0.15);
   border: 1px solid rgba(255, 69, 58, 0.3);
   color: var(--ios-red);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.65rem;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 .btn-delete-custom-cat:hover {
   background: var(--ios-red);
   color: #ffffff;
+}
+
+.btn-reset-default-cats {
+  background: transparent;
+  border: 1px dashed var(--ios-border-strong);
+  color: var(--ios-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 1.15rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-reset-default-cats:hover {
+  border-color: var(--ios-text-primary);
+  color: var(--ios-text-primary);
+  background: var(--ios-surface-elevated);
 }
 
 .cat-badge-default {
@@ -2255,7 +2386,30 @@ html, body {
 .cat-actions-group {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 0.45rem;
+  box-sizing: border-box;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+[data-theme="light"] .cat-actions-group {
+  border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+.cat-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.cat-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -3068,27 +3222,33 @@ html, body {
 }
 
 /* ==========================================================================
-   Horizontal Views Slider (主頁與物品分類左右直接滑動切換)
+   Horizontal Views Slider (CSS 原生橫向滾動與 Snap 機制 · GPU 硬體加速)
    ========================================================================== */
 .views-slider-viewport {
   width: 100%;
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
   position: relative;
-  touch-action: pan-y;
-  contain: paint;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+  scroll-behavior: smooth;
+}
+.views-slider-viewport::-webkit-scrollbar {
+  display: none;
 }
 
 .views-slider-track {
   display: flex;
   width: 200%;
-  transform: translateX(0%);
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
+  transform: none !important;
+  transition: none !important;
+  will-change: auto;
 }
 
 .views-slider-track.dragging {
-  transition: none !important;
+  scroll-behavior: auto;
 }
 
 .view-panel {
@@ -3096,6 +3256,8 @@ html, body {
   flex-shrink: 0;
   box-sizing: border-box;
   min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   overflow-x: clip; /* 杜絕跨頁陰影溢出滲透至相鄰頁面 */
 }
 
