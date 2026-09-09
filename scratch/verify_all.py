@@ -156,7 +156,24 @@ def run_tests():
         if '二級選單' in content:
             errors.append(f"'二級選單' found in {name}")
 
-    # 22. Check server status
+    # 23. Check overscroll-behavior: contain on modals and scroll containers
+    for selector in ['.ios-modal-card', '.ios-modal-scroll', '.ios-action-sheet', '.custom-order-items-list']:
+        match = re.search(re.escape(selector) + r'\s*\{([^}]+)\}', css)
+        if not match or 'overscroll-behavior: contain' not in match.group(1):
+            errors.append(f"{selector} missing 'overscroll-behavior: contain'")
+
+    # 24. Check document.body.style.overflow = 'hidden' and reset
+    if "document.body.style.overflow = 'hidden'" not in js:
+        errors.append("document.body.style.overflow = 'hidden' missing from lockBodyScroll in app.js")
+    if "document.body.style.overflow = ''" not in js:
+        errors.append("document.body.style.overflow = '' missing from unlockBodyScroll in app.js")
+
+    # 25. Check simplified subcategories and vegetable/fruit additions
+    for term in ['青菜', '水果', '當季新鮮青菜', '當季新鮮水果', '常備高麗菜', '香蕉與熟成水果']:
+        if term not in js:
+            errors.append(f"Vegetable/fruit item or keyword '{term}' missing from app.js")
+
+    # 26. Check server status
     try:
         res = urllib.request.urlopen('http://localhost:8080/', timeout=3)
         if res.status != 200:
@@ -170,7 +187,7 @@ def run_tests():
             print(" -", err)
         return False
     else:
-        print("SUCCESS: ALL 22 QUALITY GATES AND REQUIREMENTS PASSED WITH 0 ERRORS!")
+        print("SUCCESS: ALL 25 QUALITY GATES AND REQUIREMENTS PASSED WITH 0 ERRORS!")
         return True
 
 if __name__ == '__main__':

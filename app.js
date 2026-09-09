@@ -56,84 +56,90 @@
     </svg>
   `);
 
-  // 智慧關鍵字自動匹配辭典 (支援車輛、訂閱、藥品、清潔等)
   const SMART_KEYWORD_MAP = [
     // 車輛
-    { keywords: ['機油', '机油', '輪胎', '電瓶', '火星塞', '煞車油', '剎車油', '煞車皮', '剎車皮', '雨刷', '齒輪油', '變速箱油', '車輛保養', '汽車保養', '水箱水', '機油芯', '胎壓'], emoji: '🚗', cat: 'vehicle', subCat: '機油' },
+    { keywords: ['機油', '机油', '齒輪油', '變速箱油', '機油芯'], emoji: '🚗', cat: 'vehicle', subCat: '機油' },
+    { keywords: ['輪胎', '胎壓', '補胎'], emoji: '🛞', cat: 'vehicle', subCat: '輪胎' },
+    { keywords: ['電瓶', '電池', '汽車電瓶'], emoji: '🔋', cat: 'vehicle', subCat: '電瓶' },
+    { keywords: ['雨刷', '雨刷片', '雨刷精'], emoji: '🌧️', cat: 'vehicle', subCat: '雨刷' },
+    { keywords: ['煞車', '剎車', '煞車皮', '剎車皮', '煞車油'], emoji: '🛑', cat: 'vehicle', subCat: '煞車' },
     { keywords: ['車', '機車', '汽車', 'gogoro', '重機', '檔車'], emoji: '🚗', cat: 'vehicle', subCat: '車輛' },
     
     // 訂閱
-    { keywords: ['netflix', 'disney', 'youtube', '影音'], emoji: '🎬', cat: 'subscription', subCat: '影音串流' },
-    { keywords: ['spotify', 'kkbox', 'apple music', '音樂'], emoji: '🎵', cat: 'subscription', subCat: '音樂會員' },
-    { keywords: ['icloud', 'google one', '雲端', 'dropbox'], emoji: '☁️', cat: 'subscription', subCat: '雲端空間' },
-    { keywords: ['chatgpt', 'openai', 'adobe', '軟體', 'midjourney'], emoji: '💻', cat: 'subscription', subCat: '軟體服務' },
-    { keywords: ['健身房', '會籍', '健身'], emoji: '💪', cat: 'subscription', subCat: '健身會籍' },
-    { keywords: ['訂閱', '會員', '月費', '年費', '房租', '電信', '寬頻', '電話費', '第四台'], emoji: '📅', cat: 'subscription', subCat: '電信帳單' },
+    { keywords: ['netflix', 'disney', 'youtube', '影音', '串流'], emoji: '🎬', cat: 'subscription', subCat: '影音' },
+    { keywords: ['spotify', 'kkbox', 'apple music', '音樂'], emoji: '🎵', cat: 'subscription', subCat: '音樂' },
+    { keywords: ['icloud', 'google one', '雲端', 'dropbox', 'onedrive'], emoji: '☁️', cat: 'subscription', subCat: '雲端' },
+    { keywords: ['chatgpt', 'openai', 'adobe', '軟體', 'midjourney', 'copilot'], emoji: '💻', cat: 'subscription', subCat: '軟體' },
+    { keywords: ['健身房', '會籍', '健身', '瑜珈'], emoji: '💪', cat: 'subscription', subCat: '健身' },
+    { keywords: ['訂閱', '會員', '月費', '年費', '房租', '電信', '寬頻', '電話費', '第四台'], emoji: '📅', cat: 'subscription', subCat: '電信' },
     
     // 藥品
     { keywords: ['眼藥水', '人工淚液'], emoji: '💊', cat: 'medicine', subCat: '眼藥水' },
-    { keywords: ['維他命', '維生素'], emoji: '💊', cat: 'medicine', subCat: '維他命' },
-    { keywords: ['魚油', '葉黃素', '益生菌', '保健品'], emoji: '🐟', cat: 'medicine', subCat: '保健品' },
-    { keywords: ['藥膏', '皮膚膏', '抗生素'], emoji: '🩹', cat: 'medicine', subCat: '外用藥膏' },
-    { keywords: ['止痛藥', '感冒藥', '胃藥', '成藥', '膠囊', '錠', '藥'], emoji: '🩺', cat: 'medicine', subCat: '常備成藥' },
-    { keywords: ['隱形眼鏡', '保養液', '洗眼液'], emoji: '👁️', cat: 'medicine', subCat: '隱眼保養' },
+    { keywords: ['維他命', '維生素', 'b群', '維他命c'], emoji: '💊', cat: 'medicine', subCat: '維他命' },
+    { keywords: ['魚油', '葉黃素', '益生菌', '保健品', '膠原蛋白'], emoji: '🐟', cat: 'medicine', subCat: '魚油' },
+    { keywords: ['藥膏', '皮膚膏', '抗生素', '曼秀雷敦'], emoji: '🩹', cat: 'medicine', subCat: '藥膏' },
+    { keywords: ['止痛藥', '感冒藥', '胃藥', '成藥', '膠囊', '錠', '藥'], emoji: '🩺', cat: 'medicine', subCat: '成藥' },
+    { keywords: ['隱形眼鏡', '保養液', '洗眼液', '隱眼'], emoji: '👁️', cat: 'medicine', subCat: '保養液' },
     
     // 清潔
-    { keywords: ['菜瓜布', '海綿'], emoji: '🧼', cat: 'cleaning', subCat: '菜瓜布' },
-    { keywords: ['洗衣精', '洗衣球', '洗衣膠囊'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
+    { keywords: ['菜瓜布', '海綿', '科技海綿'], emoji: '🧼', cat: 'cleaning', subCat: '菜瓜布' },
+    { keywords: ['洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
     { keywords: ['洗碗精', '洗潔精'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
-    { keywords: ['抹布', '拖把', '除塵拖'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
-    { keywords: ['潔廁劑', '馬桶刷', '芳香劑'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
-    { keywords: ['酒精', '消毒水', '漂白水'], emoji: '🧴', cat: 'cleaning', subCat: '消毒酒精' },
+    { keywords: ['抹布', '拖把', '除塵拖', '除塵紙'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
+    { keywords: ['潔廁劑', '馬桶刷', '芳香劑', '馬桶清潔'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
+    { keywords: ['酒精', '消毒水', '漂白水', '乾洗手'], emoji: '🧴', cat: 'cleaning', subCat: '酒精' },
     
     // 耗材
-    { keywords: ['濾網', '清淨機', 'hepa', '空氣'], emoji: '🌀', cat: 'filter', subCat: '空氣濾網' },
-    { keywords: ['濾芯', '濾心', '淨水', 'ro', '飲水'], emoji: '💧', cat: 'filter', subCat: '淨水濾芯' },
-    { keywords: ['牙刷', '刷頭'], emoji: '🪥', cat: 'filter', subCat: '牙刷刷頭' },
-    { keywords: ['除濕盒', '除濕劑', '乾燥劑', '克潮靈'], emoji: '🌧️', cat: 'filter', subCat: '防潮除濕' },
+    { keywords: ['濾網', '清淨機', 'hepa', '冷氣濾網', '空氣濾網'], emoji: '🌀', cat: 'filter', subCat: '濾網' },
+    { keywords: ['濾芯', '濾心', '淨水', 'ro', '飲水', '濾水壺'], emoji: '💧', cat: 'filter', subCat: '濾芯' },
+    { keywords: ['牙刷', '刷頭', '音波牙刷'], emoji: '🪥', cat: 'filter', subCat: '牙刷' },
+    { keywords: ['除濕盒', '除濕劑', '乾燥劑', '克潮靈', '防潮包'], emoji: '🌧️', cat: 'filter', subCat: '除濕盒' },
     { keywords: ['吸塵器', '掃地機', '掃地機器人', 'dyson'], emoji: '🧹', cat: 'filter', subCat: '掃地耗材' },
-    { keywords: ['冷氣', '空調', '暖氣'], emoji: '❄️', cat: 'filter', subCat: '空氣濾網' },
     
     // 保固
-    { keywords: ['椅', 'chair', '沙發', '辦公椅', '人體工學'], emoji: '🪑', cat: 'warranty', subCat: '家具' },
-    { keywords: ['電腦', '筆電', 'mac', 'macbook', 'pc', '主機'], emoji: '💻', cat: 'warranty', subCat: '電腦設備' },
-    { keywords: ['手機', 'iphone', 'pixel', 'galaxy', 'android'], emoji: '📱', cat: 'warranty', subCat: '手機設備' },
-    { keywords: ['耳機', 'airpods', 'buds', 'headphone'], emoji: '🎧', cat: 'warranty', subCat: '影音設備' },
-    { keywords: ['電視', '螢幕', '顯示器', 'tv', '冰箱', '洗衣機'], emoji: '📺', cat: 'warranty', subCat: '家電' },
-    { keywords: ['手錶', '錶', 'watch', 'apple watch'], emoji: '⌚', cat: 'warranty', subCat: '穿戴裝置' },
-    { keywords: ['相機', '單眼', '鏡頭', 'gopro'], emoji: '📷', cat: 'warranty', subCat: '影音設備' },
+    { keywords: ['椅', 'chair', '沙發', '辦公椅', '人體工學', '桌'], emoji: '🪑', cat: 'warranty', subCat: '家具' },
+    { keywords: ['電腦', '筆電', 'mac', 'macbook', 'pc', '主機', 'ipad'], emoji: '💻', cat: 'warranty', subCat: '電腦' },
+    { keywords: ['手機', 'iphone', 'pixel', 'galaxy', 'android'], emoji: '📱', cat: 'warranty', subCat: '手機' },
+    { keywords: ['耳機', 'airpods', 'buds', 'headphone', '喇叭'], emoji: '🎧', cat: 'warranty', subCat: '耳機' },
+    { keywords: ['電視', '螢幕', '顯示器', 'tv', '冰箱', '洗衣機', '冷氣'], emoji: '📺', cat: 'warranty', subCat: '家電' },
+    { keywords: ['手錶', '錶', 'watch', 'apple watch'], emoji: '⌚', cat: 'warranty', subCat: '手錶' },
     
-    // 食品
-    { keywords: ['奶', '乳', 'milk', '鮮乳', '優格', '起司'], emoji: '🥛', cat: 'food', subCat: '鮮乳飲品' },
-    { keywords: ['咖啡', '咖啡豆', '咖啡粉'], emoji: '☕', cat: 'food', subCat: '咖啡豆' },
-    { keywords: ['蛋', '雞蛋'], emoji: '🥚', cat: 'food', subCat: '蛋品' },
-    { keywords: ['茶', '茶葉', '茶包'], emoji: '🍵', cat: 'food', subCat: '乾貨茶包' },
+    // 食品 (新增青菜、水果等豐富項目)
+    { keywords: ['青菜', '蔬菜', '葉菜', '菠菜', '空心菜', '高麗菜', '花椰菜', '地瓜葉', '大白菜', '芹菜', '萵苣', '豆芽', '小白菜'], emoji: '🥬', cat: 'food', subCat: '青菜' },
+    { keywords: ['水果', '蘋果', '香蕉', '芭樂', '橘子', '柳丁', '葡萄', '奇異果', '芒果', '西瓜', '草莓', '檸檬', '番茄', '鳳梨', '水蜜桃'], emoji: '🍎', cat: 'food', subCat: '水果' },
+    { keywords: ['奶', '乳', 'milk', '鮮乳', '優格', '起司', '鮮奶', '豆漿'], emoji: '🥛', cat: 'food', subCat: '鮮乳' },
+    { keywords: ['咖啡', '咖啡豆', '咖啡粉', '美式', '拿鐵', '濾掛'], emoji: '☕', cat: 'food', subCat: '咖啡' },
+    { keywords: ['蛋', '雞蛋', '鴨蛋', '茶葉蛋'], emoji: '🥚', cat: 'food', subCat: '雞蛋' },
+    { keywords: ['茶', '茶葉', '茶包', '烏龍茶', '綠茶', '紅茶'], emoji: '🍵', cat: 'food', subCat: '茶包' },
+    { keywords: ['醬油', '鹽', '糖', '油', '醋', '調味料', '胡椒', '沙拉醬'], emoji: '🧂', cat: 'food', subCat: '調味料' },
+    { keywords: ['零食', '堅果', '餅乾', '巧克力', '洋芋片', '點心'], emoji: '🍪', cat: 'food', subCat: '零食' },
     
     // 日用
-    { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐'], emoji: '🧴', cat: 'pao', subCat: '洗沐保養' },
-    { keywords: ['防曬', '隔離', '粉底'], emoji: '☀️', cat: 'pao', subCat: '防曬防護' },
-    { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕'], emoji: '✨', cat: 'pao', subCat: '臉部保養' },
-    { keywords: ['護手霜'], emoji: '👐', cat: 'pao', subCat: '護手乳霜' },
-    { keywords: ['牙膏'], emoji: '🪥', cat: 'pao', subCat: '口腔清潔' },
+    { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
+    { keywords: ['防曬', '隔離', '粉底', '防曬乳'], emoji: '☀️', cat: 'pao', subCat: '防曬' },
+    { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕', '眼霜'], emoji: '✨', cat: 'pao', subCat: '保養' },
+    { keywords: ['護手霜', '護唇膏'], emoji: '👐', cat: 'pao', subCat: '護手霜' },
+    { keywords: ['牙膏', '漱口水'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
+    { keywords: ['刮鬍刀', '刀頭', '刮鬍泡'], emoji: '🪒', cat: 'pao', subCat: '刮鬍刀' },
     
     // 其他
-    { keywords: ['鞋', '球鞋', '皮鞋', '運動鞋'], emoji: '👟', cat: 'other', subCat: '球鞋穿著' },
-    { keywords: ['包', '背包', '皮夾', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋皮件' },
-    { keywords: ['衣服', '外套', '褲', '襯衫'], emoji: '👕', cat: 'other', subCat: '衣物服飾' },
-    { keywords: ['書', '筆記本', '小說'], emoji: '📚', cat: 'other', subCat: '文具圖書' }
+    { keywords: ['鞋', '球鞋', '皮鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
+    { keywords: ['包', '背包', '皮夾', '手提包', '公事包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
+    { keywords: ['衣服', '外套', '褲', '襯衫', '大衣'], emoji: '🧥', cat: 'other', subCat: '衣物' },
+    { keywords: ['書', '筆記本', '小說', '文具'], emoji: '📚', cat: 'other', subCat: '圖書' }
   ];
 
-  // 一級與二級分類預設辭典
+  // 一級與細項分類預設辭典
   const DEFAULT_CATEGORIES = {
     vehicle: {
       label: '車輛',
       emoji: '🚗',
       items: [
-        { name: '汽車機油更換', subCat: '機油', emoji: '🚗', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Mobil 1 全合成', location: '車庫', notes: '建議每 6 個月或 5,000 公里更換機油與機油芯' },
-        { name: '汽車輪胎對調', subCat: '輪胎', emoji: '🛞', duration: 180, hasEndDate: true, warnDays: 14, location: '車庫', notes: '定期檢測胎紋深度與輪胎對調' },
-        { name: '汽車電瓶檢測', subCat: '電瓶', emoji: '🔋', duration: 730, hasEndDate: true, warnDays: 30, location: '引擎室', notes: '鉛酸/AGM電瓶壽命約 2~3 年' },
-        { name: '雨刷更換', subCat: '雨刷', emoji: '🌧️', duration: 180, hasEndDate: true, warnDays: 14, location: '前擋風玻璃', notes: '橡膠條老化易刷不乾淨，半年至一年換新' },
-        { name: '煞車油/皮更換', subCat: '煞車', emoji: '🛑', duration: 730, hasEndDate: true, warnDays: 30, location: '底盤煞車系統', notes: '檢查煞車來令片厚度與煞車油含水量' },
+        { name: '汽車機油', subCat: '機油', emoji: '🚗', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Mobil 1 全合成', location: '車庫', notes: '建議每 6 個月或 5,000 公里更換機油與機油芯' },
+        { name: '汽車輪胎', subCat: '輪胎', emoji: '🛞', duration: 180, hasEndDate: true, warnDays: 14, location: '車庫', notes: '定期檢測胎紋深度與輪胎對調' },
+        { name: '汽車電瓶', subCat: '電瓶', emoji: '🔋', duration: 730, hasEndDate: true, warnDays: 30, location: '引擎室', notes: '鉛酸/AGM電瓶壽命約 2~3 年' },
+        { name: '汽車雨刷', subCat: '雨刷', emoji: '🌧️', duration: 180, hasEndDate: true, warnDays: 14, location: '前擋風玻璃', notes: '橡膠條老化易刷不乾淨，半年至一年換新' },
+        { name: '煞車來令片', subCat: '煞車', emoji: '🛑', duration: 730, hasEndDate: true, warnDays: 30, location: '底盤煞車系統', notes: '檢查煞車來令片厚度與煞車油含水量' },
         { name: '機車齒輪油', subCat: '齒輪油', emoji: '🛵', duration: 90, hasEndDate: true, warnDays: 7, location: '機車齒輪箱', notes: '換 2 次機油換 1 次齒輪油' }
       ]
     },
@@ -141,36 +147,36 @@
       label: '訂閱',
       emoji: '📅',
       items: [
-        { name: '串流影音會員', subCat: '影音串流', emoji: '🎬', duration: 30, hasEndDate: true, warnDays: 3, brand: 'Netflix / Disney+', location: '線上自動扣款', notes: '每月固定扣款前提醒，及時確認是否續訂' },
-        { name: '串流音樂會員', subCat: '音樂會員', emoji: '🎵', duration: 30, hasEndDate: true, warnDays: 3, brand: 'Spotify / Apple Music', location: '線上自動扣款', notes: '每月固定續約扣款' },
-        { name: '雲端硬碟空間', subCat: '雲端空間', emoji: '☁️', duration: 365, hasEndDate: true, warnDays: 14, brand: 'iCloud / Google One', location: '年度訂閱', notes: '年費自動續訂提醒' },
-        { name: '專業軟體服務', subCat: '軟體服務', emoji: '💻', duration: 30, hasEndDate: true, warnDays: 3, brand: 'ChatGPT / Adobe', location: '信用卡定期扣款', notes: '工作軟體月租方案' },
-        { name: '健身房運動會籍', subCat: '健身會籍', emoji: '💪', duration: 365, hasEndDate: true, warnDays: 14, location: '運動中心', notes: '年度會籍到期前評估是否續約' },
-        { name: '寬頻網路與通話', subCat: '電信帳單', emoji: '📶', duration: 30, hasEndDate: true, warnDays: 3, location: '電信帳單', notes: '每月固網光纖與手機資費結帳' }
+        { name: '串流影音', subCat: '影音', emoji: '🎬', duration: 30, hasEndDate: true, warnDays: 3, brand: 'Netflix / Disney+', location: '線上扣款', notes: '每月固定扣款前提醒，及時確認是否續訂' },
+        { name: '串流音樂', subCat: '音樂', emoji: '🎵', duration: 30, hasEndDate: true, warnDays: 3, brand: 'Spotify / Apple Music', location: '線上扣款', notes: '每月固定續約扣款' },
+        { name: '雲端硬碟', subCat: '雲端', emoji: '☁️', duration: 365, hasEndDate: true, warnDays: 14, brand: 'iCloud / Google One', location: '年度訂閱', notes: '年費自動續訂提醒' },
+        { name: '專業軟體', subCat: '軟體', emoji: '💻', duration: 30, hasEndDate: true, warnDays: 3, brand: 'ChatGPT / Adobe', location: '定期扣款', notes: '工作軟體月租方案' },
+        { name: '健身會籍', subCat: '健身', emoji: '💪', duration: 365, hasEndDate: true, warnDays: 14, location: '運動中心', notes: '年度會籍到期前評估是否續約' },
+        { name: '寬頻電信', subCat: '電信', emoji: '📶', duration: 30, hasEndDate: true, warnDays: 3, location: '電信帳單', notes: '每月固網光纖與手機資費結帳' }
       ]
     },
     medicine: {
       label: '藥品',
       emoji: '💊',
       items: [
-        { name: '眼藥水開封', subCat: '眼藥水', emoji: '💊', duration: 30, hasEndDate: true, warnDays: 5, brand: '保濕眼藥水', location: '辦公桌抽屜', notes: '眼藥水開瓶接觸空氣後，請於 30 天內丟棄' },
+        { name: '保濕眼藥水', subCat: '眼藥水', emoji: '💊', duration: 30, hasEndDate: true, warnDays: 5, brand: '保濕眼藥水', location: '辦公桌抽屜', notes: '眼藥水開瓶接觸空氣後，請於 30 天內丟棄' },
         { name: '綜合維他命', subCat: '維他命', emoji: '💊', duration: 180, hasEndDate: true, warnDays: 14, brand: '善存', location: '客廳茶几', notes: '每日食用一顆，開封後半年內食用完畢' },
-        { name: '深海魚油膠囊', subCat: '魚油保健', emoji: '🐟', duration: 180, hasEndDate: true, warnDays: 14, location: '餐桌藥盒', notes: '避免陽光高溫直射，保持密封乾燥' },
-        { name: '外用皮膚藥膏', subCat: '外用藥膏', emoji: '🩹', duration: 180, hasEndDate: true, warnDays: 14, location: '常備急救箱', notes: '皮膚軟膏開封後定期確認是否變質' },
-        { name: '家庭常備感冒藥', subCat: '常備成藥', emoji: '🩺', duration: 365, hasEndDate: true, warnDays: 30, location: '常備醫藥箱', notes: '定期檢視藥箱內感冒止痛藥品效期' },
-        { name: '隱形眼鏡保養液', subCat: '隱眼保養', emoji: '👁️', duration: 90, hasEndDate: true, warnDays: 7, location: '洗手台置物櫃', notes: '浸泡保養液開瓶後建議 3 個月內用畢' }
+        { name: '深海魚油', subCat: '魚油', emoji: '🐟', duration: 180, hasEndDate: true, warnDays: 14, location: '餐桌藥盒', notes: '避免陽光高溫直射，保持密封乾燥' },
+        { name: '外用藥膏', subCat: '藥膏', emoji: '🩹', duration: 180, hasEndDate: true, warnDays: 14, location: '常備急救箱', notes: '皮膚軟膏開封後定期確認是否變質' },
+        { name: '常備感冒藥', subCat: '成藥', emoji: '🩺', duration: 365, hasEndDate: true, warnDays: 30, location: '常備醫藥箱', notes: '定期檢視藥箱內感冒止痛藥品效期' },
+        { name: '隱眼保養液', subCat: '保養液', emoji: '👁️', duration: 90, hasEndDate: true, warnDays: 7, location: '洗手台置物櫃', notes: '浸泡保養液開瓶後建議 3 個月內用畢' }
       ]
     },
     cleaning: {
       label: '清潔',
       emoji: '🧼',
       items: [
-        { name: '廚房菜瓜布更換', subCat: '菜瓜布', emoji: '🧼', duration: 30, hasEndDate: true, warnDays: 5, brand: '3M 百利', location: '廚房流理台', notes: '潮濕環境易藏污納垢，每個月定期更換' },
+        { name: '廚房菜瓜布', subCat: '菜瓜布', emoji: '🧼', duration: 30, hasEndDate: true, warnDays: 5, brand: '3M 百利', location: '廚房流理台', notes: '潮濕環境易藏污納垢，每個月定期更換' },
         { name: '濃縮洗衣精', subCat: '洗衣精', emoji: '🧺', duration: 90, hasEndDate: true, warnDays: 7, brand: 'Ariel 洗衣精', location: '工作陽台', notes: '家庭常備清潔用品，定期補貨' },
-        { name: '食品級洗碗精', subCat: '洗碗精', emoji: '🍽️', duration: 60, hasEndDate: true, warnDays: 7, location: '廚房洗滌槽', notes: '溫和洗淨碗盤油脂' },
-        { name: '流理台擦拭抹布', subCat: '抹布', emoji: '🧽', duration: 30, hasEndDate: true, warnDays: 5, location: '廚房中島', notes: '抹布容易滋生細菌，每月定期換新' },
-        { name: '馬桶清潔芳香劑', subCat: '潔廁劑', emoji: '🚽', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衛浴', notes: '抑菌除垢，持續芳香' },
-        { name: '環境消毒酒精', subCat: '消毒酒精', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, location: '玄關置物櫃', notes: '75% 消毒酒精日常環境維護' }
+        { name: '洗碗精', subCat: '洗碗精', emoji: '🍽️', duration: 60, hasEndDate: true, warnDays: 7, location: '廚房洗滌槽', notes: '溫和洗淨碗盤油脂' },
+        { name: '擦拭抹布', subCat: '抹布', emoji: '🧽', duration: 30, hasEndDate: true, warnDays: 5, location: '廚房中島', notes: '抹布容易滋生細菌，每月定期換新' },
+        { name: '潔廁芳香劑', subCat: '潔廁劑', emoji: '🚽', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衛浴', notes: '抑菌除垢，持續芳香' },
+        { name: '消毒酒精', subCat: '酒精', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, location: '玄關置物櫃', notes: '75% 消毒酒精日常環境維護' }
       ]
     },
     warranty: {
@@ -178,57 +184,61 @@
       emoji: '🛡️',
       items: [
         { name: '我的椅子', subCat: '家具', emoji: '🪑', image: CHAIR_SVG_BASE64, duration: 1097, hasEndDate: true, warnDays: 30, brand: 'Herman Miller', location: '書房', notes: '3 年原廠結構與氣壓棒保固' },
-        { name: '筆記型電腦', subCat: '電腦設備', emoji: '💻', duration: 730, hasEndDate: true, warnDays: 30, brand: 'Apple MacBook', location: '工作桌', notes: '2 年有限硬體原廠保固' },
-        { name: '智慧旗艦手機', subCat: '手機設備', emoji: '📱', duration: 365, hasEndDate: true, warnDays: 30, brand: 'iPhone', location: '隨身', notes: '原廠 1 年有限保固與電池健檢' },
-        { name: '抗噪藍牙耳機', subCat: '影音設備', emoji: '🎧', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Sony', location: '防潮箱', notes: '1 年原廠有限保固' },
-        { name: '家用大型電器', subCat: '家電', emoji: '📺', duration: 1095, hasEndDate: true, warnDays: 60, brand: 'Panasonic', location: '客廳', notes: '主要壓縮機/面板 3 年保固' },
-        { name: '智慧運動手錶', subCat: '穿戴裝置', emoji: '⌚', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Apple Watch', location: '臥室充電座', notes: '原廠 1 年保固' }
+        { name: '筆記型電腦', subCat: '電腦', emoji: '💻', duration: 730, hasEndDate: true, warnDays: 30, brand: 'Apple MacBook', location: '工作桌', notes: '2 年有限硬體原廠保固' },
+        { name: '智慧型手機', subCat: '手機', emoji: '📱', duration: 365, hasEndDate: true, warnDays: 30, brand: 'iPhone', location: '隨身', notes: '原廠 1 年有限保固與電池健檢' },
+        { name: '藍牙耳機', subCat: '耳機', emoji: '🎧', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Sony', location: '防潮箱', notes: '1 年原廠有限保固' },
+        { name: '家用電器', subCat: '家電', emoji: '📺', duration: 1095, hasEndDate: true, warnDays: 60, brand: 'Panasonic', location: '客廳', notes: '主要壓縮機/面板 3 年保固' },
+        { name: '智慧手錶', subCat: '手錶', emoji: '⌚', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Apple Watch', location: '臥室充電座', notes: '原廠 1 年保固' }
       ]
     },
     filter: {
       label: '耗材',
       emoji: '🔄',
       items: [
-        { name: '清淨機濾網', subCat: '空氣濾網', emoji: '🌀', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Honeywell', location: '客廳', notes: '每 6 個月定期換新 HEPA 濾網' },
-        { name: '淨水器濾芯', subCat: '淨水濾芯', emoji: '💧', duration: 90, hasEndDate: true, warnDays: 7, brand: '3M 淨水', location: '廚房流理台', notes: '建議每季定期更換活性碳濾芯' },
-        { name: '音波牙刷刷頭', subCat: '牙刷刷頭', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, brand: 'Philips', location: '衛浴鏡櫃', notes: '刷毛退色分岔即應更換' },
-        { name: '防潮集水除濕盒', subCat: '防潮除濕', emoji: '🌧️', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衣櫃', notes: '集水線滿時請及時更換替換包' },
-        { name: '掃地機主刷耗材', subCat: '掃地耗材', emoji: '🧹', duration: 180, hasEndDate: true, warnDays: 14, location: '客廳基站', notes: '滾刷與邊刷定期清理與換新' },
-        { name: '義式咖啡機除鈣', subCat: '咖啡保養', emoji: '☕', duration: 90, hasEndDate: true, warnDays: 7, location: '廚房吧台', notes: '水路管線定期除鈣延長機器壽命' }
+        { name: '清淨機濾網', subCat: '濾網', emoji: '🌀', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Honeywell', location: '客廳', notes: '每 6 個月定期換新 HEPA 濾網' },
+        { name: '淨水器濾芯', subCat: '濾芯', emoji: '💧', duration: 90, hasEndDate: true, warnDays: 7, brand: '3M 淨水', location: '廚房流理台', notes: '建議每季定期更換活性碳濾芯' },
+        { name: '音波牙刷刷頭', subCat: '牙刷', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, brand: 'Philips', location: '衛浴鏡櫃', notes: '刷毛退色分岔即應更換' },
+        { name: '集水除濕盒', subCat: '除濕盒', emoji: '🌧️', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衣櫃', notes: '集水線滿時請及時更換替換包' },
+        { name: '掃地機主刷', subCat: '掃地耗材', emoji: '🧹', duration: 180, hasEndDate: true, warnDays: 14, location: '客廳基站', notes: '滾刷與邊刷定期清理與換新' },
+        { name: '咖啡機除鈣劑', subCat: '咖啡保養', emoji: '☕', duration: 90, hasEndDate: true, warnDays: 7, location: '廚房吧台', notes: '水路管線定期除鈣延長機器壽命' }
       ]
     },
     food: {
       label: '食品',
-      emoji: '🥛',
+      emoji: '🥦',
       items: [
-        { name: '家庭號鮮乳', subCat: '鮮乳飲品', emoji: '🥛', duration: 12, hasEndDate: true, warnDays: 3, brand: '全脂鮮乳', location: '冰箱冷藏', notes: '開封後請於 7 天內飲用完畢' },
-        { name: '淺焙單品咖啡豆', subCat: '咖啡豆', emoji: '☕', duration: 30, hasEndDate: true, warnDays: 5, location: '乾燥陰涼處', notes: '拆封後最佳香氣賞味期 1 個月' },
-        { name: '新鮮產地雞蛋', subCat: '蛋品', emoji: '🥚', duration: 21, hasEndDate: true, warnDays: 3, location: '冰箱蛋架', notes: '低溫冷藏，留意最佳食用期' },
-        { name: '阿里山高山茶包', subCat: '乾貨茶包', emoji: '🍵', duration: 180, hasEndDate: true, warnDays: 14, location: '茶水櫃', notes: '密封防潮，維持高雅茶香' },
-        { name: '常用調味純釀醬油', subCat: '調味料', emoji: '🧂', duration: 90, hasEndDate: true, warnDays: 7, location: '冰箱調味格', notes: '開瓶接觸空氣後建議冷藏保存' },
-        { name: '烘焙無調味堅果', subCat: '零食乾果', emoji: '🍪', duration: 60, hasEndDate: true, warnDays: 7, location: '零食收納盒', notes: '拆封後儘早食用防油脂氧化' }
+        { name: '當季新鮮青菜', subCat: '青菜', emoji: '🥬', duration: 5, hasEndDate: true, warnDays: 2, brand: '水耕蔬菜', location: '冰箱蔬果室', notes: '綠葉蔬菜保鮮期約 3~5 天，建議盡早食用' },
+        { name: '常備高麗菜', subCat: '青菜', emoji: '🥗', duration: 10, hasEndDate: true, warnDays: 3, location: '冰箱蔬果室', notes: '包葉蔬菜冷藏保存約 7~10 天' },
+        { name: '當季新鮮水果', subCat: '水果', emoji: '🍎', duration: 7, hasEndDate: true, warnDays: 2, brand: '蘋果/芭樂/柑橘', location: '水果籃/冷藏', notes: '新鮮水果建議一週內享用完畢' },
+        { name: '香蕉與熟成水果', subCat: '水果', emoji: '🍌', duration: 4, hasEndDate: true, warnDays: 2, location: '室溫通風處', notes: '常溫保存，果皮微斑為最佳賞味期' },
+        { name: '全脂鮮乳', subCat: '鮮乳', emoji: '🥛', duration: 12, hasEndDate: true, warnDays: 3, brand: '全脂鮮乳', location: '冰箱冷藏', notes: '開封後請於 7 天內飲用完畢' },
+        { name: '產地新鮮蛋', subCat: '雞蛋', emoji: '🥚', duration: 21, hasEndDate: true, warnDays: 3, brand: '放牧鮮蛋', location: '冰箱蛋架', notes: '低溫冷藏保存，留意最佳賞味期' },
+        { name: '精品咖啡豆', subCat: '咖啡', emoji: '☕', duration: 30, hasEndDate: true, warnDays: 5, location: '乾燥陰涼處', notes: '拆封後最佳香氣賞味期 1 個月' },
+        { name: '高山茶包', subCat: '茶包', emoji: '🍵', duration: 180, hasEndDate: true, warnDays: 14, location: '茶水櫃', notes: '密封防潮，維持高雅茶香' },
+        { name: '純釀醬油', subCat: '調味料', emoji: '🧂', duration: 90, hasEndDate: true, warnDays: 7, location: '冰箱調味格', notes: '開瓶接觸空氣後建議冷藏保存' },
+        { name: '綜合堅果', subCat: '零食', emoji: '🍪', duration: 60, hasEndDate: true, warnDays: 7, location: '零食收納盒', notes: '拆封後儘早食用防止油脂氧化' }
       ]
     },
     pao: {
       label: '日用',
       emoji: '🧴',
       items: [
-        { name: '沐浴乳/洗髮露', subCat: '洗沐保養', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Aesop', location: '主臥浴室', notes: '開封後 6 個月內用畢' },
-        { name: '全效臉部防曬乳', subCat: '防曬防護', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, brand: '防曬露', location: '化妝台', notes: '防曬成分開封後防護力逐月衰減' },
-        { name: '玻尿酸保濕精華', subCat: '臉部保養', emoji: '✨', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '開封後避光保存，保持滴管清潔' },
-        { name: '乳油木果護手霜', subCat: '護手乳霜', emoji: '👐', duration: 180, hasEndDate: true, warnDays: 14, location: '辦公桌', notes: '隨身保濕滋潤' },
-        { name: '抗敏感含氟牙膏', subCat: '口腔清潔', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, location: '浴室洗手台', notes: '早晚日常口腔護理' },
-        { name: '五刀片刮鬍刀頭', subCat: '個人理容', emoji: '🪒', duration: 30, hasEndDate: true, warnDays: 5, location: '淋浴間', notes: '潤滑條褪色或刀片變鈍時及時更換' }
+        { name: '沐浴洗髮露', subCat: '洗沐', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Aesop', location: '主臥浴室', notes: '開封後 6 個月內用畢' },
+        { name: '臉部防曬乳', subCat: '防曬', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, brand: '防曬露', location: '化妝台', notes: '防曬成分開封後防護力逐月衰減' },
+        { name: '保濕精華液', subCat: '保養', emoji: '✨', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '開封後避光保存，保持滴管清潔' },
+        { name: '滋潤護手霜', subCat: '護手霜', emoji: '👐', duration: 180, hasEndDate: true, warnDays: 14, location: '辦公桌', notes: '隨身保濕滋潤' },
+        { name: '含氟牙膏', subCat: '牙膏', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, location: '浴室洗手台', notes: '早晚日常口腔護理' },
+        { name: '刮鬍刀頭', subCat: '刮鬍刀', emoji: '🪒', duration: 30, hasEndDate: true, warnDays: 5, location: '淋浴間', notes: '潤滑條褪色或刀片變鈍時及時更換' }
       ]
     },
     other: {
       label: '其他',
       emoji: '📌',
       items: [
-        { name: '緩震慢跑球鞋', subCat: '球鞋穿著', emoji: '👟', brand: 'Nike Invincible', location: '玄關鞋櫃', hasEndDate: false, notes: '僅記錄購買穿著天數，定期檢視中底衰退' },
-        { name: '商務防潑水背包', subCat: '包袋皮件', emoji: '🎒', location: '玄關掛架', hasEndDate: false, notes: '通勤耐用度與陪伴使用天數記錄' },
-        { name: '經典羊毛大衣', subCat: '衣物服飾', emoji: '🧥', location: '臥室衣櫃', hasEndDate: false, notes: '換季送洗與收納天數' },
-        { name: '正在閱讀的書籍', subCat: '文具圖書', emoji: '📚', location: '床頭櫃', hasEndDate: false, notes: '閱讀進度陪伴天數' }
+        { name: '慢跑球鞋', subCat: '球鞋', emoji: '👟', brand: 'Nike Invincible', location: '玄關鞋櫃', hasEndDate: false, notes: '僅記錄購買穿著天數，定期檢視中底衰退' },
+        { name: '商務背包', subCat: '包袋', emoji: '🎒', location: '玄關掛架', hasEndDate: false, notes: '通勤耐用度與陪伴使用天數記錄' },
+        { name: '羊毛大衣', subCat: '衣物', emoji: '🧥', location: '臥室衣櫃', hasEndDate: false, notes: '換季送洗與收納天數' },
+        { name: '閱讀書籍', subCat: '圖書', emoji: '📚', location: '床頭櫃', hasEndDate: false, notes: '閱讀進度陪伴天數' }
       ]
     }
   };
@@ -405,7 +415,7 @@
       },
       {
         id: 'seed-caroil',
-        name: '汽車機油更換',
+        name: '汽車機油',
         category: 'vehicle',
         subCategory: '機油',
         emoji: '🚗',
@@ -422,9 +432,9 @@
       },
       {
         id: 'seed-subscription',
-        name: '串流影音會員',
+        name: '串流影音',
         category: 'subscription',
-        subCategory: '影音串流',
+        subCategory: '影音',
         emoji: '🎬',
         location: '線上自動扣款',
         brand: 'Netflix 4K',
@@ -439,7 +449,7 @@
       },
       {
         id: 'seed-eyedrops',
-        name: '眼藥水開封',
+        name: '保濕眼藥水',
         category: 'medicine',
         subCategory: '眼藥水',
         emoji: '💊',
@@ -475,7 +485,7 @@
         id: 'seed-filter',
         name: '清淨機濾網',
         category: 'filter',
-        subCategory: '空氣濾網',
+        subCategory: '濾網',
         emoji: '🌀',
         location: '客廳',
         brand: 'Honeywell HPA-200',
@@ -491,10 +501,44 @@
         createdAt: Date.now() - 90 * 86400000
       },
       {
-        id: 'seed-milk',
-        name: '家庭號鮮乳',
+        id: 'seed-vegetable',
+        name: '當季新鮮青菜',
         category: 'food',
-        subCategory: '鮮乳飲品',
+        subCategory: '青菜',
+        emoji: '🥬',
+        location: '冰箱蔬果室',
+        brand: '水耕蔬菜',
+        startDate: getOffsetDateString(today, -2),
+        endDate: getOffsetDateString(today, 3),
+        durationDays: 5,
+        hasEndDate: true,
+        warnDays: 2,
+        notes: '綠葉蔬菜保鮮期約 3~5 天，建議盡早食用',
+        history: [],
+        createdAt: Date.now() - 2 * 86400000
+      },
+      {
+        id: 'seed-fruit',
+        name: '當季新鮮水果',
+        category: 'food',
+        subCategory: '水果',
+        emoji: '🍎',
+        location: '水果籃/冷藏',
+        brand: '蘋果/芭樂',
+        startDate: getOffsetDateString(today, -3),
+        endDate: getOffsetDateString(today, 4),
+        durationDays: 7,
+        hasEndDate: true,
+        warnDays: 2,
+        notes: '新鮮水果建議一週內享用完畢',
+        history: [],
+        createdAt: Date.now() - 3 * 86400000
+      },
+      {
+        id: 'seed-milk',
+        name: '全脂鮮乳',
+        category: 'food',
+        subCategory: '鮮乳',
         emoji: '🥛',
         location: '冰箱冷藏',
         brand: '鮮乳',
@@ -511,7 +555,7 @@
         id: 'seed-sneakers',
         name: '慢跑球鞋',
         category: 'other',
-        subCategory: '球鞋穿著',
+        subCategory: '球鞋',
         emoji: '👟',
         location: '玄關',
         brand: 'Nike Invincible',
@@ -535,6 +579,38 @@
   let searchQuery = '';
   let activeSheetItemId = null;
   let hasSwipedHorizontally = false;
+
+  // 分類群組狀態記憶 (Session Category Memory)
+  const SESSION_CATEGORY_KEY = 'lifespan_current_category_session';
+  // 依需求：若使用者重新整理網頁或重新開啟 App，則清空記憶，重新回到預設的第一個群組
+  try {
+    sessionStorage.removeItem(SESSION_CATEGORY_KEY);
+  } catch (e) {}
+  let sessionCategoryMemory = null;
+
+  function rememberCategoryState(catKey) {
+    if (!catKey) return;
+    sessionCategoryMemory = catKey;
+    try {
+      sessionStorage.setItem(SESSION_CATEGORY_KEY, catKey);
+    } catch (e) {}
+  }
+
+  function getRememberedCategoryState() {
+    let remembered = sessionCategoryMemory;
+    if (!remembered) {
+      try {
+        remembered = sessionStorage.getItem(SESSION_CATEGORY_KEY);
+      } catch (e) {
+        remembered = null;
+      }
+    }
+    const allCats = getAllCategories();
+    if (remembered && allCats[remembered]) {
+      return remembered;
+    }
+    return null;
+  }
 
   // 螢幕比例與視窗大小適配狀態
   const SCREEN_FIT_KEY = 'lifespan_screen_fit';
@@ -1289,6 +1365,7 @@
 
     updateSheetResetButtonText();
     actionSheet.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeActionSheet() {
@@ -1296,6 +1373,7 @@
     clearDeleteConfirmation();
     actionSheet.style.display = 'none';
     activeSheetItemId = null;
+    unlockBodyScroll();
   }
 
   // 換新 / 重開週期 (具備雙重確認防止誤觸，4 秒未確認自動取消)
@@ -1358,12 +1436,14 @@
       deleteConfirmItemDesc.textContent = `刪除後將無法復原「${item.name}」的所有記錄與週期資料`;
     }
     deleteConfirmModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeDeleteConfirmModal() {
     if (deleteConfirmModal) {
       deleteConfirmModal.style.display = 'none';
     }
+    unlockBodyScroll();
   }
 
   if (btnSheetDelete) {
@@ -1622,6 +1702,7 @@
       applyBackgroundMatting();
 
       bgRemovalModal.style.display = 'flex';
+      lockBodyScroll();
       showToast('✨ 智慧去背工坊已就緒！');
     };
     img.src = imageSrc;
@@ -1630,6 +1711,7 @@
   function closeBgRemovalStudio() {
     if (bgRemovalModal) bgRemovalModal.style.display = 'none';
     isColorPickMode = false;
+    unlockBodyScroll();
   }
 
   // AI 智慧自動採樣背景色（採樣圖片四角、邊緣週邊）
@@ -1951,7 +2033,7 @@
       catData.items.forEach(subItem => {
         const opt = document.createElement('option');
         opt.value = subItem.subCat;
-        opt.textContent = `${subItem.emoji || catData.emoji || '🏷️'} ${subItem.name}`;
+        opt.textContent = `${subItem.emoji || catData.emoji || '🏷️'} ${subItem.subCat || subItem.name}`;
         opt.dataset.name = subItem.name;
         opt.dataset.subcat = subItem.subCat;
         opt.dataset.emoji = subItem.emoji || catData.emoji || '🏷️';
@@ -2188,6 +2270,7 @@
     setModalMode('expiry');
     updateAvatarPreview();
     itemModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function openEditModal(id) {
@@ -2236,10 +2319,12 @@
 
     updateAvatarPreview();
     itemModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeModal() {
     itemModal.style.display = 'none';
+    unlockBodyScroll();
   }
 
   // 雙向換算：從週期天數同步到期日
@@ -2431,15 +2516,22 @@
   const importJsonFile = document.getElementById('importJsonFile');
   const btnRestoreDemoData = document.getElementById('btnRestoreDemoData');
 
-  btnOpenSettings.addEventListener('click', function () {
+  function openSettingsModal() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     settingsThemeText.textContent = currentTheme === 'dark' ? '目前為極黑模式' : '目前為明亮模式';
     settingsModal.style.display = 'flex';
-  });
+    lockBodyScroll();
+  }
 
-  btnCloseSettings.addEventListener('click', () => settingsModal.style.display = 'none');
+  function closeSettingsModal() {
+    if (settingsModal) settingsModal.style.display = 'none';
+    unlockBodyScroll();
+  }
+
+  btnOpenSettings.addEventListener('click', openSettingsModal);
+  btnCloseSettings.addEventListener('click', closeSettingsModal);
   settingsModal.addEventListener('click', function (e) {
-    if (e.target === settingsModal) settingsModal.style.display = 'none';
+    if (e.target === settingsModal) closeSettingsModal();
   });
 
   btnToggleThemeSetting.addEventListener('click', function () {
@@ -2487,7 +2579,7 @@
           items = data;
           saveItems();
           renderApp();
-          settingsModal.style.display = 'none';
+          closeSettingsModal();
           showToast(`已成功匯入 ${data.length} 件物品！`);
         }
       } catch (err) {
@@ -2503,7 +2595,7 @@
       items = createSeedItems();
       saveItems();
       renderApp();
-      settingsModal.style.display = 'none';
+      closeSettingsModal();
       showToast('已重置為範例資料');
     }
   });
@@ -2656,11 +2748,13 @@
       renderCustomOrderList();
     }
     homeSortModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeHomeSortModal() {
     if (!homeSortModal) return;
     homeSortModal.style.display = 'none';
+    unlockBodyScroll();
   }
 
   if (btnOpenCustomSort) {
@@ -2754,11 +2848,14 @@
       dockTabInventory.classList.add('active');
       if (headerSublabel) headerSublabel.textContent = '物品分類';
       if (headerMainTitle) headerMainTitle.textContent = '分類清單';
-      currentCategoryChip = getFirstPageCategory();
-      renderCategoryChips();
-      if (categoryChipRow) {
-        categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
+      const rememberedCat = getRememberedCategoryState();
+      if (rememberedCat) {
+        currentCategoryChip = rememberedCat;
+      } else {
+        currentCategoryChip = getFirstPageCategory();
+        rememberCategoryState(currentCategoryChip);
       }
+      renderCategoryChips();
       updateCategoryActionBar();
     }
     renderApp();
@@ -2772,12 +2869,13 @@
     switchViewTab('inventory', true);
   });
 
-  // 動態渲染分類膠囊標籤, 第一個群組預設在最左側, 點擊切換與平滑對齊
+  // 動態渲染分類膠囊標籤, 第一個群組預設在最左側, 支援群組狀態記憶與平滑對齊
   function renderCategoryChips() {
-    const chipRow = document.getElementById('categoryChipRow');
-    if (!chipRow) return;
+    const categoryChipRow = document.getElementById('categoryChipRow');
+    const chipRow = categoryChipRow;
+    if (!categoryChipRow) return;
 
-    chipRow.innerHTML = '';
+    categoryChipRow.innerHTML = '';
     const allCats = getAllCategories();
     const catKeys = Object.keys(allCats);
     const firstPageCat = getFirstPageCategory();
@@ -2793,7 +2891,10 @@
       });
     }
 
-    if (currentCategoryChip === 'all' || !allCats[currentCategoryChip]) {
+    const rememberedCat = getRememberedCategoryState();
+    if (rememberedCat && allCats[rememberedCat]) {
+      currentCategoryChip = rememberedCat;
+    } else if (currentCategoryChip === 'all' || !allCats[currentCategoryChip]) {
       currentCategoryChip = orderedKeys[0] || firstPageCat;
     }
 
@@ -2807,30 +2908,31 @@
         document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
         this.classList.add('active');
         currentCategoryChip = this.dataset.cat;
+        rememberCategoryState(currentCategoryChip);
         if (chipIdx === 0) {
-          chipRow.scrollTo({ left: 0, behavior: 'smooth' });
+          categoryChipRow.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          const targetLeft = this.offsetLeft - 16;
-          chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+          const targetLeft = Math.max(0, this.offsetLeft - (categoryChipRow.clientWidth / 2) + (this.offsetWidth / 2));
+          categoryChipRow.scrollTo({ left: targetLeft, behavior: 'smooth' });
         }
         updateCategoryActionBar();
         renderCards();
       });
-      chipRow.appendChild(btn);
+      categoryChipRow.appendChild(btn);
     });
 
     updateCategoryActionBar();
 
-    // 僅在當前視圖為物品分類時移動膠囊, 第一個預設在最左側
+    // 僅在當前視圖為物品分類時移動膠囊, 第一個預設在最左側, 否則平滑對齊記憶群組
     if (currentNavTab === 'inventory') {
       setTimeout(() => {
-        const activeChip = chipRow.querySelector('.category-chip.active');
+        const activeChip = categoryChipRow.querySelector('.category-chip.active');
         if (activeChip) {
-          if (activeChip === chipRow.firstElementChild) {
-            chipRow.scrollTo({ left: 0, behavior: 'instant' });
+          if (activeChip === categoryChipRow.firstElementChild) {
+            categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
           } else {
-            const targetLeft = activeChip.offsetLeft - 16;
-            chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+            const targetLeft = Math.max(0, activeChip.offsetLeft - (categoryChipRow.clientWidth / 2) + (activeChip.offsetWidth / 2));
+            categoryChipRow.scrollTo({ left: targetLeft, behavior: 'smooth' });
           }
         }
       }, 30);
@@ -3000,10 +3102,12 @@
     }
     renderItemsPicker(catItemsPickerList, currentCategoryChip, false);
     addItemsToCategoryModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeAddItemsToCategoryModal() {
     if (addItemsToCategoryModal) addItemsToCategoryModal.style.display = 'none';
+    unlockBodyScroll();
   }
 
   if (btnAddItemsToCurrentCategory) {
@@ -3078,10 +3182,12 @@
     renderItemsPicker(newCatItemsPickerList, '', true);
     renderCategoryManageList();
     customCategoryModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeCustomCategoryModal() {
     if (customCategoryModal) customCategoryModal.style.display = 'none';
+    unlockBodyScroll();
   }
 
   const btnOpenGroupSettings = document.getElementById('btnOpenGroupSettings');
@@ -3426,7 +3532,11 @@
       }
     }
 
-    if (currentCategoryChip === catId) {
+    if (currentCategoryChip === catId || sessionCategoryMemory === catId) {
+      sessionCategoryMemory = null;
+      try {
+        sessionStorage.removeItem(SESSION_CATEGORY_KEY);
+      } catch (e) {}
       currentCategoryChip = getFirstPageCategory();
     }
 
@@ -3446,6 +3556,10 @@
 
     saveDeletedPresets([]);
     savePresetOverrides({});
+    sessionCategoryMemory = null;
+    try {
+      sessionStorage.removeItem(SESSION_CATEGORY_KEY);
+    } catch (e) {}
 
     renderCategoryChips();
     populateCategorySelect();
@@ -3494,10 +3608,12 @@
     }
 
     editCategoryModal.style.display = 'flex';
+    lockBodyScroll();
   }
 
   function closeEditCategoryModal() {
     if (editCategoryModal) editCategoryModal.style.display = 'none';
+    unlockBodyScroll();
   }
 
   if (btnCloseEditCategoryModal) {
@@ -3589,26 +3705,45 @@
 
   // ==========================================
   // 彈出式選單與 Modal 背景鎖定機制 (Popup Background Lock)
-  // 徹底修正彈出式菜單拖動或滾動時影響到底層背景內容或觸發跨分頁滑動
+  // 徹底修正彈出式菜單拖動或滾動時影響到底層背景內容或觸發跨分頁滑動 (滾動穿透問題)
   // ==========================================
   function isAnyModalOpen() {
-    const openModal = document.querySelector('.ios-modal-backdrop[style*="display: flex"], .ios-modal-backdrop[style*="display: block"]');
+    const modals = document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop');
+    for (const el of modals) {
+      if (el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('active')) {
+        return true;
+      }
+    }
     const actionSheetEl = document.getElementById('actionSheet');
-    const isSheetOpen = actionSheetEl && actionSheetEl.style.display !== 'none';
-    return !!openModal || isSheetOpen;
+    if (actionSheetEl && actionSheetEl.style.display !== 'none' && actionSheetEl.style.display !== '') {
+      return true;
+    }
+    return false;
   }
 
-  function updateBodyScrollLock() {
-    if (isAnyModalOpen()) {
-      document.body.classList.add('modal-open');
-      if (viewsSliderViewport) {
-        viewsSliderViewport.style.overflowX = 'hidden';
-      }
-    } else {
+  function lockBodyScroll() {
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    if (viewsSliderViewport) {
+      viewsSliderViewport.style.overflowX = 'hidden';
+    }
+  }
+
+  function unlockBodyScroll() {
+    if (!isAnyModalOpen()) {
+      document.body.style.overflow = '';
       document.body.classList.remove('modal-open');
       if (viewsSliderViewport) {
         viewsSliderViewport.style.overflowX = 'auto';
       }
+    }
+  }
+
+  function updateBodyScrollLock() {
+    if (isAnyModalOpen()) {
+      lockBodyScroll();
+    } else {
+      unlockBodyScroll();
     }
   }
 
@@ -3705,11 +3840,14 @@
             dockTabInventory.classList.add('active');
             if (headerSublabel) headerSublabel.textContent = '物品分類';
             if (headerMainTitle) headerMainTitle.textContent = '分類清單';
-            currentCategoryChip = getFirstPageCategory();
-            renderCategoryChips();
-            if (categoryChipRow) {
-              categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
+            const rememberedCat = getRememberedCategoryState();
+            if (rememberedCat) {
+              currentCategoryChip = rememberedCat;
+            } else {
+              currentCategoryChip = getFirstPageCategory();
+              rememberCategoryState(currentCategoryChip);
             }
+            renderCategoryChips();
             updateCategoryActionBar();
           }
           renderApp();
