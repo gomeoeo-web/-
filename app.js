@@ -1,0 +1,4005 @@
+/**
+ * 買了之後 / 今天需要注意 (LifeSpan Tracker) - 極簡 iOS 邏輯控制器
+ * 支援：
+ * 1. 智慧輸入物品自動匹配圖標 (Smart Icon Matcher)
+ * 2. 使用者自訂相片上傳與輕量壓縮儲存 (Custom Photo Upload)
+ * 3. 支援「僅記錄使用天數 (無到期日)」模式 (Elapsed Days Only)
+ * 4. 完全比照參考截圖之極簡 Apple Dark Minimalist 排版與互動
+ */
+
+(function () {
+  'use strict';
+
+  // ==========================================
+  // 1. 常數與預設範本
+  // ==========================================
+  const STORAGE_KEY = 'lifespan_tracker_ios_v9';
+  const THEME_KEY = 'lifespan_tracker_theme';
+  const CUSTOM_CATEGORIES_KEY = 'lifespan_tracker_custom_categories_v1';
+  const HOME_SORT_KEY = 'lifespan_tracker_home_sort';
+  const FIRST_PAGE_CAT_KEY = 'lifespan_tracker_first_page_cat';
+  const CUSTOM_ORDER_KEY = 'lifespan_tracker_custom_order_v1';
+  const CATEGORY_ORDER_KEY = 'lifespan_tracker_category_order_v1';
+
+  // 第一頁至第二十頁分頁常數
+  const PAGE_NAMES = [
+    '第一頁', '第二頁', '第三頁', '第四頁', '第五頁',
+    '第六頁', '第七頁', '第八頁', '第九頁', '第十頁',
+    '第十一頁', '第十二頁', '第十三頁', '第十四頁', '第十五頁',
+    '第十六頁', '第十七頁', '第十八頁', '第十九頁', '第二十頁'
+  ];
+
+  // 精緻白色人體工學椅 SVG 縮圖 (比照截圖「我的椅子」)
+  const CHAIR_SVG_BASE64 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+      <rect width="100" height="100" rx="20" fill="transparent"/>
+      <!-- Backrest -->
+      <path d="M38 18 C38 14, 62 14, 62 18 L60 48 C60 51, 40 51, 40 48 Z" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+      <path d="M42 22 C42 19, 58 19, 58 22 L57 44 C57 46, 43 46, 43 44 Z" fill="#e5e7eb" opacity="0.65"/>
+      <path d="M44 34 Q50 36 56 34" stroke="#9ca3af" stroke-width="2" fill="none"/>
+      <!-- Seat Cushion -->
+      <ellipse cx="50" cy="54" rx="16" ry="5.5" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.5"/>
+      <!-- Armrests -->
+      <path d="M36 38 L32 40 L34 49" stroke="#9ca3af" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M64 38 L68 40 L66 49" stroke="#9ca3af" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="32" cy="40" rx="3" ry="1.2" fill="#d1d5db"/>
+      <ellipse cx="68" cy="40" rx="3" ry="1.2" fill="#d1d5db"/>
+      <!-- Central Gas Cylinder -->
+      <rect x="48.5" y="58" width="3" height="15" fill="#6b7280" rx="1.5"/>
+      <!-- 5-Star Base & Wheels -->
+      <path d="M50 72 L32 82 M50 72 L68 82 M50 72 L26 73 M50 72 L74 73 M50 72 L50 85" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="32" cy="83" r="2.5" fill="#111827"/>
+      <circle cx="68" cy="83" r="2.5" fill="#111827"/>
+      <circle cx="25" cy="73.5" r="2.5" fill="#111827"/>
+      <circle cx="75" cy="73.5" r="2.5" fill="#111827"/>
+      <circle cx="50" cy="86" r="2.5" fill="#111827"/>
+    </svg>
+  `);
+
+  // 智慧關鍵字自動匹配辭典 (支援車輛、訂閱、藥品、清潔等)
+  const SMART_KEYWORD_MAP = [
+    // 車輛
+    { keywords: ['機油', '机油', '輪胎', '電瓶', '火星塞', '煞車油', '剎車油', '煞車皮', '剎車皮', '雨刷', '齒輪油', '變速箱油', '車輛保養', '汽車保養', '水箱水', '機油芯', '胎壓'], emoji: '🚗', cat: 'vehicle', subCat: '機油' },
+    { keywords: ['車', '機車', '汽車', 'gogoro', '重機', '檔車'], emoji: '🚗', cat: 'vehicle', subCat: '車輛' },
+    
+    // 訂閱
+    { keywords: ['netflix', 'disney', 'youtube', '影音'], emoji: '🎬', cat: 'subscription', subCat: '影音串流' },
+    { keywords: ['spotify', 'kkbox', 'apple music', '音樂'], emoji: '🎵', cat: 'subscription', subCat: '音樂會員' },
+    { keywords: ['icloud', 'google one', '雲端', 'dropbox'], emoji: '☁️', cat: 'subscription', subCat: '雲端空間' },
+    { keywords: ['chatgpt', 'openai', 'adobe', '軟體', 'midjourney'], emoji: '💻', cat: 'subscription', subCat: '軟體服務' },
+    { keywords: ['健身房', '會籍', '健身'], emoji: '💪', cat: 'subscription', subCat: '健身會籍' },
+    { keywords: ['訂閱', '會員', '月費', '年費', '房租', '電信', '寬頻', '電話費', '第四台'], emoji: '📅', cat: 'subscription', subCat: '電信帳單' },
+    
+    // 藥品
+    { keywords: ['眼藥水', '人工淚液'], emoji: '💊', cat: 'medicine', subCat: '眼藥水' },
+    { keywords: ['維他命', '維生素'], emoji: '💊', cat: 'medicine', subCat: '維他命' },
+    { keywords: ['魚油', '葉黃素', '益生菌', '保健品'], emoji: '🐟', cat: 'medicine', subCat: '保健品' },
+    { keywords: ['藥膏', '皮膚膏', '抗生素'], emoji: '🩹', cat: 'medicine', subCat: '外用藥膏' },
+    { keywords: ['止痛藥', '感冒藥', '胃藥', '成藥', '膠囊', '錠', '藥'], emoji: '🩺', cat: 'medicine', subCat: '常備成藥' },
+    { keywords: ['隱形眼鏡', '保養液', '洗眼液'], emoji: '👁️', cat: 'medicine', subCat: '隱眼保養' },
+    
+    // 清潔
+    { keywords: ['菜瓜布', '海綿'], emoji: '🧼', cat: 'cleaning', subCat: '菜瓜布' },
+    { keywords: ['洗衣精', '洗衣球', '洗衣膠囊'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
+    { keywords: ['洗碗精', '洗潔精'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
+    { keywords: ['抹布', '拖把', '除塵拖'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
+    { keywords: ['潔廁劑', '馬桶刷', '芳香劑'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
+    { keywords: ['酒精', '消毒水', '漂白水'], emoji: '🧴', cat: 'cleaning', subCat: '消毒酒精' },
+    
+    // 耗材
+    { keywords: ['濾網', '清淨機', 'hepa', '空氣'], emoji: '🌀', cat: 'filter', subCat: '空氣濾網' },
+    { keywords: ['濾芯', '濾心', '淨水', 'ro', '飲水'], emoji: '💧', cat: 'filter', subCat: '淨水濾芯' },
+    { keywords: ['牙刷', '刷頭'], emoji: '🪥', cat: 'filter', subCat: '牙刷刷頭' },
+    { keywords: ['除濕盒', '除濕劑', '乾燥劑', '克潮靈'], emoji: '🌧️', cat: 'filter', subCat: '防潮除濕' },
+    { keywords: ['吸塵器', '掃地機', '掃地機器人', 'dyson'], emoji: '🧹', cat: 'filter', subCat: '掃地耗材' },
+    { keywords: ['冷氣', '空調', '暖氣'], emoji: '❄️', cat: 'filter', subCat: '空氣濾網' },
+    
+    // 保固
+    { keywords: ['椅', 'chair', '沙發', '辦公椅', '人體工學'], emoji: '🪑', cat: 'warranty', subCat: '家具' },
+    { keywords: ['電腦', '筆電', 'mac', 'macbook', 'pc', '主機'], emoji: '💻', cat: 'warranty', subCat: '電腦設備' },
+    { keywords: ['手機', 'iphone', 'pixel', 'galaxy', 'android'], emoji: '📱', cat: 'warranty', subCat: '手機設備' },
+    { keywords: ['耳機', 'airpods', 'buds', 'headphone'], emoji: '🎧', cat: 'warranty', subCat: '影音設備' },
+    { keywords: ['電視', '螢幕', '顯示器', 'tv', '冰箱', '洗衣機'], emoji: '📺', cat: 'warranty', subCat: '家電' },
+    { keywords: ['手錶', '錶', 'watch', 'apple watch'], emoji: '⌚', cat: 'warranty', subCat: '穿戴裝置' },
+    { keywords: ['相機', '單眼', '鏡頭', 'gopro'], emoji: '📷', cat: 'warranty', subCat: '影音設備' },
+    
+    // 食品
+    { keywords: ['奶', '乳', 'milk', '鮮乳', '優格', '起司'], emoji: '🥛', cat: 'food', subCat: '鮮乳飲品' },
+    { keywords: ['咖啡', '咖啡豆', '咖啡粉'], emoji: '☕', cat: 'food', subCat: '咖啡豆' },
+    { keywords: ['蛋', '雞蛋'], emoji: '🥚', cat: 'food', subCat: '蛋品' },
+    { keywords: ['茶', '茶葉', '茶包'], emoji: '🍵', cat: 'food', subCat: '乾貨茶包' },
+    
+    // 日用
+    { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐'], emoji: '🧴', cat: 'pao', subCat: '洗沐保養' },
+    { keywords: ['防曬', '隔離', '粉底'], emoji: '☀️', cat: 'pao', subCat: '防曬防護' },
+    { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕'], emoji: '✨', cat: 'pao', subCat: '臉部保養' },
+    { keywords: ['護手霜'], emoji: '👐', cat: 'pao', subCat: '護手乳霜' },
+    { keywords: ['牙膏'], emoji: '🪥', cat: 'pao', subCat: '口腔清潔' },
+    
+    // 其他
+    { keywords: ['鞋', '球鞋', '皮鞋', '運動鞋'], emoji: '👟', cat: 'other', subCat: '球鞋穿著' },
+    { keywords: ['包', '背包', '皮夾', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋皮件' },
+    { keywords: ['衣服', '外套', '褲', '襯衫'], emoji: '👕', cat: 'other', subCat: '衣物服飾' },
+    { keywords: ['書', '筆記本', '小說'], emoji: '📚', cat: 'other', subCat: '文具圖書' }
+  ];
+
+  // 一級與二級分類預設辭典
+  const DEFAULT_CATEGORIES = {
+    vehicle: {
+      label: '車輛',
+      emoji: '🚗',
+      items: [
+        { name: '汽車機油更換', subCat: '機油', emoji: '🚗', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Mobil 1 全合成', location: '車庫', notes: '建議每 6 個月或 5,000 公里更換機油與機油芯' },
+        { name: '汽車輪胎對調', subCat: '輪胎', emoji: '🛞', duration: 180, hasEndDate: true, warnDays: 14, location: '車庫', notes: '定期檢測胎紋深度與輪胎對調' },
+        { name: '汽車電瓶檢測', subCat: '電瓶', emoji: '🔋', duration: 730, hasEndDate: true, warnDays: 30, location: '引擎室', notes: '鉛酸/AGM電瓶壽命約 2~3 年' },
+        { name: '雨刷更換', subCat: '雨刷', emoji: '🌧️', duration: 180, hasEndDate: true, warnDays: 14, location: '前擋風玻璃', notes: '橡膠條老化易刷不乾淨，半年至一年換新' },
+        { name: '煞車油/皮更換', subCat: '煞車', emoji: '🛑', duration: 730, hasEndDate: true, warnDays: 30, location: '底盤煞車系統', notes: '檢查煞車來令片厚度與煞車油含水量' },
+        { name: '機車齒輪油', subCat: '齒輪油', emoji: '🛵', duration: 90, hasEndDate: true, warnDays: 7, location: '機車齒輪箱', notes: '換 2 次機油換 1 次齒輪油' }
+      ]
+    },
+    subscription: {
+      label: '訂閱',
+      emoji: '📅',
+      items: [
+        { name: '串流影音會員', subCat: '影音串流', emoji: '🎬', duration: 30, hasEndDate: true, warnDays: 3, brand: 'Netflix / Disney+', location: '線上自動扣款', notes: '每月固定扣款前提醒，及時確認是否續訂' },
+        { name: '串流音樂會員', subCat: '音樂會員', emoji: '🎵', duration: 30, hasEndDate: true, warnDays: 3, brand: 'Spotify / Apple Music', location: '線上自動扣款', notes: '每月固定續約扣款' },
+        { name: '雲端硬碟空間', subCat: '雲端空間', emoji: '☁️', duration: 365, hasEndDate: true, warnDays: 14, brand: 'iCloud / Google One', location: '年度訂閱', notes: '年費自動續訂提醒' },
+        { name: '專業軟體服務', subCat: '軟體服務', emoji: '💻', duration: 30, hasEndDate: true, warnDays: 3, brand: 'ChatGPT / Adobe', location: '信用卡定期扣款', notes: '工作軟體月租方案' },
+        { name: '健身房運動會籍', subCat: '健身會籍', emoji: '💪', duration: 365, hasEndDate: true, warnDays: 14, location: '運動中心', notes: '年度會籍到期前評估是否續約' },
+        { name: '寬頻網路與通話', subCat: '電信帳單', emoji: '📶', duration: 30, hasEndDate: true, warnDays: 3, location: '電信帳單', notes: '每月固網光纖與手機資費結帳' }
+      ]
+    },
+    medicine: {
+      label: '藥品',
+      emoji: '💊',
+      items: [
+        { name: '眼藥水開封', subCat: '眼藥水', emoji: '💊', duration: 30, hasEndDate: true, warnDays: 5, brand: '保濕眼藥水', location: '辦公桌抽屜', notes: '眼藥水開瓶接觸空氣後，請於 30 天內丟棄' },
+        { name: '綜合維他命', subCat: '維他命', emoji: '💊', duration: 180, hasEndDate: true, warnDays: 14, brand: '善存', location: '客廳茶几', notes: '每日食用一顆，開封後半年內食用完畢' },
+        { name: '深海魚油膠囊', subCat: '魚油保健', emoji: '🐟', duration: 180, hasEndDate: true, warnDays: 14, location: '餐桌藥盒', notes: '避免陽光高溫直射，保持密封乾燥' },
+        { name: '外用皮膚藥膏', subCat: '外用藥膏', emoji: '🩹', duration: 180, hasEndDate: true, warnDays: 14, location: '常備急救箱', notes: '皮膚軟膏開封後定期確認是否變質' },
+        { name: '家庭常備感冒藥', subCat: '常備成藥', emoji: '🩺', duration: 365, hasEndDate: true, warnDays: 30, location: '常備醫藥箱', notes: '定期檢視藥箱內感冒止痛藥品效期' },
+        { name: '隱形眼鏡保養液', subCat: '隱眼保養', emoji: '👁️', duration: 90, hasEndDate: true, warnDays: 7, location: '洗手台置物櫃', notes: '浸泡保養液開瓶後建議 3 個月內用畢' }
+      ]
+    },
+    cleaning: {
+      label: '清潔',
+      emoji: '🧼',
+      items: [
+        { name: '廚房菜瓜布更換', subCat: '菜瓜布', emoji: '🧼', duration: 30, hasEndDate: true, warnDays: 5, brand: '3M 百利', location: '廚房流理台', notes: '潮濕環境易藏污納垢，每個月定期更換' },
+        { name: '濃縮洗衣精', subCat: '洗衣精', emoji: '🧺', duration: 90, hasEndDate: true, warnDays: 7, brand: 'Ariel 洗衣精', location: '工作陽台', notes: '家庭常備清潔用品，定期補貨' },
+        { name: '食品級洗碗精', subCat: '洗碗精', emoji: '🍽️', duration: 60, hasEndDate: true, warnDays: 7, location: '廚房洗滌槽', notes: '溫和洗淨碗盤油脂' },
+        { name: '流理台擦拭抹布', subCat: '抹布', emoji: '🧽', duration: 30, hasEndDate: true, warnDays: 5, location: '廚房中島', notes: '抹布容易滋生細菌，每月定期換新' },
+        { name: '馬桶清潔芳香劑', subCat: '潔廁劑', emoji: '🚽', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衛浴', notes: '抑菌除垢，持續芳香' },
+        { name: '環境消毒酒精', subCat: '消毒酒精', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, location: '玄關置物櫃', notes: '75% 消毒酒精日常環境維護' }
+      ]
+    },
+    warranty: {
+      label: '保固',
+      emoji: '🛡️',
+      items: [
+        { name: '我的椅子', subCat: '家具', emoji: '🪑', image: CHAIR_SVG_BASE64, duration: 1097, hasEndDate: true, warnDays: 30, brand: 'Herman Miller', location: '書房', notes: '3 年原廠結構與氣壓棒保固' },
+        { name: '筆記型電腦', subCat: '電腦設備', emoji: '💻', duration: 730, hasEndDate: true, warnDays: 30, brand: 'Apple MacBook', location: '工作桌', notes: '2 年有限硬體原廠保固' },
+        { name: '智慧旗艦手機', subCat: '手機設備', emoji: '📱', duration: 365, hasEndDate: true, warnDays: 30, brand: 'iPhone', location: '隨身', notes: '原廠 1 年有限保固與電池健檢' },
+        { name: '抗噪藍牙耳機', subCat: '影音設備', emoji: '🎧', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Sony', location: '防潮箱', notes: '1 年原廠有限保固' },
+        { name: '家用大型電器', subCat: '家電', emoji: '📺', duration: 1095, hasEndDate: true, warnDays: 60, brand: 'Panasonic', location: '客廳', notes: '主要壓縮機/面板 3 年保固' },
+        { name: '智慧運動手錶', subCat: '穿戴裝置', emoji: '⌚', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Apple Watch', location: '臥室充電座', notes: '原廠 1 年保固' }
+      ]
+    },
+    filter: {
+      label: '耗材',
+      emoji: '🔄',
+      items: [
+        { name: '清淨機濾網', subCat: '空氣濾網', emoji: '🌀', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Honeywell', location: '客廳', notes: '每 6 個月定期換新 HEPA 濾網' },
+        { name: '淨水器濾芯', subCat: '淨水濾芯', emoji: '💧', duration: 90, hasEndDate: true, warnDays: 7, brand: '3M 淨水', location: '廚房流理台', notes: '建議每季定期更換活性碳濾芯' },
+        { name: '音波牙刷刷頭', subCat: '牙刷刷頭', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, brand: 'Philips', location: '衛浴鏡櫃', notes: '刷毛退色分岔即應更換' },
+        { name: '防潮集水除濕盒', subCat: '防潮除濕', emoji: '🌧️', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衣櫃', notes: '集水線滿時請及時更換替換包' },
+        { name: '掃地機主刷耗材', subCat: '掃地耗材', emoji: '🧹', duration: 180, hasEndDate: true, warnDays: 14, location: '客廳基站', notes: '滾刷與邊刷定期清理與換新' },
+        { name: '義式咖啡機除鈣', subCat: '咖啡保養', emoji: '☕', duration: 90, hasEndDate: true, warnDays: 7, location: '廚房吧台', notes: '水路管線定期除鈣延長機器壽命' }
+      ]
+    },
+    food: {
+      label: '食品',
+      emoji: '🥛',
+      items: [
+        { name: '家庭號鮮乳', subCat: '鮮乳飲品', emoji: '🥛', duration: 12, hasEndDate: true, warnDays: 3, brand: '全脂鮮乳', location: '冰箱冷藏', notes: '開封後請於 7 天內飲用完畢' },
+        { name: '淺焙單品咖啡豆', subCat: '咖啡豆', emoji: '☕', duration: 30, hasEndDate: true, warnDays: 5, location: '乾燥陰涼處', notes: '拆封後最佳香氣賞味期 1 個月' },
+        { name: '新鮮產地雞蛋', subCat: '蛋品', emoji: '🥚', duration: 21, hasEndDate: true, warnDays: 3, location: '冰箱蛋架', notes: '低溫冷藏，留意最佳食用期' },
+        { name: '阿里山高山茶包', subCat: '乾貨茶包', emoji: '🍵', duration: 180, hasEndDate: true, warnDays: 14, location: '茶水櫃', notes: '密封防潮，維持高雅茶香' },
+        { name: '常用調味純釀醬油', subCat: '調味料', emoji: '🧂', duration: 90, hasEndDate: true, warnDays: 7, location: '冰箱調味格', notes: '開瓶接觸空氣後建議冷藏保存' },
+        { name: '烘焙無調味堅果', subCat: '零食乾果', emoji: '🍪', duration: 60, hasEndDate: true, warnDays: 7, location: '零食收納盒', notes: '拆封後儘早食用防油脂氧化' }
+      ]
+    },
+    pao: {
+      label: '日用',
+      emoji: '🧴',
+      items: [
+        { name: '沐浴乳/洗髮露', subCat: '洗沐保養', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Aesop', location: '主臥浴室', notes: '開封後 6 個月內用畢' },
+        { name: '全效臉部防曬乳', subCat: '防曬防護', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, brand: '防曬露', location: '化妝台', notes: '防曬成分開封後防護力逐月衰減' },
+        { name: '玻尿酸保濕精華', subCat: '臉部保養', emoji: '✨', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '開封後避光保存，保持滴管清潔' },
+        { name: '乳油木果護手霜', subCat: '護手乳霜', emoji: '👐', duration: 180, hasEndDate: true, warnDays: 14, location: '辦公桌', notes: '隨身保濕滋潤' },
+        { name: '抗敏感含氟牙膏', subCat: '口腔清潔', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, location: '浴室洗手台', notes: '早晚日常口腔護理' },
+        { name: '五刀片刮鬍刀頭', subCat: '個人理容', emoji: '🪒', duration: 30, hasEndDate: true, warnDays: 5, location: '淋浴間', notes: '潤滑條褪色或刀片變鈍時及時更換' }
+      ]
+    },
+    other: {
+      label: '其他',
+      emoji: '📌',
+      items: [
+        { name: '緩震慢跑球鞋', subCat: '球鞋穿著', emoji: '👟', brand: 'Nike Invincible', location: '玄關鞋櫃', hasEndDate: false, notes: '僅記錄購買穿著天數，定期檢視中底衰退' },
+        { name: '商務防潑水背包', subCat: '包袋皮件', emoji: '🎒', location: '玄關掛架', hasEndDate: false, notes: '通勤耐用度與陪伴使用天數記錄' },
+        { name: '經典羊毛大衣', subCat: '衣物服飾', emoji: '🧥', location: '臥室衣櫃', hasEndDate: false, notes: '換季送洗與收納天數' },
+        { name: '正在閱讀的書籍', subCat: '文具圖書', emoji: '📚', location: '床頭櫃', hasEndDate: false, notes: '閱讀進度陪伴天數' }
+      ]
+    }
+  };
+
+  // 使用者自訂分類管理器 (Custom Category Store)
+  let customCategories = {};
+
+  function loadCustomCategories() {
+    try {
+      const stored = localStorage.getItem(CUSTOM_CATEGORIES_KEY);
+      if (stored) {
+        customCategories = JSON.parse(stored);
+      } else {
+        customCategories = {};
+      }
+    } catch (e) {
+      customCategories = {};
+    }
+    return customCategories;
+  }
+
+  function saveCustomCategories(cats) {
+    customCategories = cats;
+    try {
+      localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+    } catch (e) {
+      console.error('Save custom categories failed:', e);
+    }
+  }
+
+  function getAllCategories() {
+    return { ...DEFAULT_CATEGORIES, ...loadCustomCategories() };
+  }
+
+  function getCustomCategoryOrder() {
+    try {
+      const stored = localStorage.getItem(CATEGORY_ORDER_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return null;
+  }
+
+  function saveCustomCategoryOrder(order) {
+    try {
+      localStorage.setItem(CATEGORY_ORDER_KEY, JSON.stringify(order));
+    } catch (e) {}
+  }
+
+  function getFirstPageCategory() {
+    const saved = localStorage.getItem(FIRST_PAGE_CAT_KEY);
+    const allCats = getAllCategories();
+    if (saved && allCats[saved]) {
+      return saved;
+    }
+    const keys = Object.keys(allCats);
+    return keys.length > 0 ? keys[0] : 'vehicle';
+  }
+
+  function setFirstPageCategory(catKey) {
+    const allCats = getAllCategories();
+    if (!allCats[catKey]) return;
+    localStorage.setItem(FIRST_PAGE_CAT_KEY, catKey);
+    currentCategoryChip = catKey;
+    renderCategoryChips();
+    populateCategorySelect();
+    populateFirstPageCategorySelect();
+    renderCategoryManageList();
+    if (currentNavTab === 'inventory') {
+      renderCards();
+    }
+    showToast(`⭐️ 已將「${allCats[catKey].label}」設為第一頁預設分類！`);
+  }
+
+  // 相容別名
+  const SUBCATEGORY_MAP = DEFAULT_CATEGORIES;
+
+
+  function getTodayString() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function getOffsetDateString(baseDateStr, offsetDays) {
+    const d = new Date(baseDateStr + 'T00:00:00');
+    d.setDate(d.getDate() + offsetDays);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function diffDays(date1Str, date2Str) {
+    const d1 = new Date(date1Str + 'T00:00:00');
+    const d2 = new Date(date2Str + 'T00:00:00');
+    const diffTime = d2.getTime() - d1.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  function formatNumber(num) {
+    return new Intl.NumberFormat('en-US').format(num);
+  }
+
+  // 產生示範資料（包含我的椅子、汽車機油、訂閱、眼藥水、菜瓜布、濾網等，滿足多樣化限時需求）
+  function createSeedItems() {
+    const today = getTodayString();
+    return [
+      {
+        id: 'seed-chair',
+        name: '我的椅子',
+        category: 'warranty',
+        subCategory: '家具',
+        emoji: '🪑',
+        image: CHAIR_SVG_BASE64,
+        location: '書房',
+        brand: 'Herman Miller',
+        startDate: getOffsetDateString(today, -12),
+        endDate: getOffsetDateString(today, 1085),
+        durationDays: 1097,
+        hasEndDate: true,
+        warnDays: 30,
+        notes: '原廠 3 年結構與氣壓棒保固',
+        history: [],
+        createdAt: Date.now() - 12 * 86400000
+      },
+      {
+        id: 'seed-caroil',
+        name: '汽車機油更換',
+        category: 'vehicle',
+        subCategory: '機油',
+        emoji: '🚗',
+        location: '車庫',
+        brand: 'Mobil 1 全合成',
+        startDate: getOffsetDateString(today, -45),
+        endDate: getOffsetDateString(today, 135),
+        durationDays: 180,
+        hasEndDate: true,
+        warnDays: 14,
+        notes: '每半年或 5,000 公里定期換油保養',
+        history: [],
+        createdAt: Date.now() - 45 * 86400000
+      },
+      {
+        id: 'seed-subscription',
+        name: '串流影音會員',
+        category: 'subscription',
+        subCategory: '影音串流',
+        emoji: '🎬',
+        location: '線上自動扣款',
+        brand: 'Netflix 4K',
+        startDate: getOffsetDateString(today, -18),
+        endDate: getOffsetDateString(today, 12),
+        durationDays: 30,
+        hasEndDate: true,
+        warnDays: 3,
+        notes: '每月固定扣款前檢查是否續約',
+        history: [],
+        createdAt: Date.now() - 18 * 86400000
+      },
+      {
+        id: 'seed-eyedrops',
+        name: '眼藥水開封',
+        category: 'medicine',
+        subCategory: '眼藥水',
+        emoji: '💊',
+        location: '辦公桌抽屜',
+        brand: '保濕眼藥水',
+        startDate: getOffsetDateString(today, -22),
+        endDate: getOffsetDateString(today, 8),
+        durationDays: 30,
+        hasEndDate: true,
+        warnDays: 10,
+        notes: '開封後 30 天內使用完畢，防細菌滋生',
+        history: [],
+        createdAt: Date.now() - 22 * 86400000
+      },
+      {
+        id: 'seed-sponge',
+        name: '廚房菜瓜布',
+        category: 'cleaning',
+        subCategory: '菜瓜布',
+        emoji: '🧼',
+        location: '洗水槽',
+        brand: '3M 百利',
+        startDate: getOffsetDateString(today, -15),
+        endDate: getOffsetDateString(today, 15),
+        durationDays: 30,
+        hasEndDate: true,
+        warnDays: 5,
+        notes: '每月定期換新防黴菌',
+        history: [],
+        createdAt: Date.now() - 15 * 86400000
+      },
+      {
+        id: 'seed-filter',
+        name: '清淨機濾網',
+        category: 'filter',
+        subCategory: '空氣濾網',
+        emoji: '🌀',
+        location: '客廳',
+        brand: 'Honeywell HPA-200',
+        startDate: getOffsetDateString(today, -90),
+        endDate: getOffsetDateString(today, 90),
+        durationDays: 180,
+        hasEndDate: true,
+        warnDays: 14,
+        notes: '維持客廳空氣品質，定期換新',
+        history: [
+          { resetDate: getOffsetDateString(today, -270), daysUsed: 180, note: '換上第 2 組濾網' }
+        ],
+        createdAt: Date.now() - 90 * 86400000
+      },
+      {
+        id: 'seed-milk',
+        name: '家庭號鮮乳',
+        category: 'food',
+        subCategory: '鮮乳飲品',
+        emoji: '🥛',
+        location: '冰箱冷藏',
+        brand: '鮮乳',
+        startDate: getOffsetDateString(today, -9),
+        endDate: getOffsetDateString(today, 3),
+        durationDays: 12,
+        hasEndDate: true,
+        warnDays: 3,
+        notes: '開封後請於 7 天內飲用完畢',
+        history: [],
+        createdAt: Date.now() - 9 * 86400000
+      },
+      {
+        id: 'seed-sneakers',
+        name: '慢跑球鞋',
+        category: 'other',
+        subCategory: '球鞋穿著',
+        emoji: '👟',
+        location: '玄關',
+        brand: 'Nike Invincible',
+        startDate: getOffsetDateString(today, -85),
+        hasEndDate: false,
+        notes: '僅記錄購買穿著天數，定期檢視鞋底磨損',
+        history: [],
+        createdAt: Date.now() - 85 * 86400000
+      }
+    ];
+  }
+
+  // ==========================================
+  // 2. 狀態管理
+  // ==========================================
+  let items = [];
+  let currentNavTab = 'today'; // 'today' 或 'inventory'
+  let currentPillFilter = 'all'; // 'all', 'urgent', 'expired'
+  let currentCategoryChip = 'vehicle';
+  let currentSortMode = localStorage.getItem(HOME_SORT_KEY) || 'expiry_asc';
+  let searchQuery = '';
+  let activeSheetItemId = null;
+
+  // 新增/編輯 Modal 暫存狀態
+  let currentModalMode = 'expiry'; // 'expiry' 或 'elapsed'
+  let currentUploadedImage = null; // base64 string or null
+  let isManualEmojiSet = false; // 是否手動指定過 emoji
+
+  function loadItems() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        items = JSON.parse(stored);
+      } else {
+        items = createSeedItems();
+        saveItems();
+      }
+    } catch (e) {
+      console.error(e);
+      items = createSeedItems();
+    }
+  }
+
+  function saveItems() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (e) {
+      console.error('Save failed:', e);
+      showToast('儲存失敗，可能超過儲存空間上限');
+    }
+  }
+
+  // ==========================================
+  // 3. 生命週期指標計算 (支援無到期日項目)
+  // ==========================================
+  function calculateMetrics(item) {
+    const today = getTodayString();
+    const elapsedDays = Math.max(0, diffDays(item.startDate, today));
+    const hasEndDate = item.hasEndDate !== false && item.endDate;
+
+    // 模式 A：無到期日（僅計算已使用/陪伴天數）
+    if (!hasEndDate) {
+      return {
+        today,
+        hasEndDate: false,
+        remainingDays: null,
+        elapsedDays,
+        totalDays: null,
+        percent: 100,
+        status: 'good'
+      };
+    }
+
+    // 模式 B：有到期日與週期倒數
+    const remainingDays = diffDays(today, item.endDate);
+    const totalDays = Math.max(1, diffDays(item.startDate, item.endDate));
+    let percent = Math.round((elapsedDays / totalDays) * 100);
+    percent = Math.min(100, Math.max(0, percent));
+
+    let status = 'good';
+    const warnDays = item.warnDays !== undefined ? Number(item.warnDays) : 7;
+
+    if (remainingDays < 0) {
+      status = 'expired';
+    } else if (item.reminderType === 'custom' && item.reminderDate) {
+      if (today >= item.reminderDate) {
+        status = 'urgent';
+      } else {
+        status = 'good';
+      }
+    } else if (warnDays >= 0 && remainingDays <= warnDays) {
+      status = 'urgent';
+    } else {
+      status = 'good';
+    }
+
+    return {
+      today,
+      hasEndDate: true,
+      remainingDays,
+      elapsedDays,
+      totalDays,
+      percent,
+      status
+    };
+  }
+
+  function getWarnDaysLabel(itemOrDays) {
+    if (typeof itemOrDays === 'object' && itemOrDays !== null) {
+      if (itemOrDays.reminderType === 'none' || itemOrDays.warnDays === -1) {
+        return '不提醒';
+      }
+      if (itemOrDays.reminderType === 'custom' || itemOrDays.reminderDate) {
+        const dStr = itemOrDays.reminderDate || '';
+        const tStr = itemOrDays.reminderTime ? ` ${itemOrDays.reminderTime}` : ' 09:00';
+        return `${dStr}${tStr} 自訂提醒`;
+      }
+      const timeSuffix = itemOrDays.reminderTime ? ` ${itemOrDays.reminderTime}` : ' 09:00';
+      const d = (itemOrDays.warnDays !== undefined) ? Number(itemOrDays.warnDays) : 7;
+      if (d === 0) return `到期當天 ${timeSuffix}`;
+      if (d === 1) return `提前 1 天 ${timeSuffix}`;
+      if (d === 3) return `提前 3 天 ${timeSuffix}`;
+      if (d === 5) return `提前 5 天 ${timeSuffix}`;
+      if (d === 7) return `提前 7 天 ${timeSuffix}`;
+      if (d === 14) return `提前 14 天 ${timeSuffix}`;
+      if (d === 30) return `提前 30 天 ${timeSuffix}`;
+      if (d === 60) return `提前 60 天 ${timeSuffix}`;
+      if (d === 90) return `提前 90 天 ${timeSuffix}`;
+      return `提前 ${d} 天 ${timeSuffix}`;
+    }
+
+    const days = (itemOrDays !== undefined) ? Number(itemOrDays) : 7;
+    if (days === 0) return '到期當天提醒 09:00';
+    if (days === 1) return '到期 1 天前提醒 09:00';
+    if (days === 3) return '到期 3 天前提醒 09:00';
+    if (days === 5) return '到期 5 天前提醒 09:00';
+    if (days === 7) return '到期 7 天前提醒 09:00';
+    if (days === 14) return '到期 14 天前提醒 09:00';
+    if (days === 30) return '到期 30 天前提醒 09:00';
+    if (days === 60) return '到期 60 天前提醒 09:00';
+    if (days === 90) return '到期 90 天前提醒 09:00';
+    if (days === -1) return '不提醒';
+    return `到期 ${days} 天前提醒 09:00`;
+  }
+
+  function getCategoryShortLabel(cat) {
+    const allCats = getAllCategories();
+    if (allCats[cat]) {
+      return allCats[cat].label;
+    }
+    return '其他';
+  }
+
+  function getCategoryEmoji(cat) {
+    const allCats = getAllCategories();
+    if (allCats[cat] && allCats[cat].emoji) {
+      return allCats[cat].emoji;
+    }
+    return '🏷️';
+  }
+
+  // ==========================================
+  // 4. UI 渲染 (狀態卡片、膠囊分段、卡片網格)
+  // ==========================================
+  const noticeIconWrapper = document.getElementById('noticeIconWrapper');
+  const noticeTitle = document.getElementById('noticeTitle');
+  const noticeDesc = document.getElementById('noticeDesc');
+
+  const pillCountAll = document.getElementById('pillCountAll');
+  const pillCountUrgent = document.getElementById('pillCountUrgent');
+  const pillCountExpired = document.getElementById('pillCountExpired');
+
+  const itemsGrid = document.getElementById('itemsGrid');
+  const emptyState = document.getElementById('emptyState');
+  const emptyTitle = document.getElementById('emptyTitle');
+  const emptyDesc = document.getElementById('emptyDesc');
+
+  function renderApp() {
+    updateNoticeCardAndPillCounts();
+    renderCards();
+  }
+
+  function updateNoticeCardAndPillCounts() {
+    let total = items.length;
+    let urgent = 0;
+    let expired = 0;
+
+    items.forEach(item => {
+      const m = calculateMetrics(item);
+      if (m.hasEndDate) {
+        if (m.status === 'urgent') urgent++;
+        else if (m.status === 'expired') expired++;
+      }
+    });
+
+    pillCountAll.textContent = total;
+    pillCountUrgent.textContent = urgent;
+    pillCountExpired.textContent = expired;
+
+    if (expired > 0) {
+      noticeIconWrapper.className = 'notice-icon-wrapper expired';
+      noticeIconWrapper.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+      `;
+      noticeTitle.textContent = `有 ${expired} 項物品已過期`;
+      noticeDesc.textContent = '建議盡速更換新耗材或處理過期食品';
+    } else if (urgent > 0) {
+      noticeIconWrapper.className = 'notice-icon-wrapper warning';
+      noticeIconWrapper.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      `;
+      noticeTitle.textContent = `有 ${urgent} 項物品即將到期`;
+      noticeDesc.textContent = '將到期！請留意備妥耗材或及時使用';
+    } else {
+      noticeIconWrapper.className = 'notice-icon-wrapper';
+      noticeIconWrapper.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      `;
+      noticeTitle.textContent = '今天都在週期內';
+      noticeDesc.textContent = '目前沒有將到期或已過期的物品';
+    }
+  }
+
+  function getCustomItemOrder() {
+    try {
+      const raw = localStorage.getItem(CUSTOM_ORDER_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length > 0) {
+          const existingIds = new Set(arr);
+          const missingIds = items.filter(it => !existingIds.has(it.id)).map(it => it.id);
+          return [...arr, ...missingIds];
+        }
+      }
+    } catch (e) {}
+    return items.map(it => it.id);
+  }
+
+  function saveCustomItemOrder(order) {
+    localStorage.setItem(CUSTOM_ORDER_KEY, JSON.stringify(order));
+  }
+
+  function getFilteredItems() {
+    const filtered = items.filter(item => {
+      const m = calculateMetrics(item);
+
+      if (currentPillFilter === 'urgent') {
+        if (!m.hasEndDate || m.status !== 'urgent') return false;
+      }
+      if (currentPillFilter === 'expired') {
+        if (!m.hasEndDate || m.status !== 'expired') return false;
+      }
+
+      if (currentNavTab === 'inventory') {
+        if (item.category !== currentCategoryChip) {
+          return false;
+        }
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const name = (item.name || '').toLowerCase();
+          const brand = (item.brand || '').toLowerCase();
+          const loc = (item.location || '').toLowerCase();
+          if (!name.includes(q) && !brand.includes(q) && !loc.includes(q)) return false;
+        }
+      }
+
+      return true;
+    });
+
+    // 依據使用者選擇之排序方式排序
+    filtered.sort((a, b) => {
+      const ma = calculateMetrics(a);
+      const mb = calculateMetrics(b);
+
+      if (currentSortMode === 'custom') {
+        // 自訂義順序：依照使用者自訂之順位排列
+        const order = getCustomItemOrder();
+        const idxA = order.indexOf(a.id);
+        const idxB = order.indexOf(b.id);
+        const posA = idxA === -1 ? 9999 : idxA;
+        const posB = idxB === -1 ? 9999 : idxB;
+        return posA - posB;
+      } else if (currentSortMode === 'expiry_asc') {
+        // 到期日 升冪：有到期日者依到期日由近到遠，無到期日排在最後
+        if (ma.hasEndDate && !mb.hasEndDate) return -1;
+        if (!ma.hasEndDate && mb.hasEndDate) return 1;
+        if (!ma.hasEndDate && !mb.hasEndDate) {
+          return (a.createdAt || 0) - (b.createdAt || 0);
+        }
+        return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
+      } else if (currentSortMode === 'expiry_desc') {
+        // 到期日 降冪：有到期日者依到期日由遠到近，無到期日排在最後
+        if (ma.hasEndDate && !mb.hasEndDate) return -1;
+        if (!ma.hasEndDate && mb.hasEndDate) return 1;
+        if (!ma.hasEndDate && !mb.hasEndDate) {
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        }
+        return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
+      } else if (currentSortMode === 'created_desc') {
+        // 加入時間 降冪：最新加入的排在最前
+        const ta = a.createdAt || (a.startDate ? new Date(a.startDate).getTime() : 0);
+        const tb = b.createdAt || (b.startDate ? new Date(b.startDate).getTime() : 0);
+        return tb - ta;
+      } else if (currentSortMode === 'created_asc') {
+        // 加入時間 升冪：最早加入的排在最前
+        const ta = a.createdAt || (a.startDate ? new Date(a.startDate).getTime() : 0);
+        const tb = b.createdAt || (b.startDate ? new Date(b.startDate).getTime() : 0);
+        return ta - tb;
+      }
+
+      return items.indexOf(a) - items.indexOf(b);
+    });
+
+    return filtered;
+  }
+
+  function sortItemsList(arr) {
+    return [...arr].sort((a, b) => {
+      const ma = calculateMetrics(a);
+      const mb = calculateMetrics(b);
+
+      if (currentSortMode === 'custom') {
+        const order = getCustomItemOrder();
+        const idxA = order.indexOf(a.id);
+        const idxB = order.indexOf(b.id);
+        const posA = idxA === -1 ? 9999 : idxA;
+        const posB = idxB === -1 ? 9999 : idxB;
+        return posA - posB;
+      } else if (currentSortMode === 'expiry_asc') {
+        if (ma.hasEndDate && !mb.hasEndDate) return -1;
+        if (!ma.hasEndDate && mb.hasEndDate) return 1;
+        if (!ma.hasEndDate && !mb.hasEndDate) {
+          return (a.createdAt || 0) - (b.createdAt || 0);
+        }
+        return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
+      } else if (currentSortMode === 'expiry_desc') {
+        if (ma.hasEndDate && !mb.hasEndDate) return -1;
+        if (!ma.hasEndDate && mb.hasEndDate) return 1;
+        if (!ma.hasEndDate && !mb.hasEndDate) {
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        }
+        return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
+      } else if (currentSortMode === 'created_desc') {
+        const ta = a.createdAt || (a.startDate ? new Date(a.startDate).getTime() : 0);
+        const tb = b.createdAt || (b.startDate ? new Date(b.startDate).getTime() : 0);
+        return tb - ta;
+      } else if (currentSortMode === 'created_asc') {
+        const ta = a.createdAt || (a.startDate ? new Date(a.startDate).getTime() : 0);
+        const tb = b.createdAt || (b.startDate ? new Date(b.startDate).getTime() : 0);
+        return ta - tb;
+      }
+      return 0;
+    });
+  }
+
+  function createCardElement(item) {
+    const m = calculateMetrics(item);
+    const card = document.createElement('div');
+    card.className = 'ios-item-card';
+    card.dataset.id = item.id;
+
+    // 縮圖：優先顯示相片，無相片則顯示 emoji
+    let iconContent = '';
+    if (item.image) {
+      iconContent = `<img src="${item.image}" class="card-thumb-img" alt="${escapeHtml(item.name)}">`;
+    } else {
+      iconContent = `<span>${escapeHtml(item.emoji || '🪑')}</span>`;
+    }
+
+    // 次要字串判斷 (有到期日 vs 僅記錄天數)
+    let subMetricText = '';
+    let subMetricClass = '';
+    if (!m.hasEndDate) {
+      subMetricText = '持續使用中 ⏳';
+      subMetricClass = 'ongoing';
+    } else if (m.remainingDays < 0) {
+      subMetricText = `已超過 ${Math.abs(m.remainingDays)} 天`;
+      subMetricClass = 'expired';
+    } else if (m.remainingDays === 0) {
+      subMetricText = '今天到期';
+      subMetricClass = 'urgent';
+    } else {
+      subMetricText = `還有 ${formatNumber(m.remainingDays)} 天`;
+      if (m.status === 'urgent') subMetricClass = 'urgent';
+    }
+
+    // 進度條寬度與樣式
+    let progressFillStyle = '';
+    if (!m.hasEndDate) {
+      progressFillStyle = 'width: 100%; opacity: 0.28;';
+    } else {
+      progressFillStyle = `width: ${m.percent}%;`;
+    }
+
+    card.innerHTML = `
+      <div>
+        <!-- Top Row: Icon/Photo container + Category label -->
+        <div class="card-top-row">
+          <div class="card-icon-box">
+            ${iconContent}
+          </div>
+          <span class="card-category-tag">${escapeHtml(item.subCategory ? `${getCategoryShortLabel(item.category)} · ${item.subCategory}` : getCategoryShortLabel(item.category))}</span>
+        </div>
+
+        <!-- Item Title -->
+        <div class="card-item-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+
+        <!-- Main Metric: 已使用 12 天 -->
+        <div class="card-metric-main">
+          <span class="metric-pretext">已使用</span>
+          <span class="metric-highlight-number">${m.elapsedDays}</span>
+          <span class="metric-unit">天</span>
+        </div>
+
+        <!-- Sub Metric: 還有 1,085 天 或 持續使用中 -->
+        <div class="card-metric-sub ${subMetricClass}">${subMetricText}</div>
+      </div>
+
+      <!-- Progress Bar at bottom of card -->
+      <div class="card-progress-bar">
+        <div class="card-progress-fill ${m.hasEndDate ? m.status : ''}" style="${progressFillStyle}"></div>
+      </div>
+    `;
+
+    return card;
+  }
+
+  function renderCards() {
+    const SORT_LABEL_MAP = {
+      custom: '自訂義順序',
+      expiry_asc: '到期日 升冪',
+      expiry_desc: '到期日 降冪',
+      created_desc: '加入時間 降冪',
+      created_asc: '加入時間 升冪'
+    };
+
+    // 1. 渲染主頁卡片 (Today Panel)
+    let todayList = items.filter(item => {
+      const m = calculateMetrics(item);
+      if (currentPillFilter === 'urgent') {
+        if (!m.hasEndDate || m.status !== 'urgent') return false;
+      } else if (currentPillFilter === 'expired') {
+        if (!m.hasEndDate || m.status !== 'expired') return false;
+      }
+      return true;
+    });
+    todayList = sortItemsList(todayList);
+
+    if (itemsGrid) {
+      itemsGrid.innerHTML = '';
+      if (todayList.length === 0) {
+        emptyState.style.display = 'flex';
+        if (currentPillFilter === 'urgent') {
+          emptyTitle.textContent = '目前沒有將到期的物品';
+          emptyDesc.textContent = '所有物品都還在安心期限內！';
+        } else if (currentPillFilter === 'expired') {
+          emptyTitle.textContent = '目前沒有已過期的物品';
+          emptyDesc.textContent = '太棒了，所有物品都沒有逾期！';
+        } else {
+          emptyTitle.textContent = '目前沒有物品';
+          emptyDesc.textContent = '點擊右上角的「＋」開始記錄生活中的物品使用期限！';
+        }
+      } else {
+        emptyState.style.display = 'none';
+        todayList.forEach(item => {
+          itemsGrid.appendChild(createCardElement(item));
+        });
+      }
+    }
+
+    const sortToolbarCount = document.getElementById('sortToolbarCount');
+    if (sortToolbarCount) {
+      sortToolbarCount.textContent = `共 ${todayList.length} 項物品`;
+    }
+    const sortPillLabel = document.getElementById('sortPillLabel');
+    if (sortPillLabel) {
+      sortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
+    }
+
+    // 2. 渲染物品分類群組卡片 (Inventory Panel)
+    const inventoryItemsGrid = document.getElementById('inventoryItemsGrid');
+    const emptyStateInventory = document.getElementById('emptyStateInventory');
+    const emptyTitleInventory = document.getElementById('emptyTitleInventory');
+    const emptyDescInventory = document.getElementById('emptyDescInventory');
+    const btnEmptyAddItemsToCat = document.getElementById('btnEmptyAddItemsToCat');
+    const inventorySortToolbarCount = document.getElementById('inventorySortToolbarCount');
+    const inventorySortPillLabel = document.getElementById('inventorySortPillLabel');
+
+    let invList = items.filter(item => {
+      if (item.category !== currentCategoryChip) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const name = (item.name || '').toLowerCase();
+        const brand = (item.brand || '').toLowerCase();
+        const loc = (item.location || '').toLowerCase();
+        if (!name.includes(q) && !brand.includes(q) && !loc.includes(q)) return false;
+      }
+      return true;
+    });
+    invList = sortItemsList(invList);
+
+    const allCats = getAllCategories();
+    const catObj = allCats[currentCategoryChip] || { label: '此群組' };
+
+    if (inventoryItemsGrid) {
+      inventoryItemsGrid.innerHTML = '';
+      if (invList.length === 0) {
+        if (emptyStateInventory) emptyStateInventory.style.display = 'flex';
+        if (emptyTitleInventory) emptyTitleInventory.textContent = `${catObj.label}群組 目前沒有物品`;
+        if (emptyDescInventory) emptyDescInventory.textContent = '您可以從現有物品中勾選加入，或點擊右上角的「＋」新增！';
+        if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'inline-flex';
+      } else {
+        if (emptyStateInventory) emptyStateInventory.style.display = 'none';
+        if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'none';
+        invList.forEach(item => {
+          inventoryItemsGrid.appendChild(createCardElement(item));
+        });
+      }
+    }
+
+    if (inventorySortToolbarCount) {
+      inventorySortToolbarCount.textContent = `${catObj.label}群組 共 ${invList.length} 項物品`;
+    }
+    if (inventorySortPillLabel) {
+      inventorySortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
+    }
+    if (catActiveCount) {
+      catActiveCount.textContent = `${invList.length} 項物品`;
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ==========================================
+  // 5. 卡片點擊彈出 Action Bottom Sheet
+  // ==========================================
+  const actionSheet = document.getElementById('actionSheet');
+  const sheetEmoji = document.getElementById('sheetEmoji');
+  const sheetTitle = document.getElementById('sheetTitle');
+  const sheetTag = document.getElementById('sheetTag');
+  const sheetElapsedDays = document.getElementById('sheetElapsedDays');
+  const sheetRemainingDays = document.getElementById('sheetRemainingDays');
+  const sheetTotalDays = document.getElementById('sheetTotalDays');
+  const sheetDetailsList = document.getElementById('sheetDetailsList');
+  const sheetHistoryBlock = document.getElementById('sheetHistoryBlock');
+  const sheetHistoryList = document.getElementById('sheetHistoryList');
+  const btnSheetReset = document.getElementById('btnSheetReset');
+  const btnSheetResetText = document.getElementById('btnSheetResetText');
+  const btnSheetEdit = document.getElementById('btnSheetEdit');
+  const btnSheetDelete = document.getElementById('btnSheetDelete');
+  const btnCloseSheet = document.getElementById('btnCloseSheet');
+
+  // 雙重確認機制狀態變數 (重設時間與刪除物品)
+  let isResetConfirming = false;
+  let resetConfirmTimer = null;
+  let isDeleteConfirming = false;
+  let deleteConfirmTimer = null;
+
+  function clearResetConfirmation() {
+    isResetConfirming = false;
+    if (resetConfirmTimer) {
+      clearTimeout(resetConfirmTimer);
+      resetConfirmTimer = null;
+    }
+    if (btnSheetReset) btnSheetReset.classList.remove('confirm-active');
+    updateSheetResetButtonText();
+  }
+
+  function clearDeleteConfirmation() {
+    isDeleteConfirming = false;
+    if (deleteConfirmTimer) {
+      clearTimeout(deleteConfirmTimer);
+      deleteConfirmTimer = null;
+    }
+    if (btnSheetDelete) {
+      btnSheetDelete.classList.remove('delete-confirm-active');
+      btnSheetDelete.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <span>刪除此物品</span>
+      `;
+    }
+  }
+
+  function updateSheetResetButtonText() {
+    if (!activeSheetItemId) return;
+    const item = items.find(it => it.id === activeSheetItemId);
+    if (!item) return;
+
+    if (isResetConfirming) {
+      btnSheetResetText.textContent = '⚠️ 確定要重設時間嗎？再次點擊確認';
+      btnSheetReset.classList.add('confirm-active');
+    } else {
+      btnSheetReset.classList.remove('confirm-active');
+      if (item.category === 'vehicle') {
+        btnSheetResetText.textContent = '🚗 保養換新 / 重開週期';
+      } else if (item.category === 'subscription') {
+        btnSheetResetText.textContent = '📅 續訂成功 / 重新計時';
+      } else if (item.category === 'medicine') {
+        btnSheetResetText.textContent = '💊 開新藥瓶 / 重新計時';
+      } else if (item.category === 'cleaning') {
+        btnSheetResetText.textContent = '🧼 換新備品 / 重新計時';
+      } else if (item.category === 'filter') {
+        btnSheetResetText.textContent = '🔄 換新濾網 / 重新開始倒數';
+      } else if (item.category === 'pao') {
+        btnSheetResetText.textContent = '🧴 新瓶開封 / 重新計時';
+      } else {
+        btnSheetResetText.textContent = '⏱️ 重設起始日 / 開啟新週期';
+      }
+    }
+  }
+
+  function openActionSheet(id) {
+    const item = items.find(it => it.id === id);
+    if (!item) return;
+
+    activeSheetItemId = id;
+    clearResetConfirmation();
+    clearDeleteConfirmation();
+    const m = calculateMetrics(item);
+
+    // 縮圖
+    if (item.image) {
+      sheetEmoji.innerHTML = `<img src="${item.image}" class="sheet-thumb-img" alt="${escapeHtml(item.name)}">`;
+    } else {
+      sheetEmoji.textContent = item.emoji || '🪑';
+    }
+
+    sheetTitle.textContent = item.name;
+
+    // 標籤與指標
+    const catLabel = item.subCategory ? `${getCategoryShortLabel(item.category)} · ${item.subCategory}` : getCategoryShortLabel(item.category);
+    if (!m.hasEndDate) {
+      sheetTag.textContent = `${catLabel} • 持續使用中`;
+      sheetElapsedDays.innerHTML = `${m.elapsedDays} <small>天</small>`;
+      sheetRemainingDays.innerHTML = `- <small>無到期日</small>`;
+      sheetTotalDays.innerHTML = `- <small>長期陪伴</small>`;
+    } else {
+      sheetTag.textContent = `${catLabel} • 還有 ${formatNumber(m.remainingDays)} 天`;
+      sheetElapsedDays.innerHTML = `${m.elapsedDays} <small>天</small>`;
+      sheetRemainingDays.innerHTML = `${formatNumber(m.remainingDays)} <small>天</small>`;
+      sheetTotalDays.innerHTML = `${formatNumber(m.totalDays)} <small>天</small>`;
+    }
+
+    // 詳情列表
+    sheetDetailsList.innerHTML = `
+      ${item.subCategory ? `
+        <div class="sheet-detail-row">
+          <span>細項分類</span>
+          <span>${escapeHtml(item.subCategory)}</span>
+        </div>
+      ` : ''}
+      <div class="sheet-detail-row">
+        <span>開始 / 購買日</span>
+        <span>${item.startDate}</span>
+      </div>
+      ${m.hasEndDate ? `
+        <div class="sheet-detail-row">
+          <span>預計到期日</span>
+          <span>${item.endDate}</span>
+        </div>
+        <div class="sheet-detail-row">
+          <span>到期提醒</span>
+          <span>🔔 ${getWarnDaysLabel(item)}</span>
+        </div>
+      ` : `
+        <div class="sheet-detail-row">
+          <span>追蹤模式</span>
+          <span>僅累計使用天數</span>
+        </div>
+      `}
+      ${item.location ? `
+        <div class="sheet-detail-row">
+          <span>存放地點</span>
+          <span>📍 ${escapeHtml(item.location)}</span>
+        </div>
+      ` : ''}
+      ${item.brand ? `
+        <div class="sheet-detail-row">
+          <span>品牌/型號</span>
+          <span>${escapeHtml(item.brand)}</span>
+        </div>
+      ` : ''}
+      ${item.notes ? `
+        <div class="sheet-detail-row">
+          <span>備註說明</span>
+          <span>💬 ${escapeHtml(item.notes)}</span>
+        </div>
+      ` : ''}
+    `;
+
+    // 歷程紀錄
+    if (item.history && item.history.length > 0) {
+      sheetHistoryBlock.style.display = 'block';
+      sheetHistoryList.innerHTML = item.history.slice().reverse().map((h, i) => `
+        <div>• 第 ${item.history.length - i} 次換新：${h.resetDate} • 使用 ${h.daysUsed} 天 - ${escapeHtml(h.note || '已更換')}</div>
+      `).join('');
+    } else {
+      sheetHistoryBlock.style.display = 'none';
+    }
+
+    updateSheetResetButtonText();
+    actionSheet.style.display = 'flex';
+  }
+
+  function closeActionSheet() {
+    clearResetConfirmation();
+    clearDeleteConfirmation();
+    actionSheet.style.display = 'none';
+    activeSheetItemId = null;
+  }
+
+  // 換新 / 重開週期 (具備雙重確認防止誤觸，4 秒未確認自動取消)
+  btnSheetReset.addEventListener('click', function () {
+    if (!activeSheetItemId) return;
+    const item = items.find(it => it.id === activeSheetItemId);
+    if (!item) return;
+
+    if (!isResetConfirming) {
+      // 第一次點擊：進入警示確認模式
+      isResetConfirming = true;
+      updateSheetResetButtonText();
+      resetConfirmTimer = setTimeout(() => {
+        clearResetConfirmation();
+      }, 4000);
+      return;
+    }
+
+    // 第二次點擊：確認執行重設！
+    clearResetConfirmation();
+
+    const today = getTodayString();
+    const m = calculateMetrics(item);
+    const duration = item.durationDays || 180;
+
+    if (!item.history) item.history = [];
+    item.history.push({
+      resetDate: today,
+      daysUsed: m.elapsedDays,
+      note: '定期換新/重新開始'
+    });
+
+    item.startDate = today;
+    if (item.hasEndDate !== false) {
+      item.endDate = getOffsetDateString(today, duration);
+    }
+
+    saveItems();
+    closeActionSheet();
+    renderApp();
+    showToast(`🎉 已成功重設「${item.name}」時間！`);
+    autoSyncIfLoggedIn();
+  });
+
+  btnSheetEdit.addEventListener('click', function () {
+    const id = activeSheetItemId;
+    closeActionSheet();
+    openEditModal(id);
+  });
+
+  // 刪除物品彈出式選單確認 (Modal 8: Delete Confirm Popup Modal)
+  const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+  const deleteConfirmItemDesc = document.getElementById('deleteConfirmItemDesc');
+  const btnConfirmDeleteItem = document.getElementById('btnConfirmDeleteItem');
+  const btnCancelDeleteItem = document.getElementById('btnCancelDeleteItem');
+
+  function openDeleteConfirmModal(item) {
+    if (!deleteConfirmModal || !item) return;
+    if (deleteConfirmItemDesc) {
+      deleteConfirmItemDesc.textContent = `刪除後將無法復原「${item.name}」的所有記錄與週期資料`;
+    }
+    deleteConfirmModal.style.display = 'flex';
+  }
+
+  function closeDeleteConfirmModal() {
+    if (deleteConfirmModal) {
+      deleteConfirmModal.style.display = 'none';
+    }
+  }
+
+  if (btnSheetDelete) {
+    btnSheetDelete.addEventListener('click', function () {
+      if (!activeSheetItemId) return;
+      const item = items.find(it => it.id === activeSheetItemId);
+      if (!item) return;
+      openDeleteConfirmModal(item);
+    });
+  }
+
+  if (btnCancelDeleteItem) {
+    btnCancelDeleteItem.addEventListener('click', closeDeleteConfirmModal);
+  }
+
+  if (deleteConfirmModal) {
+    deleteConfirmModal.addEventListener('click', function (e) {
+      if (e.target === deleteConfirmModal) closeDeleteConfirmModal();
+    });
+  }
+
+  if (btnConfirmDeleteItem) {
+    btnConfirmDeleteItem.addEventListener('click', function () {
+      if (!activeSheetItemId) return;
+      const item = items.find(it => it.id === activeSheetItemId);
+      const deletedName = item ? item.name : '物品';
+      items = items.filter(it => it.id !== activeSheetItemId);
+      saveItems();
+      closeDeleteConfirmModal();
+      closeActionSheet();
+      renderApp();
+      showToast(`🗑️ 已成功刪除「${deletedName}」`);
+      autoSyncIfLoggedIn();
+    });
+  }
+
+  btnCloseSheet.addEventListener('click', closeActionSheet);
+  actionSheet.addEventListener('click', function (e) {
+    if (e.target === actionSheet) closeActionSheet();
+  });
+
+  // ==========================================
+  // 6. 新增與編輯物品 Modal (含智慧配圖、相片上傳、無到期日切換)
+  // ==========================================
+  const itemModal = document.getElementById('itemModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const btnCloseModal = document.getElementById('btnCloseModal');
+  const btnCancelModal = document.getElementById('btnCancelModal');
+  const itemForm = document.getElementById('itemForm');
+  const itemIdInput = document.getElementById('itemId');
+  const itemNameInput = document.getElementById('itemName');
+  const itemEmojiInput = document.getElementById('itemEmoji');
+  const itemStartDateInput = document.getElementById('itemStartDate');
+  const itemEndDateInput = document.getElementById('itemEndDate');
+  const fieldEndDateWrap = document.getElementById('fieldEndDateWrap');
+  const itemDurationInput = document.getElementById('itemDuration');
+  const fieldDurationWrap = document.getElementById('fieldDurationWrap');
+  const itemWarnDaysSelect = document.getElementById('itemWarnDaysSelect');
+  const fieldReminderWrap = document.getElementById('fieldReminderWrap');
+  const presetReminderTimeWrap = document.getElementById('presetReminderTimeWrap');
+  const itemPresetReminderTime = document.getElementById('itemPresetReminderTime');
+  const customReminderDateTimeWrap = document.getElementById('customReminderDateTimeWrap');
+  const itemReminderCustomDate = document.getElementById('itemReminderCustomDate');
+  const itemReminderCustomTime = document.getElementById('itemReminderCustomTime');
+  const previewExpiryBar = document.getElementById('previewExpiryBar');
+  const previewElapsedBar = document.getElementById('previewElapsedBar');
+  const itemLocationInput = document.getElementById('itemLocation');
+  const itemBrandInput = document.getElementById('itemBrand');
+  const itemNotesInput = document.getElementById('itemNotes');
+  const previewEndDateText = document.getElementById('previewEndDateText');
+  const itemCategorySelect = document.getElementById('itemCategorySelect');
+  const itemSubCategorySelect = document.getElementById('itemSubCategorySelect');
+  const customSubCatRow = document.getElementById('customSubCatRow');
+  const customSubCategoryInput = document.getElementById('customSubCategoryInput');
+  const itemSubCategoryInput = document.getElementById('itemSubCategory');
+
+  // Avatar & Image Picker Elements
+  const previewEmojiChar = document.getElementById('previewEmojiChar');
+  const previewImageEl = document.getElementById('previewImageEl');
+  const itemImageInput = document.getElementById('itemImageInput');
+  const btnRemoveImage = document.getElementById('btnRemoveImage');
+  const btnOpenBgRemoval = document.getElementById('btnOpenBgRemoval');
+  const avatarHintText = document.getElementById('avatarHintText');
+
+  // Mode buttons
+  const btnModeExpiry = document.getElementById('btnModeExpiry');
+  const btnModeElapsed = document.getElementById('btnModeElapsed');
+
+  // 設定追蹤模式 (到期 vs 僅計算天數)
+  function setModalMode(mode) {
+    currentModalMode = mode;
+    if (mode === 'expiry') {
+      btnModeExpiry.classList.add('active');
+      btnModeElapsed.classList.remove('active');
+      if (fieldEndDateWrap) fieldEndDateWrap.style.display = 'block';
+      if (fieldDurationWrap) fieldDurationWrap.style.display = 'block';
+      if (fieldReminderWrap) fieldReminderWrap.style.display = 'block';
+      if (typeof updateReminderSectionVisibility === 'function') {
+        updateReminderSectionVisibility(itemWarnDaysSelect ? itemWarnDaysSelect.value : '7');
+      }
+      previewExpiryBar.style.display = 'flex';
+      previewElapsedBar.style.display = 'none';
+    } else {
+      btnModeExpiry.classList.remove('active');
+      btnModeElapsed.classList.add('active');
+      if (fieldEndDateWrap) fieldEndDateWrap.style.display = 'none';
+      if (fieldDurationWrap) fieldDurationWrap.style.display = 'none';
+      if (fieldReminderWrap) fieldReminderWrap.style.display = 'none';
+      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
+      previewExpiryBar.style.display = 'none';
+      previewElapsedBar.style.display = 'flex';
+    }
+    updateModalPreview();
+  }
+
+  btnModeExpiry.addEventListener('click', () => setModalMode('expiry'));
+  btnModeElapsed.addEventListener('click', () => setModalMode('elapsed'));
+
+  // 更新 Avatar 預覽
+  function updateAvatarPreview() {
+    if (currentUploadedImage) {
+      previewImageEl.src = currentUploadedImage;
+      previewImageEl.style.display = 'block';
+      previewEmojiChar.style.display = 'none';
+      btnRemoveImage.style.display = 'inline-block';
+      if (btnOpenBgRemoval) btnOpenBgRemoval.style.display = 'inline-flex';
+      avatarHintText.textContent = '已套用相片，可點選「✨ 智慧去背」去背';
+    } else {
+      previewImageEl.style.display = 'none';
+      previewEmojiChar.style.display = 'block';
+      previewEmojiChar.textContent = itemEmojiInput.value || '🪑';
+      btnRemoveImage.style.display = 'none';
+      if (btnOpenBgRemoval) btnOpenBgRemoval.style.display = 'none';
+      avatarHintText.textContent = '輸入名稱自動配圖，或自行上傳相片';
+    }
+  }
+
+  // 圖片壓縮為 256x256 輕量化 DataURL
+  function compressImageFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const maxSide = 256;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxSide) {
+            h = Math.round((h * maxSide) / w);
+            w = maxSide;
+          }
+        } else {
+          if (h > maxSide) {
+            w = Math.round((w * maxSide) / h);
+            h = maxSide;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/png'); // 預設使用 PNG 支援後續透明去背
+        callback(dataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 監聽圖片上傳
+  itemImageInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    compressImageFile(file, function (dataUrl) {
+      currentUploadedImage = dataUrl;
+      updateAvatarPreview();
+      showToast('相片已成功加入！可使用「✨ 智慧去背」去除背景');
+    });
+    itemImageInput.value = '';
+  });
+
+  // 移除圖片，切換回 Emoji
+  btnRemoveImage.addEventListener('click', function () {
+    currentUploadedImage = null;
+    updateAvatarPreview();
+    showToast('已移除自訂相片，切換為圖標');
+  });
+
+  // 手動自訂 Emoji
+  itemEmojiInput.addEventListener('input', function () {
+    isManualEmojiSet = true;
+    updateAvatarPreview();
+  });
+
+  // ==========================================
+  // 6.1 智慧相片去背工坊 (AI & Custom Background Removal Studio)
+  // ==========================================
+  const bgRemovalModal = document.getElementById('bgRemovalModal');
+  const btnCloseBgRemovalModal = document.getElementById('btnCloseBgRemovalModal');
+  const btnCancelBgRemoval = document.getElementById('btnCancelBgRemoval');
+  const btnApplyBgRemoval = document.getElementById('btnApplyBgRemoval');
+  const bgRemovalCanvas = document.getElementById('bgRemovalCanvas');
+  const btnAiBgRemoval = document.getElementById('btnAiBgRemoval');
+  const btnColorPickRemoval = document.getElementById('btnColorPickRemoval');
+  const btnResetBgRemoval = document.getElementById('btnResetBgRemoval');
+  const bgToleranceSlider = document.getElementById('bgToleranceSlider');
+  const bgToleranceVal = document.getElementById('bgToleranceVal');
+  const bgFeatherSlider = document.getElementById('bgFeatherSlider');
+  const bgFeatherVal = document.getElementById('bgFeatherVal');
+
+  let bgCanvasCtx = null;
+  let bgOriginalImageData = null;
+  let bgTargetColors = []; // [[r, g, b], ...]
+  let isColorPickMode = false;
+
+  function openBgRemovalStudio(imageSrc) {
+    if (!imageSrc) {
+      showToast('請先上傳相片才能進行去背！');
+      return;
+    }
+    if (!bgRemovalModal || !bgRemovalCanvas) return;
+    bgCanvasCtx = bgRemovalCanvas.getContext('2d');
+    isColorPickMode = false;
+    if (btnColorPickRemoval) btnColorPickRemoval.classList.remove('active-tool');
+
+    const img = new Image();
+    img.onload = function () {
+      const maxDim = 320;
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+      if (w > h) {
+        if (w > maxDim) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        }
+      } else {
+        if (h > maxDim) {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      bgRemovalCanvas.width = w;
+      bgRemovalCanvas.height = h;
+
+      // 繪製原圖到 Canvas
+      bgCanvasCtx.clearRect(0, 0, w, h);
+      bgCanvasCtx.drawImage(img, 0, 0, w, h);
+      bgOriginalImageData = bgCanvasCtx.getImageData(0, 0, w, h);
+
+      // AI 自動偵測背景色群集
+      bgTargetColors = autoDetectBackgroundColors(bgOriginalImageData, w, h);
+
+      // 執行即時去背運算
+      applyBackgroundMatting();
+
+      bgRemovalModal.style.display = 'flex';
+      showToast('✨ 智慧去背工坊已就緒！');
+    };
+    img.src = imageSrc;
+  }
+
+  function closeBgRemovalStudio() {
+    if (bgRemovalModal) bgRemovalModal.style.display = 'none';
+    isColorPickMode = false;
+  }
+
+  // AI 智慧自動採樣背景色（採樣圖片四角、邊緣週邊）
+  function autoDetectBackgroundColors(imgData, width, height) {
+    const data = imgData.data;
+    const sampled = [];
+
+    function samplePixel(x, y) {
+      if (x < 0 || x >= width || y < 0 || y >= height) return;
+      const idx = (y * width + x) * 4;
+      if (data[idx + 3] > 30) {
+        sampled.push([data[idx], data[idx + 1], data[idx + 2]]);
+      }
+    }
+
+    // 四角 4x4 區塊密集採樣
+    for (let dy = 0; dy < 4; dy++) {
+      for (let dx = 0; dx < 4; dx++) {
+        samplePixel(dx, dy); // 左上
+        samplePixel(width - 1 - dx, dy); // 右上
+        samplePixel(dx, height - 1 - dy); // 左下
+        samplePixel(width - 1 - dx, height - 1 - dy); // 右下
+      }
+    }
+
+    // 圖片上下左右邊界中點採樣
+    samplePixel(Math.floor(width / 2), 0);
+    samplePixel(Math.floor(width / 2), height - 1);
+    samplePixel(0, Math.floor(height / 2));
+    samplePixel(width - 1, Math.floor(height / 2));
+
+    if (sampled.length === 0) return [[255, 255, 255]];
+
+    let avgR = 0, avgG = 0, avgB = 0;
+    sampled.forEach(c => {
+      avgR += c[0];
+      avgG += c[1];
+      avgB += c[2];
+    });
+    const len = sampled.length;
+    avgR = Math.round(avgR / len);
+    avgG = Math.round(avgG / len);
+    avgB = Math.round(avgB / len);
+
+    const colors = [[avgR, avgG, avgB]];
+    // 如果左上角與右下角顏色差異較大，加入額外種子
+    if (sampled.length >= 16) {
+      const c1 = sampled[0];
+      const c2 = sampled[15];
+      if (colorDistance(c1, [avgR, avgG, avgB]) > 25) colors.push(c1);
+      if (colorDistance(c2, [avgR, avgG, avgB]) > 25) colors.push(c2);
+    }
+    return colors;
+  }
+
+  // 感知加權色差計算 (Perceptual Euclidean Color Distance)
+  function colorDistance(c1, c2) {
+    const dr = c1[0] - c2[0];
+    const dg = c1[1] - c2[1];
+    const db = c1[2] - c2[2];
+    return Math.sqrt(dr * dr * 0.299 + dg * dg * 0.587 + db * db * 0.114);
+  }
+
+  // 核心去背運算 (Matting with tolerance & edge feathering)
+  function applyBackgroundMatting() {
+    if (!bgOriginalImageData || !bgCanvasCtx) return;
+
+    const tolerancePercent = parseInt(bgToleranceSlider ? bgToleranceSlider.value : 28, 10) || 28;
+    const featherPx = parseInt(bgFeatherSlider ? bgFeatherSlider.value : 2, 10) || 2;
+    // 將 0-100% 容許度映射到感知色彩距離閥值 (0 ~ 170)
+    const threshold = (tolerancePercent / 100) * 160;
+
+    const w = bgRemovalCanvas.width;
+    const h = bgRemovalCanvas.height;
+    const output = bgCanvasCtx.createImageData(w, h);
+    const src = bgOriginalImageData.data;
+    const dst = output.data;
+    const totalPixels = w * h;
+
+    for (let i = 0; i < totalPixels; i++) {
+      const idx = i * 4;
+      const r = src[idx];
+      const g = src[idx + 1];
+      const b = src[idx + 2];
+      const a = src[idx + 3];
+
+      if (a === 0) {
+        dst[idx] = r;
+        dst[idx + 1] = g;
+        dst[idx + 2] = b;
+        dst[idx + 3] = 0;
+        continue;
+      }
+
+      // 計算與所有設定之背景色之最小色彩距離
+      let minDistance = 9999;
+      for (let k = 0; k < bgTargetColors.length; k++) {
+        const d = colorDistance([r, g, b], bgTargetColors[k]);
+        if (d < minDistance) minDistance = d;
+      }
+
+      dst[idx] = r;
+      dst[idx + 1] = g;
+      dst[idx + 2] = b;
+
+      if (minDistance <= threshold) {
+        // 完全透明消除
+        dst[idx + 3] = 0;
+      } else if (featherPx > 0 && minDistance < threshold + featherPx * 6) {
+        // 邊緣平滑羽化過渡，避免鋸齒
+        const ramp = (minDistance - threshold) / (featherPx * 6);
+        dst[idx + 3] = Math.round(a * Math.min(1, Math.max(0, ramp)));
+      } else {
+        // 保留主體不透明
+        dst[idx + 3] = a;
+      }
+    }
+
+    bgCanvasCtx.putImageData(output, 0, 0);
+  }
+
+  // 點擊去背按鈕開啟去背工坊
+  if (btnOpenBgRemoval) {
+    btnOpenBgRemoval.addEventListener('click', function () {
+      if (currentUploadedImage) {
+        openBgRemovalStudio(currentUploadedImage);
+      } else {
+        showToast('請先上傳相片才能去背！');
+      }
+    });
+  }
+
+  if (btnCloseBgRemovalModal) btnCloseBgRemovalModal.addEventListener('click', closeBgRemovalStudio);
+  if (btnCancelBgRemoval) btnCancelBgRemoval.addEventListener('click', closeBgRemovalStudio);
+
+  // 一鍵 AI 去背
+  if (btnAiBgRemoval) {
+    btnAiBgRemoval.addEventListener('click', function () {
+      if (!bgOriginalImageData) return;
+      isColorPickMode = false;
+      if (btnColorPickRemoval) btnColorPickRemoval.classList.remove('active-tool');
+      const w = bgRemovalCanvas.width;
+      const h = bgRemovalCanvas.height;
+      bgTargetColors = autoDetectBackgroundColors(bgOriginalImageData, w, h);
+      applyBackgroundMatting();
+      showToast('🤖 AI 智慧邊界去背已完成！');
+    });
+  }
+
+  // 點按取色去背模式
+  if (btnColorPickRemoval) {
+    btnColorPickRemoval.addEventListener('click', function () {
+      isColorPickMode = !isColorPickMode;
+      if (isColorPickMode) {
+        this.classList.add('active-tool');
+        showToast('🎯 請點擊畫布上想要去除的背景位置');
+      } else {
+        this.classList.remove('active-tool');
+      }
+    });
+  }
+
+  // 畫布點擊吸色去背
+  if (bgRemovalCanvas) {
+    bgRemovalCanvas.addEventListener('click', function (e) {
+      if (!bgOriginalImageData) return;
+      const rect = bgRemovalCanvas.getBoundingClientRect();
+      const scaleX = bgRemovalCanvas.width / rect.width;
+      const scaleY = bgRemovalCanvas.height / rect.height;
+      const x = Math.floor((e.clientX - rect.left) * scaleX);
+      const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+      if (x >= 0 && x < bgRemovalCanvas.width && y >= 0 && y < bgRemovalCanvas.height) {
+        const idx = (y * bgRemovalCanvas.width + x) * 4;
+        const r = bgOriginalImageData.data[idx];
+        const g = bgOriginalImageData.data[idx + 1];
+        const b = bgOriginalImageData.data[idx + 2];
+
+        bgTargetColors.push([r, g, b]);
+        applyBackgroundMatting();
+        showToast('🎯 已選取色彩消除背景！');
+      }
+    });
+  }
+
+  // 還原原圖
+  if (btnResetBgRemoval) {
+    btnResetBgRemoval.addEventListener('click', function () {
+      if (!bgOriginalImageData || !bgCanvasCtx) return;
+      bgCanvasCtx.putImageData(bgOriginalImageData, 0, 0);
+      bgTargetColors = [];
+      showToast('↺ 已還原原始相片');
+    });
+  }
+
+  // 容許度滑桿變更
+  if (bgToleranceSlider) {
+    bgToleranceSlider.addEventListener('input', function () {
+      if (bgToleranceVal) bgToleranceVal.textContent = this.value + '%';
+      applyBackgroundMatting();
+    });
+  }
+
+  // 羽化滑桿變更
+  if (bgFeatherSlider) {
+    bgFeatherSlider.addEventListener('input', function () {
+      if (bgFeatherVal) bgFeatherVal.textContent = this.value + 'px';
+      applyBackgroundMatting();
+    });
+  }
+
+  // 完成並套用去背圖片
+  if (btnApplyBgRemoval) {
+    btnApplyBgRemoval.addEventListener('click', function () {
+      if (!bgRemovalCanvas) return;
+      const transparentPngUrl = bgRemovalCanvas.toDataURL('image/png');
+      currentUploadedImage = transparentPngUrl;
+      updateAvatarPreview();
+      closeBgRemovalStudio();
+      showToast('✅ 去背成功！已套用為透明背景縮圖');
+    });
+  }
+
+  // 智慧關鍵字自動配圖與聯動分類 (當輸入名稱時即時觸發)
+  itemNameInput.addEventListener('input', function () {
+    const text = this.value.trim().toLowerCase();
+    if (!text) return;
+
+    // 若使用者尚未上傳自訂相片且未手動鎖定 emoji，進行自動匹配
+    if (!currentUploadedImage && !isManualEmojiSet) {
+      for (const item of SMART_KEYWORD_MAP) {
+        const matched = item.keywords.some(k => text.includes(k.toLowerCase()));
+        if (matched) {
+          itemEmojiInput.value = item.emoji;
+          updateAvatarPreview();
+
+          // 自動帶出建議的一級主分類與二級細項下拉選單
+          if (itemCategorySelect && itemCategorySelect.value !== item.cat) {
+            itemCategorySelect.value = item.cat;
+            populateSubCategoryDropdown(item.cat, item.subCat || '');
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  // 分類細項下拉選單核心渲染與聯動邏輯
+  function populateSubCategoryDropdown(category, activeSubCatName = '') {
+    const allCats = getAllCategories();
+    const catData = allCats[category];
+    if (!itemSubCategorySelect || !catData) return;
+
+    itemSubCategorySelect.innerHTML = '';
+
+    // 提示預設選項
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = `請選擇 ${catData.label} 細項...`;
+    itemSubCategorySelect.appendChild(defaultOpt);
+
+    let hasMatched = false;
+
+    if (catData.items && Array.isArray(catData.items)) {
+      catData.items.forEach(subItem => {
+        const opt = document.createElement('option');
+        opt.value = subItem.subCat;
+        opt.textContent = `${subItem.emoji || catData.emoji || '🏷️'} ${subItem.name}`;
+        opt.dataset.name = subItem.name;
+        opt.dataset.subcat = subItem.subCat;
+        opt.dataset.emoji = subItem.emoji || catData.emoji || '🏷️';
+        opt.dataset.duration = subItem.duration || '';
+        opt.dataset.hasEndDate = subItem.hasEndDate !== false;
+        opt.dataset.brand = subItem.brand || '';
+        opt.dataset.location = subItem.location || '';
+        opt.dataset.notes = subItem.notes || '';
+        opt.dataset.image = subItem.image || '';
+
+        if (activeSubCatName && (activeSubCatName === subItem.subCat || activeSubCatName === subItem.name)) {
+          opt.selected = true;
+          hasMatched = true;
+        }
+        itemSubCategorySelect.appendChild(opt);
+      });
+    }
+
+    // 自訂細項選項
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '➕ 自訂其他細項名稱...';
+    itemSubCategorySelect.appendChild(customOpt);
+
+    if (!hasMatched && activeSubCatName) {
+      customOpt.selected = true;
+      if (customSubCatRow) customSubCatRow.style.display = 'block';
+      if (customSubCategoryInput) customSubCategoryInput.value = activeSubCatName;
+      if (itemSubCategoryInput) itemSubCategoryInput.value = activeSubCatName;
+    } else {
+      if (customSubCatRow) customSubCatRow.style.display = 'none';
+      if (customSubCategoryInput) customSubCategoryInput.value = '';
+      if (itemSubCategoryInput) itemSubCategoryInput.value = hasMatched ? activeSubCatName : (itemSubCategorySelect.value || '');
+    }
+  }
+
+  // 主分類下拉選單動態渲染 (包含自訂分類與自訂入口)
+  function populateCategorySelect(selectedCat = '') {
+    if (!itemCategorySelect) return;
+    const allCats = getAllCategories();
+    const prevVal = selectedCat || itemCategorySelect.value || Object.keys(allCats)[0] || 'vehicle';
+    itemCategorySelect.innerHTML = '';
+
+    Object.keys(allCats).forEach(key => {
+      const cat = allCats[key];
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = `${cat.emoji} ${cat.label}`;
+      if (key === prevVal) opt.selected = true;
+      itemCategorySelect.appendChild(opt);
+    });
+
+    const manageOpt = document.createElement('option');
+    manageOpt.value = '__manage_custom__';
+    manageOpt.textContent = '➕ 自訂分類項目...';
+    itemCategorySelect.appendChild(manageOpt);
+  }
+
+  // 監聽主分類下拉變更，即時重繪細項下拉
+  if (itemCategorySelect) {
+    itemCategorySelect.addEventListener('change', function () {
+      if (this.value === '__manage_custom__') {
+        openCustomCategoryModal();
+        const allCats = getAllCategories();
+        this.value = Object.keys(allCats)[0] || 'vehicle';
+        populateSubCategoryDropdown(this.value);
+        return;
+      }
+      populateSubCategoryDropdown(this.value);
+    });
+  }
+
+  // 監聽細項下拉選單變更，自動智慧代入預設值
+  if (itemSubCategorySelect) {
+    itemSubCategorySelect.addEventListener('change', function () {
+      const val = this.value;
+      if (val === '__custom__') {
+        if (customSubCatRow) customSubCatRow.style.display = 'block';
+        if (customSubCategoryInput) {
+          customSubCategoryInput.focus();
+          itemSubCategoryInput.value = customSubCategoryInput.value.trim() || '自訂細項';
+        }
+      } else {
+        if (customSubCatRow) customSubCatRow.style.display = 'none';
+        itemSubCategoryInput.value = val;
+        const opt = this.options[this.selectedIndex];
+        if (opt && opt.dataset.name) {
+          itemNameInput.value = opt.dataset.name;
+          if (opt.dataset.duration) {
+            itemDurationInput.value = opt.dataset.duration;
+            const startStr = itemStartDateInput.value || getTodayString();
+            if (itemEndDateInput) {
+              itemEndDateInput.value = getOffsetDateString(startStr, parseInt(opt.dataset.duration, 10) || 1);
+            }
+          }
+          if (opt.dataset.hasEndDate === 'false') {
+            setModalMode('elapsed');
+          } else {
+            setModalMode('expiry');
+          }
+          if (opt.dataset.emoji) {
+            itemEmojiInput.value = opt.dataset.emoji;
+            isManualEmojiSet = true;
+          }
+          if (opt.dataset.brand) itemBrandInput.value = opt.dataset.brand;
+          if (opt.dataset.location) itemLocationInput.value = opt.dataset.location;
+          if (opt.dataset.notes) itemNotesInput.value = opt.dataset.notes;
+          if (opt.dataset.image) currentUploadedImage = opt.dataset.image;
+
+          // 若該細項有建議提醒天數，自動帶入
+          const catItems = getAllCategories()[itemCategorySelect.value]?.items;
+          const subItemDef = catItems ? catItems.find(it => it.subCat === opt.value) : null;
+          if (subItemDef && subItemDef.warnDays !== undefined) {
+            setReminderSelectValue(subItemDef.warnDays);
+          }
+
+          updateAvatarPreview();
+          updateModalPreview();
+        }
+      }
+    });
+  }
+
+  const REMINDER_OPTIONS = [
+    { value: '0', label: '到期當天提醒' },
+    { value: '1', label: '到期 1 天前提醒' },
+    { value: '3', label: '到期 3 天前提醒' },
+    { value: '5', label: '到期 5 天前提醒' },
+    { value: '7', label: '到期 7 天前提醒' },
+    { value: '10', label: '到期 10 天前提醒' },
+    { value: '14', label: '到期 14 天前提醒' },
+    { value: '30', label: '到期 30 天前提醒' },
+    { value: '60', label: '到期 60 天前提醒' },
+    { value: '90', label: '到期 90 天前提醒' },
+    { value: 'custom', label: '🗓️ 自訂指定提醒日期與時間...' },
+    { value: '-1', label: '不提醒' }
+  ];
+
+  function updateReminderSectionVisibility(val) {
+    if (currentModalMode === 'elapsed') {
+      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
+      return;
+    }
+    if (val === 'custom') {
+      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'flex';
+      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+    } else if (val === '-1') {
+      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
+      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+    } else {
+      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
+      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'flex';
+    }
+  }
+
+  function populateReminderOptions(daysOrType) {
+    if (!itemWarnDaysSelect) return;
+    const val = (daysOrType !== undefined && daysOrType !== null) ? String(daysOrType) : '7';
+    itemWarnDaysSelect.innerHTML = '';
+    let hasMatch = false;
+
+    REMINDER_OPTIONS.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      if (item.value === val) {
+        opt.selected = true;
+        opt.setAttribute('selected', 'selected');
+        hasMatch = true;
+      }
+      itemWarnDaysSelect.appendChild(opt);
+    });
+
+    if (!hasMatch && val !== '-1' && val !== 'custom') {
+      const customOpt = document.createElement('option');
+      customOpt.value = val;
+      customOpt.textContent = `到期 ${val} 天前提醒`;
+      customOpt.selected = true;
+      customOpt.setAttribute('selected', 'selected');
+      itemWarnDaysSelect.appendChild(customOpt);
+    }
+
+    itemWarnDaysSelect.value = val;
+    updateReminderSectionVisibility(val);
+  }
+  const setReminderSelectValue = populateReminderOptions;
+
+  if (itemWarnDaysSelect) {
+    itemWarnDaysSelect.addEventListener('change', function () {
+      const val = this.value;
+      updateReminderSectionVisibility(val);
+      if (val === 'custom') {
+        if (itemReminderCustomDate && !itemReminderCustomDate.value) {
+          const endStr = (itemEndDateInput && itemEndDateInput.value) ? itemEndDateInput.value : getOffsetDateString(getTodayString(), 30);
+          itemReminderCustomDate.value = getOffsetDateString(endStr, -1);
+        }
+        if (itemReminderCustomTime && !itemReminderCustomTime.value) {
+          itemReminderCustomTime.value = '09:00';
+        }
+      }
+    });
+  }
+
+  if (customSubCategoryInput) {
+    customSubCategoryInput.addEventListener('input', function () {
+      itemSubCategoryInput.value = this.value.trim() || '自訂細項';
+    });
+  }
+
+  function openAddModal() {
+    modalTitle.textContent = '新增物品';
+    itemForm.reset();
+    itemIdInput.value = '';
+    itemSubCategoryInput.value = '';
+
+    const today = getTodayString();
+    itemStartDateInput.value = today;
+    itemDurationInput.value = '180';
+    if (itemEndDateInput) itemEndDateInput.value = getOffsetDateString(today, 180);
+
+    if (itemPresetReminderTime) itemPresetReminderTime.value = '09:00';
+    if (itemReminderCustomDate) itemReminderCustomDate.value = '';
+    if (itemReminderCustomTime) itemReminderCustomTime.value = '09:00';
+    populateReminderOptions('7');
+
+    itemEmojiInput.value = '🪑';
+    currentUploadedImage = null;
+    isManualEmojiSet = false;
+
+    populateCategorySelect('warranty');
+    populateSubCategoryDropdown('warranty');
+
+    setModalMode('expiry');
+    updateAvatarPreview();
+    itemModal.style.display = 'flex';
+    itemNameInput.focus();
+  }
+
+  function openEditModal(id) {
+    const item = items.find(it => it.id === id);
+    if (!item) return;
+
+    modalTitle.textContent = '編輯物品資訊';
+    itemIdInput.value = item.id;
+    itemNameInput.value = item.name || '';
+    itemSubCategoryInput.value = item.subCategory || '';
+    itemEmojiInput.value = item.emoji || '🪑';
+    currentUploadedImage = item.image || null;
+    isManualEmojiSet = true;
+
+    const startStr = item.startDate || getTodayString();
+    const duration = item.durationDays || '180';
+    itemStartDateInput.value = startStr;
+    itemDurationInput.value = duration;
+    if (itemEndDateInput) {
+      itemEndDateInput.value = item.endDate || getOffsetDateString(startStr, parseInt(duration, 10) || 180);
+    }
+
+    if (item.reminderType === 'custom' || item.reminderDate) {
+      if (itemReminderCustomDate) itemReminderCustomDate.value = item.reminderDate || '';
+      if (itemReminderCustomTime) itemReminderCustomTime.value = item.reminderTime || '09:00';
+      populateReminderOptions('custom');
+    } else if (item.reminderType === 'none' || item.warnDays === -1) {
+      populateReminderOptions('-1');
+    } else {
+      if (itemPresetReminderTime) itemPresetReminderTime.value = item.reminderTime || '09:00';
+      populateReminderOptions(item.warnDays !== undefined ? item.warnDays : 7);
+    }
+
+    itemLocationInput.value = item.location || '';
+    itemBrandInput.value = item.brand || '';
+    itemNotesInput.value = item.notes || '';
+
+    populateCategorySelect(item.category || 'warranty');
+    populateSubCategoryDropdown(item.category || 'warranty', item.subCategory || '');
+
+    if (item.hasEndDate === false) {
+      setModalMode('elapsed');
+    } else {
+      setModalMode('expiry');
+    }
+
+    updateAvatarPreview();
+    itemModal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    itemModal.style.display = 'none';
+  }
+
+  // 雙向換算：從週期天數同步到期日
+  function syncFromDuration() {
+    if (currentModalMode === 'elapsed') return;
+    const startStr = itemStartDateInput.value || getTodayString();
+    const duration = parseInt(itemDurationInput.value, 10) || 1;
+    const endStr = getOffsetDateString(startStr, duration);
+    if (itemEndDateInput) itemEndDateInput.value = endStr;
+    updateModalPreview();
+  }
+
+  // 雙向換算：從自訂到期日同步週期天數
+  function syncFromEndDate() {
+    if (currentModalMode === 'elapsed') return;
+    const startStr = itemStartDateInput.value || getTodayString();
+    const endStr = itemEndDateInput ? itemEndDateInput.value : '';
+    if (!endStr) return;
+    const days = diffDays(startStr, endStr);
+    if (days >= 0) {
+      itemDurationInput.value = days === 0 ? 1 : days;
+    } else {
+      itemDurationInput.value = 1;
+    }
+    updateModalPreview();
+  }
+
+  function updateModalPreview() {
+    if (currentModalMode === 'elapsed') return;
+
+    const startStr = itemStartDateInput.value || getTodayString();
+    let endStr = itemEndDateInput ? itemEndDateInput.value : '';
+    const duration = parseInt(itemDurationInput.value, 10) || 1;
+
+    if (!endStr) {
+      endStr = getOffsetDateString(startStr, duration);
+      if (itemEndDateInput) itemEndDateInput.value = endStr;
+    }
+
+    const today = getTodayString();
+    const remain = diffDays(today, endStr);
+
+    previewEndDateText.textContent = endStr;
+    if (remain < 0) {
+      previewDaysText.textContent = `已過期 ${Math.abs(remain)} 天`;
+      previewDaysText.style.color = 'var(--ios-red)';
+    } else {
+      previewDaysText.textContent = `剩餘 ${remain} 天 • 週期 ${duration} 天`;
+      previewDaysText.style.color = 'var(--ios-green)';
+    }
+  }
+
+  itemStartDateInput.addEventListener('change', function () {
+    if (itemEndDateInput && itemEndDateInput.value) {
+      syncFromEndDate();
+    } else {
+      syncFromDuration();
+    }
+  });
+  if (itemEndDateInput) {
+    itemEndDateInput.addEventListener('change', syncFromEndDate);
+  }
+  itemDurationInput.addEventListener('input', syncFromDuration);
+
+  // 表單儲存
+  itemForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const name = itemNameInput.value.trim();
+    if (!name) return;
+
+    const id = itemIdInput.value.trim();
+    const category = itemCategorySelect ? itemCategorySelect.value : 'warranty';
+    let subCategory = itemSubCategoryInput.value.trim();
+    if (!subCategory && itemSubCategorySelect && itemSubCategorySelect.value && itemSubCategorySelect.value !== '__custom__') {
+      subCategory = itemSubCategorySelect.value;
+    }
+    const emoji = itemEmojiInput.value.trim() || '🪑';
+    const image = currentUploadedImage || null;
+    const startDate = itemStartDateInput.value || getTodayString();
+    const hasEndDate = (currentModalMode === 'expiry');
+
+    let durationDays = null;
+    let endDate = null;
+    let warnDays = 7;
+    let reminderType = 'preset';
+    let reminderDate = null;
+    let reminderTime = '09:00';
+
+    if (hasEndDate) {
+      if (itemEndDateInput && itemEndDateInput.value) {
+        endDate = itemEndDateInput.value;
+        durationDays = parseInt(itemDurationInput.value, 10) || Math.max(1, diffDays(startDate, endDate));
+      } else {
+        durationDays = parseInt(itemDurationInput.value, 10) || 180;
+        endDate = getOffsetDateString(startDate, durationDays);
+      }
+
+      const reminderVal = itemWarnDaysSelect ? itemWarnDaysSelect.value : '7';
+      if (reminderVal === 'custom') {
+        reminderType = 'custom';
+        reminderDate = (itemReminderCustomDate && itemReminderCustomDate.value) ? itemReminderCustomDate.value : getOffsetDateString(endDate, -1);
+        reminderTime = (itemReminderCustomTime && itemReminderCustomTime.value) ? itemReminderCustomTime.value : '09:00';
+        warnDays = Math.max(0, diffDays(startDate, reminderDate));
+      } else if (reminderVal === '-1') {
+        reminderType = 'none';
+        warnDays = -1;
+        reminderDate = null;
+        reminderTime = null;
+      } else {
+        reminderType = 'preset';
+        warnDays = parseInt(reminderVal, 10) || 0;
+        reminderTime = (itemPresetReminderTime && itemPresetReminderTime.value) ? itemPresetReminderTime.value : '09:00';
+        reminderDate = getOffsetDateString(endDate, -warnDays);
+      }
+    }
+
+    const location = itemLocationInput.value.trim();
+    const brand = itemBrandInput.value.trim();
+    const notes = itemNotesInput.value.trim();
+
+    if (id) {
+      const item = items.find(it => it.id === id);
+      if (item) {
+        item.name = name;
+        item.category = category;
+        item.subCategory = subCategory;
+        item.emoji = emoji;
+        item.image = image;
+        item.startDate = startDate;
+        item.hasEndDate = hasEndDate;
+        item.durationDays = durationDays;
+        item.endDate = endDate;
+        item.reminderType = reminderType;
+        item.reminderDate = reminderDate;
+        item.reminderTime = reminderTime;
+        item.warnDays = warnDays;
+        item.location = location;
+        item.brand = brand;
+        item.notes = notes;
+      }
+      showToast('已更新物品資訊');
+    } else {
+      const newItem = {
+        id: 'item_' + Date.now(),
+        name,
+        category,
+        subCategory,
+        emoji,
+        image,
+        startDate,
+        hasEndDate,
+        durationDays,
+        endDate,
+        reminderType,
+        reminderDate,
+        reminderTime,
+        warnDays,
+        location,
+        brand,
+        notes,
+        history: [],
+        createdAt: Date.now()
+      };
+      items.unshift(newItem);
+      showToast('已新增物品！');
+    }
+
+    saveItems();
+    closeModal();
+    renderApp();
+    autoSyncIfLoggedIn();
+  });
+
+  btnCloseModal.addEventListener('click', closeModal);
+  btnCancelModal.addEventListener('click', closeModal);
+  itemModal.addEventListener('click', function (e) {
+    if (e.target === itemModal) closeModal();
+  });
+
+  // ==========================================
+  // 7. 設定 Modal (Settings)
+  // ==========================================
+  const settingsModal = document.getElementById('settingsModal');
+  const btnOpenSettings = document.getElementById('btnOpenSettings');
+  const btnCloseSettings = document.getElementById('btnCloseSettings');
+  const btnToggleThemeSetting = document.getElementById('btnToggleThemeSetting');
+  const settingsThemeText = document.getElementById('settingsThemeText');
+  const btnToggleNotification = document.getElementById('btnToggleNotification');
+  const btnExportJson = document.getElementById('btnExportJson');
+  const importJsonFile = document.getElementById('importJsonFile');
+  const btnRestoreDemoData = document.getElementById('btnRestoreDemoData');
+
+  btnOpenSettings.addEventListener('click', function () {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    settingsThemeText.textContent = currentTheme === 'dark' ? '目前為極黑模式' : '目前為明亮模式';
+    settingsModal.style.display = 'flex';
+  });
+
+  btnCloseSettings.addEventListener('click', () => settingsModal.style.display = 'none');
+  settingsModal.addEventListener('click', function (e) {
+    if (e.target === settingsModal) settingsModal.style.display = 'none';
+  });
+
+  btnToggleThemeSetting.addEventListener('click', function () {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(THEME_KEY, next);
+    settingsThemeText.textContent = next === 'dark' ? '目前為極黑模式' : '目前為明亮模式';
+    showToast(next === 'dark' ? '已切換為極黑模式' : '已切換為明亮模式');
+  });
+
+  btnToggleNotification.addEventListener('click', async function () {
+    if (!('Notification' in window)) {
+      showToast('瀏覽器不支援通知');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      showToast('已開啟通知提醒！');
+      btnToggleNotification.textContent = '已啟用';
+    } else {
+      showToast('未開啟通知權限');
+    }
+  });
+
+  btnExportJson.addEventListener('click', function () {
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `物品天數備份_${getTodayString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('備份檔案已匯出');
+  });
+
+  importJsonFile.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      try {
+        const data = JSON.parse(event.target.result);
+        if (Array.isArray(data)) {
+          items = data;
+          saveItems();
+          renderApp();
+          settingsModal.style.display = 'none';
+          showToast(`已成功匯入 ${data.length} 件物品！`);
+        }
+      } catch (err) {
+        showToast('JSON 格式錯誤');
+      }
+      importJsonFile.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  btnRestoreDemoData.addEventListener('click', function () {
+    if (window.confirm('確定要還原為示範資料嗎？')) {
+      items = createSeedItems();
+      saveItems();
+      renderApp();
+      settingsModal.style.display = 'none';
+      showToast('已重置為範例資料');
+    }
+  });
+
+  // ==========================================
+  // 7.1 Google 帳號登入與雲端資料同步 (Google Cloud Sync)
+  // ==========================================
+  const GOOGLE_USER_KEY = 'lifespan_google_user';
+  const GOOGLE_SYNC_TIME_KEY = 'lifespan_google_last_sync';
+  const GOOGLE_CLIENT_ID_KEY = 'lifespan_google_client_id';
+  const CLOUD_STORAGE_PREFIX = 'lifespan_cloud_db_';
+
+  // Elements
+  const btnHeaderGoogle = document.getElementById('btnHeaderGoogle');
+  const headerGoogleGIcon = document.getElementById('headerGoogleGIcon');
+  const headerGoogleAvatarImg = document.getElementById('headerGoogleAvatarImg');
+  const headerSyncDot = document.getElementById('headerSyncDot');
+
+  const googleAvatarLarge = document.getElementById('googleAvatarLarge');
+  const googleGLarge = document.getElementById('googleGLarge');
+  const googleAvatarImgLarge = document.getElementById('googleAvatarImgLarge');
+  const googleUserName = document.getElementById('googleUserName');
+  const googleUserEmail = document.getElementById('googleUserEmail');
+  const googleSyncBadge = document.getElementById('googleSyncBadge');
+  const googleLastSyncText = document.getElementById('googleLastSyncText');
+
+  const googleAuthLoggedOut = document.getElementById('googleAuthLoggedOut');
+  const googleAuthLoggedIn = document.getElementById('googleAuthLoggedIn');
+  const btnGoogleSignIn = document.getElementById('btnGoogleSignIn');
+  const btnCloudUpload = document.getElementById('btnCloudUpload');
+  const btnCloudDownload = document.getElementById('btnCloudDownload');
+  const btnSwitchMockAccount = document.getElementById('btnSwitchMockAccount');
+  const btnGoogleSignOut = document.getElementById('btnGoogleSignOut');
+
+  const btnToggleClientIdConfig = document.getElementById('btnToggleClientIdConfig');
+  const clientIdConfigContent = document.getElementById('clientIdConfigContent');
+  const configChevron = document.getElementById('configChevron');
+  const customGoogleClientId = document.getElementById('customGoogleClientId');
+  const btnSaveGoogleClientId = document.getElementById('btnSaveGoogleClientId');
+
+  let currentGoogleUser = null;
+  let googleTokenClient = null;
+
+  function loadGoogleUser() {
+    try {
+      const stored = localStorage.getItem(GOOGLE_USER_KEY);
+      if (stored) currentGoogleUser = JSON.parse(stored);
+    } catch (e) {
+      currentGoogleUser = null;
+    }
+    const savedClientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || '';
+    if (customGoogleClientId) customGoogleClientId.value = savedClientId;
+    updateGoogleUI();
+  }
+
+  function saveGoogleUser(user) {
+    currentGoogleUser = user;
+    if (user) {
+      localStorage.setItem(GOOGLE_USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(GOOGLE_USER_KEY);
+    }
+    updateGoogleUI();
+  }
+
+  function updateGoogleUI() {
+    const lastSync = localStorage.getItem(GOOGLE_SYNC_TIME_KEY);
+    const syncTimeStr = lastSync ? `最後同步：${lastSync}` : '最後同步：尚未同步';
+
+    if (googleLastSyncText) googleLastSyncText.textContent = syncTimeStr;
+
+    if (currentGoogleUser && currentGoogleUser.email) {
+      // Logged in
+      if (headerSyncDot) {
+        headerSyncDot.className = 'sync-dot';
+        headerSyncDot.title = '已連線 Google 雲端';
+      }
+      if (currentGoogleUser.picture) {
+        if (headerGoogleAvatarImg) {
+          headerGoogleAvatarImg.src = currentGoogleUser.picture;
+          headerGoogleAvatarImg.style.display = 'block';
+        }
+        if (headerGoogleGIcon) headerGoogleGIcon.style.display = 'none';
+
+        if (googleAvatarImgLarge) {
+          googleAvatarImgLarge.src = currentGoogleUser.picture;
+          googleAvatarImgLarge.style.display = 'block';
+        }
+        if (googleGLarge) googleGLarge.style.display = 'none';
+      } else {
+        if (headerGoogleAvatarImg) headerGoogleAvatarImg.style.display = 'none';
+        if (headerGoogleGIcon) headerGoogleGIcon.style.display = 'block';
+        if (googleAvatarImgLarge) googleAvatarImgLarge.style.display = 'none';
+        if (googleGLarge) googleGLarge.style.display = 'block';
+      }
+
+      if (googleUserName) googleUserName.textContent = currentGoogleUser.name || 'Google 使用者';
+      if (googleUserEmail) googleUserEmail.textContent = currentGoogleUser.email;
+      if (googleSyncBadge) {
+        googleSyncBadge.className = 'sync-status-badge';
+        googleSyncBadge.textContent = currentGoogleUser.isRealDrive ? '● 已連線 Google Drive' : '● 已連線雲端同步';
+      }
+
+      if (googleAuthLoggedOut) googleAuthLoggedOut.style.display = 'none';
+      if (googleAuthLoggedIn) googleAuthLoggedIn.style.display = 'block';
+    } else {
+      // Logged out
+      if (headerSyncDot) {
+        headerSyncDot.className = 'sync-dot offline';
+        headerSyncDot.title = '未登入 Google 雲端';
+      }
+      if (headerGoogleAvatarImg) headerGoogleAvatarImg.style.display = 'none';
+      if (headerGoogleGIcon) headerGoogleGIcon.style.display = 'block';
+      if (googleAvatarImgLarge) googleAvatarImgLarge.style.display = 'none';
+      if (googleGLarge) googleGLarge.style.display = 'block';
+
+      if (googleUserName) googleUserName.textContent = 'Google 帳號未登入';
+      if (googleUserEmail) googleUserEmail.textContent = '登入後可將紀錄上傳雲端，跨帳號隨時同步';
+      if (googleSyncBadge) {
+        googleSyncBadge.className = 'sync-status-badge offline';
+        googleSyncBadge.textContent = '未連線';
+      }
+
+      if (googleAuthLoggedOut) googleAuthLoggedOut.style.display = 'block';
+      if (googleAuthLoggedIn) googleAuthLoggedIn.style.display = 'none';
+    }
+  }
+
+  // 點擊 Header 的 Google 按鈕：直接打開設定彈窗並聚焦至雲端同步區塊
+  if (btnHeaderGoogle) {
+    btnHeaderGoogle.addEventListener('click', function () {
+      btnOpenSettings.click();
+      const syncCard = document.getElementById('googleSyncCard');
+      if (syncCard) {
+        syncCard.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  // Google 登入處理
+  if (btnGoogleSignIn) {
+    btnGoogleSignIn.addEventListener('click', function () {
+      const customId = (customGoogleClientId && customGoogleClientId.value.trim()) || localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+
+      if (customId && window.google && google.accounts && google.accounts.oauth2) {
+        // 使用真實 Google OAuth 2.0 Token Client
+        try {
+          googleTokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: customId,
+            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+            callback: async (tokenResponse) => {
+              if (tokenResponse && tokenResponse.access_token) {
+                try {
+                  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const userInfo = await userInfoRes.json();
+                  saveGoogleUser({
+                    name: userInfo.name || 'Google 使用者',
+                    email: userInfo.email || 'user@gmail.com',
+                    picture: userInfo.picture || '',
+                    token: tokenResponse.access_token,
+                    isRealDrive: true
+                  });
+                  showToast(`🎉 歡迎！Google 帳號 ${userInfo.email} 登入成功`);
+                  uploadToCloud(true);
+                } catch (e) {
+                  showToast('登入成功，已啟用 Google Drive 雲端同步！');
+                }
+              }
+            }
+          });
+          googleTokenClient.requestAccessToken();
+          return;
+        } catch (err) {
+          console.warn('Google GIS error, falling back to simulated sync:', err);
+        }
+      }
+
+      // 若未填寫自訂 Client ID，提供一鍵即時體驗帳號登入
+      const email = prompt('請輸入要登入並同步的 Google 帳號 Email：', (currentGoogleUser && currentGoogleUser.email) || 'user@gmail.com');
+      if (!email) return;
+
+      const user = {
+        name: email.split('@')[0],
+        email: email.trim(),
+        picture: '',
+        isRealDrive: false
+      };
+      saveGoogleUser(user);
+      showToast(`🎉 歡迎！以 ${user.email} 啟用雲端同步！`);
+
+      // 檢查此帳號在雲端是否已有備份資料，若有詢問是否直接還原
+      const cloudDataStr = localStorage.getItem(CLOUD_STORAGE_PREFIX + user.email);
+      if (cloudDataStr) {
+        try {
+          const parsed = JSON.parse(cloudDataStr);
+          if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+            if (confirm(`發現雲端存有 ${parsed.items.length} 筆紀錄，是否立即從雲端同步還原？`)) {
+              downloadFromCloud();
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+      uploadToCloud(true);
+    });
+  }
+
+  // 上傳至雲端 (Upload to Cloud)
+  async function uploadToCloud(isSilent = false) {
+    if (!currentGoogleUser || !currentGoogleUser.email) {
+      if (!isSilent) showToast('請先登入 Google 帳號！');
+      return;
+    }
+
+    if (headerSyncDot) headerSyncDot.className = 'sync-dot syncing';
+
+    const nowStr = new Date().toLocaleString();
+    const payload = {
+      version: 1,
+      user: currentGoogleUser.email,
+      updatedAt: Date.now(),
+      updatedAtStr: nowStr,
+      items: items
+    };
+
+    if (currentGoogleUser.isRealDrive && currentGoogleUser.token) {
+      try {
+        const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name='lifespan_tracker_cloud_backup.json'+and+trashed=false", {
+          headers: { Authorization: `Bearer ${currentGoogleUser.token}` }
+        });
+        const searchData = await searchRes.json();
+        const fileId = searchData.files && searchData.files[0] ? searchData.files[0].id : null;
+
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${currentGoogleUser.token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const metadata = {
+            name: 'lifespan_tracker_cloud_backup.json',
+            mimeType: 'application/json'
+          };
+          const form = new FormData();
+          form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+          form.append('file', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${currentGoogleUser.token}` },
+            body: form
+          });
+        }
+      } catch (err) {
+        console.error('Drive upload error:', err);
+      }
+    }
+
+    // 同步儲存至帳號雲端空間 (支援跨帳號切換隔離測試)
+    localStorage.setItem(CLOUD_STORAGE_PREFIX + currentGoogleUser.email, JSON.stringify(payload));
+    localStorage.setItem(GOOGLE_SYNC_TIME_KEY, nowStr);
+
+    setTimeout(() => {
+      if (headerSyncDot) headerSyncDot.className = 'sync-dot';
+      updateGoogleUI();
+      if (!isSilent) showToast('☁️ 已成功將紀錄上傳至個人雲端！');
+    }, 400);
+  }
+
+  // 從雲端下載同步 (Download from Cloud)
+  async function downloadFromCloud() {
+    if (!currentGoogleUser || !currentGoogleUser.email) {
+      showToast('請先登入 Google 帳號！');
+      return;
+    }
+
+    if (headerSyncDot) headerSyncDot.className = 'sync-dot syncing';
+
+    let cloudData = null;
+
+    if (currentGoogleUser.isRealDrive && currentGoogleUser.token) {
+      try {
+        const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name='lifespan_tracker_cloud_backup.json'+and+trashed=false", {
+          headers: { Authorization: `Bearer ${currentGoogleUser.token}` }
+        });
+        const searchData = await searchRes.json();
+        const fileId = searchData.files && searchData.files[0] ? searchData.files[0].id : null;
+
+        if (fileId) {
+          const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+            headers: { Authorization: `Bearer ${currentGoogleUser.token}` }
+          });
+          cloudData = await contentRes.json();
+        }
+      } catch (err) {
+        console.error('Drive download error:', err);
+      }
+    }
+
+    if (!cloudData) {
+      const stored = localStorage.getItem(CLOUD_STORAGE_PREFIX + currentGoogleUser.email);
+      if (stored) {
+        try { cloudData = JSON.parse(stored); } catch (e) {}
+      }
+    }
+
+    if (cloudData && Array.isArray(cloudData.items)) {
+      items = cloudData.items;
+      saveItems();
+      renderApp();
+      const nowStr = new Date().toLocaleString();
+      localStorage.setItem(GOOGLE_SYNC_TIME_KEY, nowStr);
+      if (headerSyncDot) headerSyncDot.className = 'sync-dot';
+      updateGoogleUI();
+      showToast(`⬇️ 已從雲端同步最新 ${items.length} 筆紀錄！`);
+    } else {
+      if (headerSyncDot) headerSyncDot.className = 'sync-dot';
+      showToast('雲端尚無備份，已為您將本機紀錄上傳備份！');
+      uploadToCloud(true);
+    }
+  }
+
+  // 自動同步 (防手滑、背景防遺失)
+  let autoSyncTimer = null;
+  function autoSyncIfLoggedIn() {
+    if (!currentGoogleUser || !currentGoogleUser.email) return;
+    clearTimeout(autoSyncTimer);
+    autoSyncTimer = setTimeout(() => {
+      uploadToCloud(true);
+    }, 1200);
+  }
+
+  if (btnCloudUpload) btnCloudUpload.addEventListener('click', () => uploadToCloud(false));
+  if (btnCloudDownload) btnCloudDownload.addEventListener('click', downloadFromCloud);
+
+  // 切換模擬帳號
+  if (btnSwitchMockAccount) {
+    btnSwitchMockAccount.addEventListener('click', function () {
+      const nextEmail = prompt('請輸入要切換的 Google 帳號：', 'work.account@gmail.com');
+      if (!nextEmail || nextEmail.trim() === currentGoogleUser.email) return;
+
+      const newUser = {
+        name: nextEmail.split('@')[0],
+        email: nextEmail.trim(),
+        picture: '',
+        isRealDrive: false
+      };
+      saveGoogleUser(newUser);
+
+      // 檢查新帳號是否有雲端紀錄
+      const cloudDataStr = localStorage.getItem(CLOUD_STORAGE_PREFIX + newUser.email);
+      if (cloudDataStr) {
+        try {
+          const parsed = JSON.parse(cloudDataStr);
+          if (parsed && Array.isArray(parsed.items)) {
+            items = parsed.items;
+            saveItems();
+            renderApp();
+            showToast(`🔄 已切換至 ${newUser.email}，並自動同步其專屬雲端紀錄！`);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // 新帳號若為全新，給予獨立示範資料或清空
+      if (confirm(`帳號「${newUser.email}」雲端無紀錄。\n是否為此新帳號建立全新的範例紀錄？`)) {
+        items = createSeedItems();
+        saveItems();
+        renderApp();
+        uploadToCloud(true);
+        showToast(`✨ 已切換至全新帳號 ${newUser.email}！`);
+      } else {
+        uploadToCloud(true);
+        showToast(`已切換至 ${newUser.email}，並將目前清單備份至此帳號！`);
+      }
+    });
+  }
+
+  // 登出 Google 帳號
+  if (btnGoogleSignOut) {
+    btnGoogleSignOut.addEventListener('click', function () {
+      if (confirm('確定要登出 Google 帳號嗎？本機資料仍會保留')) {
+        saveGoogleUser(null);
+        showToast('已登出 Google 帳號');
+      }
+    });
+  }
+
+  // 自訂 Client ID 折疊面板
+  if (btnToggleClientIdConfig) {
+    btnToggleClientIdConfig.addEventListener('click', function () {
+      const isHidden = clientIdConfigContent.style.display === 'none';
+      clientIdConfigContent.style.display = isHidden ? 'flex' : 'none';
+      if (configChevron) configChevron.textContent = isHidden ? '▴' : '▾';
+    });
+  }
+
+  if (btnSaveGoogleClientId) {
+    btnSaveGoogleClientId.addEventListener('click', function () {
+      const val = customGoogleClientId.value.trim();
+      localStorage.setItem(GOOGLE_CLIENT_ID_KEY, val);
+      showToast(val ? '已儲存 Google Client ID！點擊登入即可使用正式 Drive API' : '已清除自訂 Client ID');
+    });
+  }
+
+  // ==========================================
+  // 8. 導航與篩選控制 (今天 vs 我的物品 / 全部 vs 快到了 vs 已超過)
+  // ==========================================
+  const dockTabToday = document.getElementById('dockTabToday');
+  const dockTabInventory = document.getElementById('dockTabInventory');
+  const inventorySearch = document.getElementById('inventorySearch');
+  const btnClearInventorySearch = document.getElementById('btnClearInventorySearch');
+  const headerMainTitle = document.getElementById('headerMainTitle');
+  const headerSublabel = document.getElementById('headerSublabel');
+  const statusNoticeCard = document.getElementById('statusNoticeCard');
+  const segmentedPillsBar = document.getElementById('segmentedPillsBar');
+  const inventoryControls = document.getElementById('inventoryControls');
+  const homeSortToolbar = document.getElementById('homeSortToolbar');
+  const homeSortSelect = document.getElementById('homeSortSelect');
+
+  // 頂部選單按鈕（全部 / 將到期 / 已過期）點擊切換與篩選
+  const homeFilterBtns = document.querySelectorAll('.home-filter-btn');
+  homeFilterBtns.forEach(btn => {
+    btn.addEventListener('click', function () {
+      currentPillFilter = this.dataset.filter || 'all';
+      homeFilterBtns.forEach(b => b.classList.toggle('active', b === btn));
+      renderCards();
+    });
+  });
+
+  // 點擊「即將到期」狀態卡片，自動啟用「將到期」按鈕並篩選顯示將到期物品
+  if (statusNoticeCard) {
+    statusNoticeCard.addEventListener('click', function () {
+      currentPillFilter = 'urgent';
+      homeFilterBtns.forEach(b => b.classList.toggle('active', b.id === 'pillUrgent'));
+      renderCards();
+      const firstUrgentCard = document.querySelector('.ios-item-card');
+      if (firstUrgentCard) {
+        firstUrgentCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  }
+
+  // 物品排序選單（原生下拉選單）
+  if (homeSortSelect) {
+    homeSortSelect.value = currentSortMode;
+    homeSortSelect.addEventListener('change', function () {
+      currentSortMode = this.value;
+      localStorage.setItem(HOME_SORT_KEY, currentSortMode);
+      const SORT_LABEL_MAP = {
+        expiry_asc: '到期日 升冪',
+        expiry_desc: '到期日 降冪',
+        created_desc: '加入時間 降冪',
+        created_asc: '加入時間 升冪'
+      };
+      const sortPillLabel = document.getElementById('sortPillLabel');
+      if (sortPillLabel) {
+        sortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
+      }
+      renderCards();
+    });
+  }
+
+  // Modal 6: 自訂排序選單控制器（整合自訂順序與升降冪）
+  const homeSortModal = document.getElementById('homeSortModal');
+  const btnOpenCustomSort = document.getElementById('btnOpenCustomSort');
+  const btnCloseHomeSortModal = document.getElementById('btnCloseHomeSortModal');
+  const btnApplyCustomSort = document.getElementById('btnApplyCustomSort');
+  const sortOptionCards = document.querySelectorAll('.sort-option-card');
+  let tempSelectedSortMode = currentSortMode;
+
+  function renderCustomOrderList() {
+    const listEl = document.getElementById('customOrderItemsList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    const order = getCustomItemOrder();
+
+    order.forEach((id, index) => {
+      const item = items.find(it => it.id === id);
+      if (!item) return;
+
+      const row = document.createElement('div');
+      row.className = 'order-item-row';
+      row.dataset.id = item.id;
+
+      const rankStr = String(index + 1).padStart(2, '0');
+      const isFirst = index === 0;
+      const isLast = index === order.length - 1;
+
+      row.innerHTML = `
+        <div class="order-item-left">
+          <span class="order-rank-badge">${rankStr}</span>
+          <span class="order-item-title">${escapeHtml(item.name)}</span>
+        </div>
+        <div class="order-item-actions">
+          <button type="button" class="btn-move-order btn-move-up" data-id="${item.id}" ${isFirst ? 'disabled' : ''} title="上移">▲</button>
+          <button type="button" class="btn-move-order btn-move-down" data-id="${item.id}" ${isLast ? 'disabled' : ''} title="下移">▼</button>
+        </div>
+      `;
+
+      listEl.appendChild(row);
+    });
+
+    // 綁定上移與下移按鈕事件
+    listEl.querySelectorAll('.btn-move-up').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const itemId = this.dataset.id;
+        const curOrder = getCustomItemOrder();
+        const idx = curOrder.indexOf(itemId);
+        if (idx > 0) {
+          const temp = curOrder[idx];
+          curOrder[idx] = curOrder[idx - 1];
+          curOrder[idx - 1] = temp;
+          saveCustomItemOrder(curOrder);
+          renderCustomOrderList();
+          if (currentSortMode === 'custom') renderCards();
+        }
+      });
+    });
+
+    listEl.querySelectorAll('.btn-move-down').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const itemId = this.dataset.id;
+        const curOrder = getCustomItemOrder();
+        const idx = curOrder.indexOf(itemId);
+        if (idx !== -1 && idx < curOrder.length - 1) {
+          const temp = curOrder[idx];
+          curOrder[idx] = curOrder[idx + 1];
+          curOrder[idx + 1] = temp;
+          saveCustomItemOrder(curOrder);
+          renderCustomOrderList();
+          if (currentSortMode === 'custom') renderCards();
+        }
+      });
+    });
+  }
+
+  function openHomeSortModal() {
+    if (!homeSortModal) return;
+    tempSelectedSortMode = currentSortMode;
+    sortOptionCards.forEach(card => {
+      card.classList.toggle('active', card.dataset.sort === tempSelectedSortMode);
+    });
+    const customSection = document.getElementById('customOrderSection');
+    if (customSection) {
+      customSection.style.display = tempSelectedSortMode === 'custom' ? 'block' : 'none';
+    }
+    if (tempSelectedSortMode === 'custom') {
+      renderCustomOrderList();
+    }
+    homeSortModal.style.display = 'flex';
+  }
+
+  function closeHomeSortModal() {
+    if (!homeSortModal) return;
+    homeSortModal.style.display = 'none';
+  }
+
+  if (btnOpenCustomSort) {
+    btnOpenCustomSort.addEventListener('click', openHomeSortModal);
+  }
+  if (btnCloseHomeSortModal) {
+    btnCloseHomeSortModal.addEventListener('click', closeHomeSortModal);
+  }
+  if (homeSortModal) {
+    homeSortModal.addEventListener('click', function (e) {
+      if (e.target === homeSortModal) closeHomeSortModal();
+    });
+  }
+
+  const SORT_LABEL_MAP = {
+    custom: '自訂義順序',
+    expiry_asc: '到期日 升冪',
+    expiry_desc: '到期日 降冪',
+    created_desc: '加入時間 降冪',
+    created_asc: '加入時間 升冪'
+  };
+
+  sortOptionCards.forEach(card => {
+    card.addEventListener('click', function () {
+      const selected = this.dataset.sort;
+      currentSortMode = selected;
+      localStorage.setItem(HOME_SORT_KEY, currentSortMode);
+      sortOptionCards.forEach(c => c.classList.toggle('active', c === card));
+
+      const sortPillLabel = document.getElementById('sortPillLabel');
+      if (sortPillLabel) {
+        sortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
+      }
+      const inventorySortPillLabel = document.getElementById('inventorySortPillLabel');
+      if (inventorySortPillLabel) {
+        inventorySortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
+      }
+
+      const customSection = document.getElementById('customOrderSection');
+      if (customSection) {
+        if (selected === 'custom') {
+          customSection.style.display = 'block';
+          renderCustomOrderList();
+          renderCards();
+          showToast('已切換為自訂義順序，可點擊箭頭微調物品排列');
+        } else {
+          customSection.style.display = 'none';
+          renderCards();
+          showToast(`已套用排序：${SORT_LABEL_MAP[currentSortMode]}`);
+          setTimeout(closeHomeSortModal, 220);
+        }
+      }
+    });
+  });
+
+  const btnOpenInventorySort = document.getElementById('btnOpenInventorySort');
+  if (btnOpenInventorySort) {
+    btnOpenInventorySort.addEventListener('click', openHomeSortModal);
+  }
+
+  // ==========================================
+  // 主頁與物品分類 滑動切換控制器 (Views Slider Controller)
+  // ==========================================
+  const viewsSliderTrack = document.getElementById('viewsSliderTrack');
+  const viewsSliderViewport = document.getElementById('viewsSliderViewport');
+
+  function switchViewTab(tab, smooth = true) {
+    currentNavTab = tab;
+    if (viewsSliderViewport) viewsSliderViewport.scrollLeft = 0;
+    document.documentElement.scrollLeft = 0;
+    if (viewsSliderTrack) {
+      if (!smooth) {
+        viewsSliderTrack.classList.add('dragging');
+      }
+      if (tab === 'today') {
+        viewsSliderTrack.style.transform = 'translateX(0%)';
+      } else {
+        viewsSliderTrack.style.transform = 'translateX(-50%)';
+      }
+      if (!smooth) {
+        void viewsSliderTrack.offsetWidth;
+        viewsSliderTrack.classList.remove('dragging');
+      }
+    }
+
+    if (tab === 'today') {
+      dockTabToday.classList.add('active');
+      dockTabInventory.classList.remove('active');
+      if (headerSublabel) headerSublabel.textContent = '主頁';
+      if (headerMainTitle) headerMainTitle.textContent = '物品天數';
+    } else {
+      dockTabToday.classList.remove('active');
+      dockTabInventory.classList.add('active');
+      if (headerSublabel) headerSublabel.textContent = '物品分類';
+      if (headerMainTitle) headerMainTitle.textContent = '分類清單';
+      currentCategoryChip = getFirstPageCategory();
+      renderCategoryChips();
+      updateCategoryActionBar();
+    }
+    renderApp();
+  }
+
+  dockTabToday.addEventListener('click', function () {
+    switchViewTab('today');
+  });
+
+  dockTabInventory.addEventListener('click', function () {
+    switchViewTab('inventory');
+  });
+
+  // 動態渲染分類膠囊標籤（支援自訂排序、第一頁預設置前與左右滑動對齊）
+  function renderCategoryChips() {
+    const chipRow = document.getElementById('categoryChipRow');
+    if (!chipRow) return;
+
+    chipRow.innerHTML = '';
+    const allCats = getAllCategories();
+    const catKeys = Object.keys(allCats);
+    const firstPageCat = getFirstPageCategory();
+
+    // 優先採用自訂分類排序
+    let orderedKeys = getCustomCategoryOrder();
+    if (!orderedKeys || !Array.isArray(orderedKeys) || orderedKeys.length === 0) {
+      orderedKeys = [firstPageCat, ...catKeys.filter(k => k !== firstPageCat)];
+    } else {
+      orderedKeys = orderedKeys.filter(k => allCats[k]);
+      catKeys.forEach(k => {
+        if (!orderedKeys.includes(k)) orderedKeys.push(k);
+      });
+    }
+
+    if (currentCategoryChip === 'all' || !allCats[currentCategoryChip]) {
+      currentCategoryChip = orderedKeys[0] || firstPageCat;
+    }
+
+    orderedKeys.forEach(catKey => {
+      const cat = allCats[catKey];
+      const btn = document.createElement('button');
+      btn.className = `category-chip ${catKey === currentCategoryChip ? 'active' : ''}`;
+      btn.dataset.cat = catKey;
+      btn.textContent = `${cat.emoji} ${cat.label}`;
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        currentCategoryChip = this.dataset.cat;
+        const targetLeft = this.offsetLeft - (chipRow.clientWidth / 2) + (this.clientWidth / 2);
+        chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        updateCategoryActionBar();
+        renderCards();
+      });
+      chipRow.appendChild(btn);
+    });
+
+    updateCategoryActionBar();
+
+    // 僅在當前視圖為物品分類時平滑移動膠囊內部，絕不對外層使用 scrollIntoView
+    if (currentNavTab === 'inventory') {
+      setTimeout(() => {
+        const activeChip = chipRow.querySelector('.category-chip.active');
+        if (activeChip) {
+          const targetLeft = activeChip.offsetLeft - (chipRow.clientWidth / 2) + (activeChip.clientWidth / 2);
+          chipRow.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        }
+      }, 60);
+    }
+  }
+
+  // 支援左右滑鼠拖移 / 觸控平滑滑動
+  const categoryChipRow = document.getElementById('categoryChipRow');
+  if (categoryChipRow) {
+    let isChipRowDown = false;
+    let chipRowStartX = 0;
+    let chipRowScrollLeft = 0;
+    let chipRowMoved = false;
+
+    categoryChipRow.addEventListener('mousedown', (e) => {
+      isChipRowDown = true;
+      chipRowMoved = false;
+      chipRowStartX = e.pageX - categoryChipRow.offsetLeft;
+      chipRowScrollLeft = categoryChipRow.scrollLeft;
+    });
+
+    categoryChipRow.addEventListener('mouseleave', () => {
+      isChipRowDown = false;
+    });
+
+    categoryChipRow.addEventListener('mouseup', () => {
+      isChipRowDown = false;
+    });
+
+    categoryChipRow.addEventListener('mousemove', (e) => {
+      if (!isChipRowDown) return;
+      const x = e.pageX - categoryChipRow.offsetLeft;
+      const walk = x - chipRowStartX;
+      if (Math.abs(walk) > 4) {
+        chipRowMoved = true;
+        categoryChipRow.scrollLeft = chipRowScrollLeft - walk;
+      }
+    });
+
+    categoryChipRow.addEventListener('click', (e) => {
+      if (chipRowMoved) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        chipRowMoved = false;
+      }
+    }, true);
+  }
+
+  // ==========================================
+  // 自訂分類項目 Modal 控制器 (Custom Category Modal)
+  // ==========================================
+  const customCategoryModal = document.getElementById('customCategoryModal');
+  const btnCloseCustomCategoryModal = document.getElementById('btnCloseCustomCategoryModal');
+  const firstPageCategorySelect = document.getElementById('firstPageCategorySelect');
+  const newCatNameInput = document.getElementById('newCatName');
+  const newCatEmojiInput = document.getElementById('newCatEmoji');
+  const newCatSubItemsInput = document.getElementById('newCatSubItems');
+  const btnSaveNewCategory = document.getElementById('btnSaveNewCategory');
+  const categoryManageList = document.getElementById('categoryManageList');
+  const emojiQuickPills = document.getElementById('emojiQuickPills');
+
+  function populateFirstPageCategorySelect() {
+    if (!firstPageCategorySelect) return;
+    firstPageCategorySelect.innerHTML = '';
+    const allCats = getAllCategories();
+    const currentFirst = getFirstPageCategory();
+
+    Object.keys(allCats).forEach(catKey => {
+      const cat = allCats[catKey];
+      const opt = document.createElement('option');
+      opt.value = catKey;
+      opt.textContent = `${cat.emoji} ${cat.label}`;
+      if (catKey === currentFirst) {
+        opt.selected = true;
+      }
+      firstPageCategorySelect.appendChild(opt);
+    });
+  }
+
+  if (firstPageCategorySelect) {
+    firstPageCategorySelect.addEventListener('change', function () {
+      setFirstPageCategory(this.value);
+    });
+  }
+
+  // ==========================================
+  // 分類操作列與自由加入物品至分類控制器
+  // ==========================================
+  const categoryActionBar = document.getElementById('categoryActionBar');
+  const catActiveEmoji = document.getElementById('catActiveEmoji');
+  const catActiveName = document.getElementById('catActiveName');
+  const catActiveCount = document.getElementById('catActiveCount');
+  const btnAddItemsToCurrentCategory = document.getElementById('btnAddItemsToCurrentCategory');
+  const btnEmptyAddItemsToCat = document.getElementById('btnEmptyAddItemsToCat');
+
+  const addItemsToCategoryModal = document.getElementById('addItemsToCategoryModal');
+  const btnCloseAddItemsToCategoryModal = document.getElementById('btnCloseAddItemsToCategoryModal');
+  const addItemsToCategoryModalTitle = document.getElementById('addItemsToCategoryModalTitle');
+  const catItemsPickerList = document.getElementById('catItemsPickerList');
+  const btnSelectAllItemsForCat = document.getElementById('btnSelectAllItemsForCat');
+  const btnClearAllItemsForCat = document.getElementById('btnClearAllItemsForCat');
+  const btnConfirmAddItemsToCategory = document.getElementById('btnConfirmAddItemsToCategory');
+  const newCatItemsPickerList = document.getElementById('newCatItemsPickerList');
+
+  function updateCategoryActionBar() {
+    const allCats = getAllCategories();
+    const catObj = allCats[currentCategoryChip] || { emoji: '📌', label: '其他' };
+    const countInCat = items.filter(it => it.category === currentCategoryChip).length;
+    if (catActiveEmoji) catActiveEmoji.textContent = catObj.emoji;
+    if (catActiveName) catActiveName.textContent = `${catObj.label}群組`;
+    if (catActiveCount) catActiveCount.textContent = `${countInCat} 項物品`;
+  }
+
+  function renderItemsPicker(containerEl, targetCatId, isNewCat = false) {
+    if (!containerEl) return;
+    containerEl.innerHTML = '';
+    const allCats = getAllCategories();
+
+    if (items.length === 0) {
+      containerEl.innerHTML = '<div style="text-align:center; padding: 1rem; color: var(--ios-text-secondary); font-size: 0.9rem;">目前沒有任何物品可加入</div>';
+      return;
+    }
+
+    items.forEach(item => {
+      const isSelected = !isNewCat && item.category === targetCatId;
+      const row = document.createElement('div');
+      row.className = `picker-item-row ${isSelected ? 'selected' : ''}`;
+      row.dataset.id = item.id;
+
+      let thumbHtml = '';
+      if (item.image) {
+        thumbHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}">`;
+      } else {
+        thumbHtml = item.emoji || '🪑';
+      }
+
+      const catObj = allCats[item.category] || { label: '其他' };
+
+      row.innerHTML = `
+        <div class="picker-checkbox">${isSelected ? '✓' : ''}</div>
+        <div class="picker-item-thumb">${thumbHtml}</div>
+        <div class="picker-item-info">
+          <div class="picker-item-name">${escapeHtml(item.name)}</div>
+          <div class="picker-item-meta">
+            <span class="picker-cat-tag">${catObj.label}</span>
+            <span>${escapeHtml(item.subCat || '')}</span>
+          </div>
+        </div>
+      `;
+
+      row.addEventListener('click', function () {
+        const selected = this.classList.toggle('selected');
+        const box = this.querySelector('.picker-checkbox');
+        if (box) box.textContent = selected ? '✓' : '';
+      });
+
+      containerEl.appendChild(row);
+    });
+  }
+
+  function openAddItemsToCategoryModal() {
+    if (!addItemsToCategoryModal) return;
+    const allCats = getAllCategories();
+    const catObj = allCats[currentCategoryChip] || { emoji: '📌', label: '其他' };
+    if (addItemsToCategoryModalTitle) {
+      addItemsToCategoryModalTitle.textContent = `加入物品至「${catObj.label}」`;
+    }
+    renderItemsPicker(catItemsPickerList, currentCategoryChip, false);
+    addItemsToCategoryModal.style.display = 'flex';
+  }
+
+  function closeAddItemsToCategoryModal() {
+    if (addItemsToCategoryModal) addItemsToCategoryModal.style.display = 'none';
+  }
+
+  if (btnAddItemsToCurrentCategory) {
+    btnAddItemsToCurrentCategory.addEventListener('click', openAddItemsToCategoryModal);
+  }
+  if (btnEmptyAddItemsToCat) {
+    btnEmptyAddItemsToCat.addEventListener('click', openAddItemsToCategoryModal);
+  }
+  if (btnCloseAddItemsToCategoryModal) {
+    btnCloseAddItemsToCategoryModal.addEventListener('click', closeAddItemsToCategoryModal);
+  }
+  if (addItemsToCategoryModal) {
+    addItemsToCategoryModal.addEventListener('click', function (e) {
+      if (e.target === addItemsToCategoryModal) closeAddItemsToCategoryModal();
+    });
+  }
+
+  if (btnSelectAllItemsForCat) {
+    btnSelectAllItemsForCat.addEventListener('click', function () {
+      if (!catItemsPickerList) return;
+      catItemsPickerList.querySelectorAll('.picker-item-row').forEach(r => {
+        r.classList.add('selected');
+        const box = r.querySelector('.picker-checkbox');
+        if (box) box.textContent = '✓';
+      });
+    });
+  }
+
+  if (btnClearAllItemsForCat) {
+    btnClearAllItemsForCat.addEventListener('click', function () {
+      if (!catItemsPickerList) return;
+      catItemsPickerList.querySelectorAll('.picker-item-row').forEach(r => {
+        r.classList.remove('selected');
+        const box = r.querySelector('.picker-checkbox');
+        if (box) box.textContent = '';
+      });
+    });
+  }
+
+  if (btnConfirmAddItemsToCategory) {
+    btnConfirmAddItemsToCategory.addEventListener('click', function () {
+      if (!catItemsPickerList) return;
+      const selectedRows = catItemsPickerList.querySelectorAll('.picker-item-row.selected');
+      const selectedIds = new Set(Array.from(selectedRows).map(r => r.dataset.id));
+      const allCats = getAllCategories();
+      const catObj = allCats[currentCategoryChip] || { label: '其他' };
+
+      items.forEach(it => {
+        if (selectedIds.has(it.id)) {
+          it.category = currentCategoryChip;
+        } else if (it.category === currentCategoryChip) {
+          it.category = 'other';
+        }
+      });
+
+      saveItems();
+      closeAddItemsToCategoryModal();
+      updateCategoryActionBar();
+      renderCategoryChips();
+      renderCards();
+      showToast(`已成功更新「${catObj.label}」收納物品清單！`);
+    });
+  }
+
+  function openCustomCategoryModal() {
+    if (!customCategoryModal) return;
+    loadCustomCategories();
+    if (newCatNameInput) newCatNameInput.value = '';
+    if (newCatEmojiInput) newCatEmojiInput.value = '🏷️';
+    if (newCatSubItemsInput) newCatSubItemsInput.value = '';
+    populateFirstPageCategorySelect();
+    renderItemsPicker(newCatItemsPickerList, '', true);
+    renderCategoryManageList();
+    customCategoryModal.style.display = 'flex';
+  }
+
+  function closeCustomCategoryModal() {
+    if (customCategoryModal) customCategoryModal.style.display = 'none';
+  }
+
+  const btnOpenGroupSettings = document.getElementById('btnOpenGroupSettings');
+  if (btnOpenGroupSettings) {
+    btnOpenGroupSettings.addEventListener('click', openCustomCategoryModal);
+  }
+
+  if (btnCloseCustomCategoryModal) {
+    btnCloseCustomCategoryModal.addEventListener('click', closeCustomCategoryModal);
+  }
+  if (customCategoryModal) {
+    customCategoryModal.addEventListener('click', function (e) {
+      if (e.target === customCategoryModal) closeCustomCategoryModal();
+    });
+  }
+
+  if (emojiQuickPills) {
+    emojiQuickPills.addEventListener('click', function (e) {
+      const btn = e.target.closest('.quick-emoji-btn');
+      if (btn && newCatEmojiInput) {
+        newCatEmojiInput.value = btn.dataset.emoji || btn.textContent.trim();
+      }
+    });
+  }
+
+  if (btnSaveNewCategory) {
+    btnSaveNewCategory.addEventListener('click', function () {
+      const name = newCatNameInput ? newCatNameInput.value.trim() : '';
+      if (!name) {
+        showToast('請輸入群組名稱！');
+        if (newCatNameInput) newCatNameInput.focus();
+        return;
+      }
+
+      const emoji = (newCatEmojiInput && newCatEmojiInput.value.trim()) || '🏷️';
+      const subItemsRaw = newCatSubItemsInput ? newCatSubItemsInput.value.trim() : '';
+
+      const subItemList = [];
+      if (subItemsRaw) {
+        subItemsRaw.split(/[,，\n]+/).forEach(s => {
+          const itemText = s.trim();
+          if (itemText) {
+            subItemList.push({
+              name: itemText,
+              subCat: itemText,
+              emoji: emoji,
+              duration: 180,
+              hasEndDate: true,
+              warnDays: 14
+            });
+          }
+        });
+      }
+
+      const catId = 'custom_' + Date.now();
+      const customCats = loadCustomCategories();
+      customCats[catId] = {
+        label: name,
+        emoji: emoji,
+        isCustom: true,
+        items: subItemList
+      };
+      saveCustomCategories(customCats);
+
+      // 同步將勾選的現有物品加入此新群組
+      if (newCatItemsPickerList) {
+        const checkedRows = newCatItemsPickerList.querySelectorAll('.picker-item-row.selected');
+        const checkedIds = Array.from(checkedRows).map(r => r.dataset.id);
+        if (checkedIds.length > 0) {
+          items.forEach(it => {
+            if (checkedIds.includes(it.id)) {
+              it.category = catId;
+            }
+          });
+          saveItems();
+        }
+      }
+
+      // 將新群組加入自訂群組順序
+      const curOrder = getCustomCategoryOrder();
+      if (curOrder && Array.isArray(curOrder)) {
+        curOrder.push(catId);
+        saveCustomCategoryOrder(curOrder);
+      }
+
+      currentCategoryChip = catId;
+      renderCategoryChips();
+      populateCategorySelect(catId);
+      populateFirstPageCategorySelect();
+      renderCategoryManageList();
+      closeCustomCategoryModal();
+      if (currentNavTab === 'inventory') {
+        renderCards();
+      }
+
+      if (newCatNameInput) newCatNameInput.value = '';
+      if (newCatSubItemsInput) newCatSubItemsInput.value = '';
+
+      showToast(`🎉 已成功新增「${name}」自訂群組！`);
+    });
+  }
+
+  function renderCategoryManageList() {
+    if (!categoryManageList) return;
+    categoryManageList.innerHTML = '';
+    const allCats = getAllCategories();
+    const firstPageKey = getFirstPageCategory();
+    const catKeys = Object.keys(allCats);
+
+    // 優先採用自訂群組排序
+    let orderedKeys = getCustomCategoryOrder();
+    if (!orderedKeys || !Array.isArray(orderedKeys) || orderedKeys.length === 0) {
+      orderedKeys = [firstPageKey, ...catKeys.filter(k => k !== firstPageKey)];
+    } else {
+      orderedKeys = orderedKeys.filter(k => allCats[k]);
+      catKeys.forEach(k => {
+        if (!orderedKeys.includes(k)) orderedKeys.push(k);
+      });
+    }
+
+    orderedKeys.forEach((key, idx) => {
+      const cat = allCats[key];
+      const itemEl = document.createElement('div');
+      itemEl.className = 'cat-manage-item';
+
+      const isCustom = !!cat.isCustom;
+      const subCount = cat.items ? cat.items.length : 0;
+      const isFirstPage = key === firstPageKey;
+      const isFirst = idx === 0;
+      const isLast = idx === orderedKeys.length - 1;
+      const pageName = PAGE_NAMES[idx] || `第 ${idx + 1} 頁`;
+
+      // 構建第一頁到第二十頁下拉選項
+      let pageOptions = '';
+      const totalPagesToShow = Math.min(20, Math.max(orderedKeys.length, 20));
+      for (let p = 0; p < totalPagesToShow; p++) {
+        const pLabel = PAGE_NAMES[p] || `第 ${p + 1} 頁`;
+        pageOptions += `<option value="${p}" ${p === idx ? 'selected' : ''}>${pLabel}</option>`;
+      }
+
+      itemEl.innerHTML = `
+        <div class="cat-manage-info">
+          <span class="cat-manage-emoji">${cat.emoji}</span>
+          <div>
+            <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.15rem;">
+              <span class="group-page-badge">${pageName}</span>
+              <span class="cat-manage-label">${escapeHtml(cat.label)}</span>
+            </div>
+            <span class="cat-manage-subcount">${subCount} 項細項</span>
+          </div>
+        </div>
+        <div class="cat-actions-group">
+          <div class="group-page-select-wrap" title="快速指定頁面">
+            <select class="group-page-select" data-cat-id="${key}">
+              ${pageOptions}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+          <div class="cat-order-btn-group">
+            <button type="button" class="btn-cat-order btn-cat-up" data-cat-id="${key}" ${isFirst ? 'disabled' : ''} title="群組順序上移一頁">▲</button>
+            <button type="button" class="btn-cat-order btn-cat-down" data-cat-id="${key}" ${isLast ? 'disabled' : ''} title="群組順序下移一頁">▼</button>
+          </div>
+          ${isFirstPage 
+            ? `<span class="badge-first-page">⭐️ 第一頁預設</span>` 
+            : `<button type="button" class="btn-set-first-page" data-cat-id="${key}">設為第一頁</button>`}
+          ${isCustom 
+            ? `<button type="button" class="btn-delete-custom-cat" data-cat-id="${key}">🗑️ 刪除</button>` 
+            : `<span class="cat-badge-default">預設群組</span>`}
+        </div>
+      `;
+
+      categoryManageList.appendChild(itemEl);
+    });
+
+    // 綁定頁面下拉快速指定事件
+    categoryManageList.querySelectorAll('.group-page-select').forEach(sel => {
+      sel.addEventListener('change', function () {
+        const key = this.dataset.catId;
+        const targetIdx = parseInt(this.value, 10);
+        const keys = [...orderedKeys];
+        const fromIdx = keys.indexOf(key);
+        if (fromIdx !== -1 && fromIdx !== targetIdx && targetIdx < keys.length) {
+          keys.splice(fromIdx, 1);
+          keys.splice(targetIdx, 0, key);
+          saveCustomCategoryOrder(keys);
+          if (targetIdx === 0) {
+            setFirstPageCategory(key);
+          }
+          renderCategoryManageList();
+          renderCategoryChips();
+          renderCards();
+          const targetName = PAGE_NAMES[targetIdx] || `第 ${targetIdx + 1} 頁`;
+          showToast(`已將群組指定為 ${targetName}`);
+        }
+      });
+    });
+
+    // 綁定群組上移一頁與下移一頁事件
+    categoryManageList.querySelectorAll('.btn-cat-up').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const key = this.dataset.catId;
+        const keys = [...orderedKeys];
+        const idx = keys.indexOf(key);
+        if (idx > 0) {
+          const temp = keys[idx];
+          keys[idx] = keys[idx - 1];
+          keys[idx - 1] = temp;
+          saveCustomCategoryOrder(keys);
+          if (idx - 1 === 0) {
+            setFirstPageCategory(key);
+          }
+          renderCategoryManageList();
+          renderCategoryChips();
+          renderCards();
+          const pName = PAGE_NAMES[idx - 1] || `第 ${idx} 頁`;
+          showToast(`已上移至 ${pName}`);
+        }
+      });
+    });
+
+    categoryManageList.querySelectorAll('.btn-cat-down').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const key = this.dataset.catId;
+        const keys = [...orderedKeys];
+        const idx = keys.indexOf(key);
+        if (idx !== -1 && idx < keys.length - 1) {
+          const temp = keys[idx];
+          keys[idx] = keys[idx + 1];
+          keys[idx + 1] = temp;
+          saveCustomCategoryOrder(keys);
+          renderCategoryManageList();
+          renderCategoryChips();
+          renderCards();
+          const pName = PAGE_NAMES[idx + 1] || `第 ${idx + 2} 頁`;
+          showToast(`已下移至 ${pName}`);
+        }
+      });
+    });
+
+    categoryManageList.querySelectorAll('.btn-set-first-page').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const key = this.dataset.catId;
+        const keys = [...orderedKeys];
+        const idx = keys.indexOf(key);
+        if (idx > 0) {
+          keys.splice(idx, 1);
+          keys.unshift(key);
+          saveCustomCategoryOrder(keys);
+        }
+        setFirstPageCategory(key);
+        renderCategoryManageList();
+        renderCategoryChips();
+        renderCards();
+        showToast('已設為第一頁預設群組');
+      });
+    });
+
+    categoryManageList.querySelectorAll('.btn-delete-custom-cat').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const catId = this.dataset.catId;
+        const customCats = loadCustomCategories();
+        const catName = customCats[catId] ? customCats[catId].label : '';
+
+        if (confirm(`確定要刪除自訂群組「${catName}」嗎？若有該群組的物品將移至「其他」`)) {
+          delete customCats[catId];
+          saveCustomCategories(customCats);
+
+          if (getFirstPageCategory() === catId) {
+            localStorage.removeItem(FIRST_PAGE_CAT_KEY);
+          }
+
+          let updated = false;
+          items.forEach(it => {
+            if (it.category === catId) {
+              it.category = 'other';
+              updated = true;
+            }
+          });
+          if (updated) saveItems();
+
+          const curOrder = getCustomCategoryOrder();
+          if (curOrder) {
+            const newOrder = curOrder.filter(k => k !== catId);
+            saveCustomCategoryOrder(newOrder);
+          }
+
+          if (currentCategoryChip === catId) {
+            currentCategoryChip = getFirstPageCategory();
+          }
+
+          renderCategoryChips();
+          populateCategorySelect();
+          populateFirstPageCategorySelect();
+          renderCategoryManageList();
+          renderCards();
+          showToast(`已刪除「${catName}」群組`);
+        }
+      });
+    });
+  }
+
+  // ==========================================
+  // 主頁與物品分類 左右滑動切換控制器 (Swipe Navigation)
+  // ==========================================
+  // ==========================================
+  // ==========================================
+  // 主頁與物品分類 左右直接拖曳滑動切換 (Direct Slider Gesture)
+  // ==========================================
+  if (viewsSliderViewport && viewsSliderTrack) {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isTrackingTouch = false;
+    let isHorizontalSwipe = false;
+    let startTrackOffset = 0;
+    let hasSwipedHorizontally = false;
+    let suppressClickTimer = null;
+
+    function isAnyModalOpen() {
+      const openModal = document.querySelector('.ios-modal-backdrop[style*="display: flex"], .ios-modal-backdrop[style*="display: block"]');
+      const actionSheetEl = document.getElementById('actionSheet');
+      const isSheetOpen = actionSheetEl && actionSheetEl.style.display !== 'none';
+      return !!openModal || isSheetOpen;
+    }
+
+    // 捕獲階段攔截滑動後的點擊事件，避免滑動時誤觸開啟物品操作選單
+    viewsSliderViewport.addEventListener('click', function (e) {
+      if (hasSwipedHorizontally) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    }, true);
+
+    viewsSliderViewport.addEventListener('touchstart', function (e) {
+      if (isAnyModalOpen()) return;
+      // 僅排除輸入框、選單與群組橫向膠囊列，允許觸摸物品卡片進行左右滑動
+      if (e.target.closest('#categoryChipRow') || e.target.closest('.emoji-quick-pills') || e.target.closest('input') || e.target.closest('select')) return;
+
+      const touch = e.touches[0];
+      touchStartX = touch.pageX;
+      touchStartY = touch.pageY;
+      startTrackOffset = (currentNavTab === 'today') ? 0 : -50;
+      isTrackingTouch = true;
+      isHorizontalSwipe = false;
+    }, { passive: true });
+
+    viewsSliderViewport.addEventListener('touchmove', function (e) {
+      if (!isTrackingTouch || isAnyModalOpen()) return;
+      const touch = e.touches[0];
+      const deltaX = touch.pageX - touchStartX;
+      const deltaY = touch.pageY - touchStartY;
+
+      if (!isHorizontalSwipe) {
+        if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          isHorizontalSwipe = true;
+        } else if (Math.abs(deltaY) > 8) {
+          isTrackingTouch = false;
+          return;
+        }
+      }
+
+      if (isHorizontalSwipe) {
+        if (e.cancelable) e.preventDefault();
+        hasSwipedHorizontally = true;
+        viewsSliderTrack.classList.add('dragging');
+        const viewportWidth = viewsSliderViewport.clientWidth || 375;
+        const deltaPercent = (deltaX / viewportWidth) * 50;
+        let targetPercent = startTrackOffset + deltaPercent;
+
+        // 邊界彈性阻尼 (Elastic resistance)
+        if (targetPercent > 0) {
+          targetPercent = targetPercent * 0.25;
+        } else if (targetPercent < -50) {
+          targetPercent = -50 + (targetPercent - (-50)) * 0.25;
+        }
+        viewsSliderTrack.style.transform = `translateX(${targetPercent}%)`;
+      }
+    }, { passive: false });
+
+    viewsSliderViewport.addEventListener('touchend', function (e) {
+      if (!isTrackingTouch) return;
+      isTrackingTouch = false;
+      viewsSliderTrack.classList.remove('dragging');
+
+      if (isHorizontalSwipe) {
+        hasSwipedHorizontally = true;
+        clearTimeout(suppressClickTimer);
+        suppressClickTimer = setTimeout(() => {
+          hasSwipedHorizontally = false;
+        }, 160);
+
+        const touch = e.changedTouches[0];
+        const deltaX = touch.pageX - touchStartX;
+        if (currentNavTab === 'today' && deltaX < -45) {
+          switchViewTab('inventory');
+        } else if (currentNavTab === 'inventory' && deltaX > 45) {
+          switchViewTab('today');
+        } else {
+          switchViewTab(currentNavTab); // snap back
+        }
+      }
+    }, { passive: true });
+
+    // 桌面端滑鼠拖移支援（亦允許點擊物品卡片拖曳切換）
+    let mouseStartX = 0;
+    let mouseStartY = 0;
+    let isTrackingMouse = false;
+    let isHorizontalMouseDrag = false;
+
+    viewsSliderViewport.addEventListener('mousedown', function (e) {
+      if (isAnyModalOpen() || e.target.closest('#categoryChipRow') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+      mouseStartX = e.pageX;
+      mouseStartY = e.pageY;
+      startTrackOffset = (currentNavTab === 'today') ? 0 : -50;
+      isTrackingMouse = true;
+      isHorizontalMouseDrag = false;
+    });
+
+    window.addEventListener('mousemove', function (e) {
+      if (!isTrackingMouse) return;
+      const deltaX = e.pageX - mouseStartX;
+      const deltaY = e.pageY - mouseStartY;
+
+      if (!isHorizontalMouseDrag) {
+        if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          isHorizontalMouseDrag = true;
+        }
+      }
+
+      if (isHorizontalMouseDrag) {
+        hasSwipedHorizontally = true;
+        viewsSliderTrack.classList.add('dragging');
+        const viewportWidth = viewsSliderViewport.clientWidth || 375;
+        const deltaPercent = (deltaX / viewportWidth) * 50;
+        let targetPercent = startTrackOffset + deltaPercent;
+        if (targetPercent > 0) targetPercent = targetPercent * 0.25;
+        else if (targetPercent < -50) targetPercent = -50 + (targetPercent - (-50)) * 0.25;
+        viewsSliderTrack.style.transform = `translateX(${targetPercent}%)`;
+      }
+    });
+
+    window.addEventListener('mouseup', function (e) {
+      if (!isTrackingMouse) return;
+      isTrackingMouse = false;
+      viewsSliderTrack.classList.remove('dragging');
+
+      if (isHorizontalMouseDrag) {
+        hasSwipedHorizontally = true;
+        clearTimeout(suppressClickTimer);
+        suppressClickTimer = setTimeout(() => {
+          hasSwipedHorizontally = false;
+        }, 160);
+
+        const deltaX = e.pageX - mouseStartX;
+        if (currentNavTab === 'today' && deltaX < -50) {
+          switchViewTab('inventory');
+        } else if (currentNavTab === 'inventory' && deltaX > 50) {
+          switchViewTab('today');
+        } else {
+          switchViewTab(currentNavTab);
+        }
+      }
+    });
+  }
+
+  inventorySearch.addEventListener('input', function () {
+    searchQuery = this.value.trim();
+    btnClearInventorySearch.style.display = searchQuery ? 'block' : 'none';
+    renderCards();
+  });
+
+  btnClearInventorySearch.addEventListener('click', function () {
+    inventorySearch.value = '';
+    searchQuery = '';
+    btnClearInventorySearch.style.display = 'none';
+    renderCards();
+    inventorySearch.focus();
+  });
+
+  itemsGrid.addEventListener('click', function (e) {
+    if (hasSwipedHorizontally) return;
+    const card = e.target.closest('.ios-item-card');
+    if (card) {
+      openActionSheet(card.dataset.id);
+    }
+  });
+
+  const inventoryItemsGridEl = document.getElementById('inventoryItemsGrid');
+  if (inventoryItemsGridEl) {
+    inventoryItemsGridEl.addEventListener('click', function (e) {
+      if (hasSwipedHorizontally) return;
+      const card = e.target.closest('.ios-item-card');
+      if (card) {
+        openActionSheet(card.dataset.id);
+      }
+    });
+  }
+
+  document.getElementById('btnOpenAddModal').addEventListener('click', openAddModal);
+
+  const toastContainer = document.getElementById('toastContainer');
+  function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-10px)';
+      toast.style.transition = 'all 0.2s ease';
+      setTimeout(() => toast.remove(), 200);
+    }, 2200);
+  }
+
+  // ==========================================
+  // 9. 初始化啟動
+  // ==========================================
+  const urlParams = new URLSearchParams(window.location.search);
+  const savedTheme = urlParams.get('theme') || localStorage.getItem(THEME_KEY) || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  loadItems();
+  loadCustomCategories();
+  loadGoogleUser();
+  currentCategoryChip = getFirstPageCategory();
+
+  if (urlParams.get('sort')) {
+    currentSortMode = urlParams.get('sort');
+    localStorage.setItem(HOME_SORT_KEY, currentSortMode);
+  }
+
+  if (urlParams.get('firstCat')) {
+    const fc = urlParams.get('firstCat');
+    localStorage.setItem(FIRST_PAGE_CAT_KEY, fc);
+    currentCategoryChip = fc;
+  }
+
+  renderCategoryChips();
+  populateCategorySelect();
+  populateFirstPageCategorySelect();
+
+  if (urlParams.get('mockGoogle') === '1') {
+    currentGoogleUser = {
+      name: 'Alex Chen',
+      email: 'alex.chen@gmail.com',
+      picture: '',
+      isRealDrive: false
+    };
+    saveGoogleUser(currentGoogleUser);
+    localStorage.setItem(GOOGLE_SYNC_TIME_KEY, '2026/09/09 02:22:15');
+    updateGoogleUI();
+  }
+
+  renderApp();
+
+  // 首次開起的頁面預設為首頁
+  if (!urlParams.get('tab')) {
+    switchViewTab('today', false);
+  }
+
+  if (urlParams.get('modal') === 'add') {
+    openAddModal();
+    const addCat = urlParams.get('cat');
+    if (addCat && itemCategorySelect) {
+      itemCategorySelect.value = addCat;
+      const subCat = urlParams.get('subcat') || '';
+      populateSubCategoryDropdown(addCat, subCat);
+      if (subCat && itemSubCategorySelect) {
+        itemSubCategorySelect.dispatchEvent(new Event('change'));
+      }
+    }
+    if (urlParams.get('reminder') === 'custom') {
+      populateReminderOptions('custom');
+      if (itemReminderCustomDate) itemReminderCustomDate.value = '2026-10-08';
+      if (itemReminderCustomTime) itemReminderCustomTime.value = '10:30';
+    }
+    if (urlParams.get('scroll') === 'reminder') {
+      const scrollEl = document.querySelector('.ios-modal-scroll');
+      if (scrollEl) scrollEl.scrollTop = 320;
+    }
+  } else if (urlParams.get('modal') === 'sheet' && items.length > 0) {
+    openActionSheet(items[0].id);
+  } else if (urlParams.get('modal') === 'reset-confirm' && items.length > 0) {
+    openActionSheet(items[0].id);
+    btnSheetReset.click();
+  } else if (urlParams.get('modal') === 'delete-confirm' && items.length > 0) {
+    openActionSheet(items[0].id);
+    btnSheetDelete.click();
+  } else if (urlParams.get('modal') === 'bg-removal') {
+    openAddModal();
+    // Use demo photo for immediate visual preview in studio
+    const demoImg = items[0] && items[0].image ? items[0].image : CHAIR_SVG_BASE64;
+    currentUploadedImage = demoImg;
+    updateAvatarPreview();
+    openBgRemovalStudio(demoImg);
+  } else if (urlParams.get('modal') === 'settings') {
+    btnOpenSettings.click();
+  } else if (urlParams.get('modal') === 'custom-cat') {
+    openCustomCategoryModal();
+  } else if (urlParams.get('tab') === 'inventory') {
+    dockTabInventory.click();
+    const catParam = urlParams.get('cat');
+    if (catParam) {
+      const chip = document.querySelector(`.category-chip[data-cat="${catParam}"]`);
+      if (chip) chip.click();
+    }
+  }
+
+  if (urlParams.get('testAddCustomCat') === '1') {
+    const customCats = loadCustomCategories();
+    customCats['custom_camping'] = {
+      label: '露營裝備',
+      emoji: '⛺',
+      isCustom: true,
+      items: [
+        { name: '雙人高山帳篷', subCat: '帳篷', emoji: '⛺', duration: 365, hasEndDate: true, warnDays: 30 },
+        { name: '羽絨保暖睡袋', subCat: '睡袋', emoji: '🏕️', duration: 365, hasEndDate: true, warnDays: 30 },
+        { name: '輕量摺疊露營椅', subCat: '露營椅', emoji: '🪑', duration: 730, hasEndDate: false }
+      ]
+    };
+    saveCustomCategories(customCats);
+    renderCategoryChips();
+    populateCategorySelect();
+    if (urlParams.get('modal') === 'custom-cat') {
+      openCustomCategoryModal();
+    } else if (urlParams.get('modal') === 'add') {
+      openAddModal();
+      if (itemCategorySelect) {
+        itemCategorySelect.value = 'custom_camping';
+        populateSubCategoryDropdown('custom_camping');
+      }
+    } else {
+      dockTabInventory.click();
+      const chip = document.querySelector('.category-chip[data-cat="custom_camping"]');
+      if (chip) chip.click();
+    }
+  }
+
+  if (urlParams.get('scrollChips') === 'end') {
+    const chipRow = document.getElementById('categoryChipRow');
+    if (chipRow) chipRow.scrollLeft = 9999;
+  }
+
+  if (urlParams.get('scrollModal') === 'bottom') {
+    const scrollEl = document.querySelector('#customCategoryModal .ios-modal-scroll');
+    if (scrollEl) scrollEl.scrollTop = 580;
+  }
+
+  if (urlParams.get('testSwipe') === 'left') {
+    switchViewTab('inventory');
+  }
+
+  if (urlParams.get('testEmptyCat') === '1') {
+    const customCats = loadCustomCategories();
+    customCats['custom_empty'] = { label: '空箱裝備', emoji: '📦', isCustom: true, items: [] };
+    saveCustomCategories(customCats);
+    dockTabInventory.click();
+    currentCategoryChip = 'custom_empty';
+    renderCategoryChips();
+    renderCards();
+  }
+
+  if (urlParams.get('testClickNotice') === '1' && statusNoticeCard) {
+    statusNoticeCard.click();
+  }
+
+  if (urlParams.get('filter')) {
+    const fVal = urlParams.get('filter');
+    const fBtn = document.querySelector(`.home-filter-btn[data-filter="${fVal}"]`);
+    if (fBtn) fBtn.click();
+  }
+
+  if (urlParams.get('openSort') === '1') {
+    openHomeSortModal();
+    if (urlParams.get('scrollSort') === 'bottom') {
+      const scrollEl = document.querySelector('#homeSortModal .ios-modal-scroll');
+      if (scrollEl) scrollEl.scrollTop = 380;
+    }
+  }
+
+  if (urlParams.get('openSheet') === '1') {
+    if (items.length > 0) {
+      openActionSheet(items[0].id);
+    }
+  }
+
+  if (urlParams.get('openAddItems') === '1') {
+    openAddItemsToCategoryModal();
+  }
+})();
