@@ -960,8 +960,34 @@
       </div>
     `;
 
+    let cardTouchStartX = 0;
+    let cardTouchStartY = 0;
+    let cardMoved = false;
+
+    card.addEventListener('touchstart', function (e) {
+      if (e.touches && e.touches.length === 1) {
+        cardTouchStartX = e.touches[0].clientX;
+        cardTouchStartY = e.touches[0].clientY;
+        cardMoved = false;
+      }
+    }, { passive: true });
+
+    card.addEventListener('touchmove', function (e) {
+      if (e.touches && e.touches.length === 1) {
+        const dx = Math.abs(e.touches[0].clientX - cardTouchStartX);
+        const dy = Math.abs(e.touches[0].clientY - cardTouchStartY);
+        if (dx > 8 || dy > 8) {
+          cardMoved = true;
+        }
+      }
+    }, { passive: true });
+
     card.addEventListener('click', function (e) {
-      if (hasSwipedHorizontally) return;
+      if (hasSwipedHorizontally || cardMoved) {
+        cardMoved = false;
+        return;
+      }
+      e.stopPropagation();
       openActionSheet(item.id);
     });
 
@@ -1839,7 +1865,6 @@
 
         bgTargetColors.push([r, g, b]);
         applyBackgroundMatting();
-        showToast('🎯 已選取色彩消除背景！');
       }
     });
   }
@@ -3563,12 +3588,104 @@
   }
 
   // ==========================================
-  // 主頁與物品分類 原生 CSS Scroll Snap 滾動監聽器 (Native GPU Scroll Snap)
+  // 彈出式選單與 Modal 背景鎖定機制 (Popup Background Lock)
+  // 徹底修正彈出式菜單拖動或滾動時影響到底層背景內容或觸發跨分頁滑動
+  // ==========================================
+  function isAnyModalOpen() {
+    const openModal = document.querySelector('.ios-modal-backdrop[style*="display: flex"], .ios-modal-backdrop[style*="display: block"]');
+    const actionSheetEl = document.getElementById('actionSheet');
+    const isSheetOpen = actionSheetEl && actionSheetEl.style.display !== 'none';
+    return !!openModal || isSheetOpen;
+  }
+
+  function updateBodyScrollLock() {
+    if (isAnyModalOpen()) {
+      document.body.classList.add('modal-open');
+      if (viewsSliderViewport) {
+        viewsSliderViewport.style.overflowX = 'hidden';
+      }
+    } else {
+      document.body.classList.remove('modal-open');
+      if (viewsSliderViewport) {
+        viewsSliderViewport.style.overflowX = 'auto';
+      }
+    }
+  }
+
+  // 自動監聽所有 Modal 與 Action Sheet 的開關變化
+  const modalObserver = new MutationObserver(function () {
+    updateBodyScrollLock();
+  });
+  document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop').forEach(el => {
+    modalObserver.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
+  });
+
+  // 攔截遮罩層上的觸摸滑動事件, 避免拖曳穿透至底層
+  document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('touchmove', function (e) {
+      if (e.target === backdrop) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
+  });
+
+  // Action Sheet 支援拖曳把手向下滑動關閉, 且拖動過程完全不影響背景
+  const actionSheetCard = actionSheet.querySelector('.ios-action-sheet');
+  if (actionSheetCard) {
+    let sheetStartY = 0;
+    let sheetStartX = 0;
+    let isDraggingSheet = false;
+
+    actionSheetCard.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1) {
+        sheetStartY = e.touches[0].clientY;
+        sheetStartX = e.touches[0].clientX;
+        isDraggingSheet = false;
+      }
+    }, { passive: true });
+
+    actionSheetCard.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 1) {
+        const dy = e.touches[0].clientY - sheetStartY;
+        const dx = Math.abs(e.touches[0].clientX - sheetStartX);
+        // 當觸控頂部把手、頂部標題或向下拖拉時攔截事件, 避免影響背景
+        if (e.target.closest('.sheet-drag-handle') || e.target.closest('.sheet-header') || (dy > 0 && dy > dx)) {
+          if (dy > 0) {
+            isDraggingSheet = true;
+            if (e.cancelable) e.preventDefault();
+            actionSheetCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+            actionSheetCard.style.transition = 'none';
+          }
+        }
+      }
+    }, { passive: false });
+
+    actionSheetCard.addEventListener('touchend', function (e) {
+      if (isDraggingSheet) {
+        isDraggingSheet = false;
+        actionSheetCard.style.transition = 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)';
+        const currentTransform = actionSheetCard.style.transform;
+        const match = currentTransform.match(/translateY\((\d+)px\)/);
+        const dy = match ? parseInt(match[1], 10) : 0;
+        if (dy > 70) {
+          actionSheetCard.style.transform = '';
+          closeActionSheet();
+        } else {
+          actionSheetCard.style.transform = '';
+        }
+      }
+    }, { passive: true });
+  }
+
+  // ==========================================
+  // 主頁與物品分類 原生 CSS Scroll Snap 與滑動切換分頁
+  // 修正滑動物品無法切換分頁的狀況, 同時兼顧手機觸控與桌面滑鼠拖曳
   // ==========================================
   if (viewsSliderViewport) {
     let scrollSnapTimer = null;
 
     viewsSliderViewport.addEventListener('scroll', function () {
+      if (isAnyModalOpen()) return;
       hasSwipedHorizontally = true;
       clearTimeout(scrollSnapTimer);
       scrollSnapTimer = setTimeout(() => {
@@ -3600,6 +3717,60 @@
       }, 50);
     }, { passive: true });
 
+    // 桌面滑鼠拖曳橫向切換支援
+    let isMouseDragging = false;
+    let mouseStartX = 0;
+    let mouseStartScrollLeft = 0;
+    let mouseMoved = false;
+
+    viewsSliderViewport.addEventListener('mousedown', function (e) {
+      if (isAnyModalOpen()) return;
+      if (e.target.closest('#categoryChipRow') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+      isMouseDragging = true;
+      mouseStartX = e.pageX;
+      mouseStartScrollLeft = viewsSliderViewport.scrollLeft;
+      mouseMoved = false;
+    });
+
+    window.addEventListener('mousemove', function (e) {
+      if (!isMouseDragging) return;
+      const dx = e.pageX - mouseStartX;
+      if (Math.abs(dx) > 6) {
+        mouseMoved = true;
+        hasSwipedHorizontally = true;
+        viewsSliderViewport.style.scrollSnapType = 'none';
+        viewsSliderViewport.scrollLeft = mouseStartScrollLeft - dx;
+      }
+    });
+
+    window.addEventListener('mouseup', function (e) {
+      if (!isMouseDragging) return;
+      isMouseDragging = false;
+      viewsSliderViewport.style.scrollSnapType = 'x mandatory';
+
+      if (mouseMoved) {
+        const scrollLeft = viewsSliderViewport.scrollLeft;
+        const width = viewsSliderViewport.clientWidth || 375;
+        const dx = e.pageX - mouseStartX;
+        let targetTab = currentNavTab;
+        if (dx < -40) {
+          targetTab = 'inventory';
+        } else if (dx > 40) {
+          targetTab = 'today';
+        } else {
+          targetTab = (scrollLeft >= width * 0.5) ? 'inventory' : 'today';
+        }
+        switchViewTab(targetTab, true);
+
+        setTimeout(() => {
+          hasSwipedHorizontally = false;
+          mouseMoved = false;
+        }, 120);
+      } else {
+        hasSwipedHorizontally = false;
+      }
+    });
+
     // 視窗大小改變時重置滾動位置, 保持在對應分頁
     window.addEventListener('resize', () => {
       if (viewsSliderViewport && currentNavTab === 'inventory') {
@@ -3621,25 +3792,6 @@
     renderCards();
     inventorySearch.focus();
   });
-
-  itemsGrid.addEventListener('click', function (e) {
-    if (hasSwipedHorizontally) return;
-    const card = e.target.closest('.ios-item-card');
-    if (card) {
-      openActionSheet(card.dataset.id);
-    }
-  });
-
-  const inventoryItemsGridEl = document.getElementById('inventoryItemsGrid');
-  if (inventoryItemsGridEl) {
-    inventoryItemsGridEl.addEventListener('click', function (e) {
-      if (hasSwipedHorizontally) return;
-      const card = e.target.closest('.ios-item-card');
-      if (card) {
-        openActionSheet(card.dataset.id);
-      }
-    });
-  }
 
   document.getElementById('btnOpenAddModal').addEventListener('click', openAddModal);
 

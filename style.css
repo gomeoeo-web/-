@@ -595,7 +595,7 @@ html, body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
   width: 100%;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
 }
 
 @media (min-width: 640px) {
@@ -620,7 +620,7 @@ html, body {
   min-height: 190px;
   min-width: 0;
   box-sizing: border-box;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -847,6 +847,8 @@ html, body {
   padding: 1rem;
   z-index: 1000;
   animation: fadeIn 0.2s ease;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .ios-modal-card {
@@ -861,6 +863,8 @@ html, body {
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
   border: 1px solid var(--ios-border);
   animation: slideUpModal 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .ios-modal-sm {
@@ -899,6 +903,9 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 #itemForm {
@@ -1517,6 +1524,9 @@ html, body {
   border: 1px solid var(--ios-border);
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
   animation: slideUpSheet 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  will-change: transform;
 }
 
 .sheet-drag-handle {
@@ -1525,6 +1535,8 @@ html, body {
   border-radius: 2px;
   background: var(--ios-border-strong);
   margin: 0 auto 0.85rem auto;
+  cursor: grab;
+  touch-action: none;
 }
 
 .sheet-header {
@@ -3188,7 +3200,7 @@ html, body {
 
 /* View Slide Animations (左右滑動切換) */
 .ios-main {
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
 }
 
 @keyframes slideFromRight {
@@ -3245,6 +3257,7 @@ html, body {
   transform: none !important;
   transition: none !important;
   will-change: auto;
+  touch-action: pan-x pan-y;
 }
 
 .views-slider-track.dragging {
@@ -3259,6 +3272,22 @@ html, body {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow-x: clip; /* 杜絕跨頁陰影溢出滲透至相鄰頁面 */
+  touch-action: pan-x pan-y;
+}
+
+/* Modal & Action Sheet Background Scroll Lock (彈出選單背景鎖定) */
+body.modal-open {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+body.modal-open .views-slider-viewport {
+  overflow-x: hidden !important;
+  scroll-snap-type: none !important;
+  touch-action: none !important;
+}
+body.modal-open .view-panel {
+  overflow-y: hidden !important;
+  touch-action: none !important;
 }
 
 /* ==========================================================================

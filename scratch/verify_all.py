@@ -110,7 +110,35 @@ def run_tests():
     if 'categoryChipRow.scrollTo({ left: 0' not in js:
         errors.append("categoryChipRow leftmost alignment missing from app.js")
 
-    # 15. Check Chinese parentheses in visible HTML texts
+    # 15. Check card and grid touch-action allows horizontal swiping
+    card_match = re.search(r'\.ios-item-card\s*\{([^}]+)\}', css)
+    if not card_match or 'touch-action: pan-x pan-y' not in card_match.group(1):
+        errors.append(".ios-item-card must have 'touch-action: pan-x pan-y' to allow swiping across items!")
+
+    grid_match = re.search(r'\.items-compact-grid\s*\{([^}]+)\}', css)
+    if not grid_match or 'touch-action: pan-x pan-y' not in grid_match.group(1):
+        errors.append(".items-compact-grid must have 'touch-action: pan-x pan-y' to allow swiping across items!")
+
+    # 16. Check card touch movement tracking (cardMoved prevents false click on swipe)
+    if 'cardMoved' not in js:
+        errors.append("cardMoved touch tracking missing from createCardElement in app.js")
+
+    # 17. Check background lock when popup/modal is open
+    if 'body.modal-open' not in css:
+        errors.append("body.modal-open lock styles missing from style.css")
+    if 'updateBodyScrollLock' not in js:
+        errors.append("updateBodyScrollLock function missing from app.js")
+
+    # 18. Check overscroll containment on modals and action sheet
+    sheet_match = re.search(r'\.ios-action-sheet\s*\{([^}]+)\}', css)
+    if not sheet_match or 'overscroll-behavior: contain' not in sheet_match.group(1):
+        errors.append(".ios-action-sheet missing 'overscroll-behavior: contain'")
+
+    # 19. Check color removal prompt "已選取色彩消除" is removed
+    if '已選取色彩消除' in js:
+        errors.append("'已選取色彩消除' notice still present in app.js!")
+
+    # 20. Check Chinese parentheses in visible HTML texts
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)
     clean_html = re.sub(r'<script[\s\S]*?</script>', '', clean_html)
     clean_html = re.sub(r'<style[\s\S]*?</style>', '', clean_html)
@@ -123,12 +151,12 @@ def run_tests():
     if parens_found:
         errors.append(f"Chinese parentheses found in HTML: {parens_found}")
 
-    # 16. Check '二級選單' across all files
+    # 21. Check '二級選單' across all files
     for name, content in [('index.html', html), ('app.js', js), ('style.css', css)]:
         if '二級選單' in content:
             errors.append(f"'二級選單' found in {name}")
 
-    # 17. Check server status
+    # 22. Check server status
     try:
         res = urllib.request.urlopen('http://localhost:8080/', timeout=3)
         if res.status != 200:
@@ -142,7 +170,7 @@ def run_tests():
             print(" -", err)
         return False
     else:
-        print("SUCCESS: ALL 17 QUALITY GATES AND REQUIREMENTS PASSED WITH 0 ERRORS!")
+        print("SUCCESS: ALL 22 QUALITY GATES AND REQUIREMENTS PASSED WITH 0 ERRORS!")
         return True
 
 if __name__ == '__main__':
