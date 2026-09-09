@@ -2020,7 +2020,6 @@
     setModalMode('expiry');
     updateAvatarPreview();
     itemModal.style.display = 'flex';
-    itemNameInput.focus();
   }
 
   function openEditModal(id) {
@@ -2243,7 +2242,6 @@
     saveItems();
     closeModal();
     renderApp();
-    autoSyncIfLoggedIn();
   });
 
   btnCloseModal.addEventListener('click', closeModal);
@@ -2341,413 +2339,6 @@
       showToast('已重置為範例資料');
     }
   });
-
-  // ==========================================
-  // 7.1 Google 帳號登入與雲端資料同步 (Google Cloud Sync)
-  // ==========================================
-  const GOOGLE_USER_KEY = 'lifespan_google_user';
-  const GOOGLE_SYNC_TIME_KEY = 'lifespan_google_last_sync';
-  const GOOGLE_CLIENT_ID_KEY = 'lifespan_google_client_id';
-  const CLOUD_STORAGE_PREFIX = 'lifespan_cloud_db_';
-
-  // Elements
-  const btnHeaderGoogle = document.getElementById('btnHeaderGoogle');
-  const headerGoogleGIcon = document.getElementById('headerGoogleGIcon');
-  const headerGoogleAvatarImg = document.getElementById('headerGoogleAvatarImg');
-  const headerSyncDot = document.getElementById('headerSyncDot');
-
-  const googleAvatarLarge = document.getElementById('googleAvatarLarge');
-  const googleGLarge = document.getElementById('googleGLarge');
-  const googleAvatarImgLarge = document.getElementById('googleAvatarImgLarge');
-  const googleUserName = document.getElementById('googleUserName');
-  const googleUserEmail = document.getElementById('googleUserEmail');
-  const googleSyncBadge = document.getElementById('googleSyncBadge');
-  const googleLastSyncText = document.getElementById('googleLastSyncText');
-
-  const googleAuthLoggedOut = document.getElementById('googleAuthLoggedOut');
-  const googleAuthLoggedIn = document.getElementById('googleAuthLoggedIn');
-  const btnGoogleSignIn = document.getElementById('btnGoogleSignIn');
-  const btnCloudUpload = document.getElementById('btnCloudUpload');
-  const btnCloudDownload = document.getElementById('btnCloudDownload');
-  const btnSwitchMockAccount = document.getElementById('btnSwitchMockAccount');
-  const btnGoogleSignOut = document.getElementById('btnGoogleSignOut');
-
-  const btnToggleClientIdConfig = document.getElementById('btnToggleClientIdConfig');
-  const clientIdConfigContent = document.getElementById('clientIdConfigContent');
-  const configChevron = document.getElementById('configChevron');
-  const customGoogleClientId = document.getElementById('customGoogleClientId');
-  const btnSaveGoogleClientId = document.getElementById('btnSaveGoogleClientId');
-
-  let currentGoogleUser = null;
-  let googleTokenClient = null;
-
-  function loadGoogleUser() {
-    try {
-      const stored = localStorage.getItem(GOOGLE_USER_KEY);
-      if (stored) currentGoogleUser = JSON.parse(stored);
-    } catch (e) {
-      currentGoogleUser = null;
-    }
-    const savedClientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || '';
-    if (customGoogleClientId) customGoogleClientId.value = savedClientId;
-    updateGoogleUI();
-  }
-
-  function saveGoogleUser(user) {
-    currentGoogleUser = user;
-    if (user) {
-      localStorage.setItem(GOOGLE_USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(GOOGLE_USER_KEY);
-    }
-    updateGoogleUI();
-  }
-
-  function updateGoogleUI() {
-    const lastSync = localStorage.getItem(GOOGLE_SYNC_TIME_KEY);
-    const syncTimeStr = lastSync ? `最後同步：${lastSync}` : '最後同步：尚未同步';
-
-    if (googleLastSyncText) googleLastSyncText.textContent = syncTimeStr;
-
-    if (currentGoogleUser && currentGoogleUser.email) {
-      // Logged in
-      if (headerSyncDot) {
-        headerSyncDot.className = 'sync-dot';
-        headerSyncDot.title = '已連線 Google 雲端';
-      }
-      if (currentGoogleUser.picture) {
-        if (headerGoogleAvatarImg) {
-          headerGoogleAvatarImg.src = currentGoogleUser.picture;
-          headerGoogleAvatarImg.style.display = 'block';
-        }
-        if (headerGoogleGIcon) headerGoogleGIcon.style.display = 'none';
-
-        if (googleAvatarImgLarge) {
-          googleAvatarImgLarge.src = currentGoogleUser.picture;
-          googleAvatarImgLarge.style.display = 'block';
-        }
-        if (googleGLarge) googleGLarge.style.display = 'none';
-      } else {
-        if (headerGoogleAvatarImg) headerGoogleAvatarImg.style.display = 'none';
-        if (headerGoogleGIcon) headerGoogleGIcon.style.display = 'block';
-        if (googleAvatarImgLarge) googleAvatarImgLarge.style.display = 'none';
-        if (googleGLarge) googleGLarge.style.display = 'block';
-      }
-
-      if (googleUserName) googleUserName.textContent = currentGoogleUser.name || 'Google 使用者';
-      if (googleUserEmail) googleUserEmail.textContent = currentGoogleUser.email;
-      if (googleSyncBadge) {
-        googleSyncBadge.className = 'sync-status-badge';
-        googleSyncBadge.textContent = currentGoogleUser.isRealDrive ? '● 已連線 Google Drive' : '● 已連線雲端同步';
-      }
-
-      if (googleAuthLoggedOut) googleAuthLoggedOut.style.display = 'none';
-      if (googleAuthLoggedIn) googleAuthLoggedIn.style.display = 'block';
-    } else {
-      // Logged out
-      if (headerSyncDot) {
-        headerSyncDot.className = 'sync-dot offline';
-        headerSyncDot.title = '未登入 Google 雲端';
-      }
-      if (headerGoogleAvatarImg) headerGoogleAvatarImg.style.display = 'none';
-      if (headerGoogleGIcon) headerGoogleGIcon.style.display = 'block';
-      if (googleAvatarImgLarge) googleAvatarImgLarge.style.display = 'none';
-      if (googleGLarge) googleGLarge.style.display = 'block';
-
-      if (googleUserName) googleUserName.textContent = 'Google 帳號未登入';
-      if (googleUserEmail) googleUserEmail.textContent = '登入後可將紀錄上傳雲端，跨帳號隨時同步';
-      if (googleSyncBadge) {
-        googleSyncBadge.className = 'sync-status-badge offline';
-        googleSyncBadge.textContent = '未連線';
-      }
-
-      if (googleAuthLoggedOut) googleAuthLoggedOut.style.display = 'block';
-      if (googleAuthLoggedIn) googleAuthLoggedIn.style.display = 'none';
-    }
-  }
-
-  // 點擊 Header 的 Google 按鈕：直接打開設定彈窗並聚焦至雲端同步區塊
-  if (btnHeaderGoogle) {
-    btnHeaderGoogle.addEventListener('click', function () {
-      btnOpenSettings.click();
-      const syncCard = document.getElementById('googleSyncCard');
-      if (syncCard) {
-        syncCard.scrollIntoView({ behavior: 'smooth' });
-      }
-    });
-  }
-
-  // Google 登入處理
-  if (btnGoogleSignIn) {
-    btnGoogleSignIn.addEventListener('click', function () {
-      const customId = (customGoogleClientId && customGoogleClientId.value.trim()) || localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
-
-      if (customId && window.google && google.accounts && google.accounts.oauth2) {
-        // 使用真實 Google OAuth 2.0 Token Client
-        try {
-          googleTokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: customId,
-            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-            callback: async (tokenResponse) => {
-              if (tokenResponse && tokenResponse.access_token) {
-                try {
-                  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                  });
-                  const userInfo = await userInfoRes.json();
-                  saveGoogleUser({
-                    name: userInfo.name || 'Google 使用者',
-                    email: userInfo.email || 'user@gmail.com',
-                    picture: userInfo.picture || '',
-                    token: tokenResponse.access_token,
-                    isRealDrive: true
-                  });
-                  showToast(`🎉 歡迎！Google 帳號 ${userInfo.email} 登入成功`);
-                  uploadToCloud(true);
-                } catch (e) {
-                  showToast('登入成功，已啟用 Google Drive 雲端同步！');
-                }
-              }
-            }
-          });
-          googleTokenClient.requestAccessToken();
-          return;
-        } catch (err) {
-          console.warn('Google GIS error, falling back to simulated sync:', err);
-        }
-      }
-
-      // 若未填寫自訂 Client ID，提供一鍵即時體驗帳號登入
-      const email = prompt('請輸入要登入並同步的 Google 帳號 Email：', (currentGoogleUser && currentGoogleUser.email) || 'user@gmail.com');
-      if (!email) return;
-
-      const user = {
-        name: email.split('@')[0],
-        email: email.trim(),
-        picture: '',
-        isRealDrive: false
-      };
-      saveGoogleUser(user);
-      showToast(`🎉 歡迎！以 ${user.email} 啟用雲端同步！`);
-
-      // 檢查此帳號在雲端是否已有備份資料，若有詢問是否直接還原
-      const cloudDataStr = localStorage.getItem(CLOUD_STORAGE_PREFIX + user.email);
-      if (cloudDataStr) {
-        try {
-          const parsed = JSON.parse(cloudDataStr);
-          if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
-            if (confirm(`發現雲端存有 ${parsed.items.length} 筆紀錄，是否立即從雲端同步還原？`)) {
-              downloadFromCloud();
-              return;
-            }
-          }
-        } catch (e) {}
-      }
-      uploadToCloud(true);
-    });
-  }
-
-  // 上傳至雲端 (Upload to Cloud)
-  async function uploadToCloud(isSilent = false) {
-    if (!currentGoogleUser || !currentGoogleUser.email) {
-      if (!isSilent) showToast('請先登入 Google 帳號！');
-      return;
-    }
-
-    if (headerSyncDot) headerSyncDot.className = 'sync-dot syncing';
-
-    const nowStr = new Date().toLocaleString();
-    const payload = {
-      version: 1,
-      user: currentGoogleUser.email,
-      updatedAt: Date.now(),
-      updatedAtStr: nowStr,
-      items: items
-    };
-
-    if (currentGoogleUser.isRealDrive && currentGoogleUser.token) {
-      try {
-        const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name='lifespan_tracker_cloud_backup.json'+and+trashed=false", {
-          headers: { Authorization: `Bearer ${currentGoogleUser.token}` }
-        });
-        const searchData = await searchRes.json();
-        const fileId = searchData.files && searchData.files[0] ? searchData.files[0].id : null;
-
-        if (fileId) {
-          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-            method: 'PATCH',
-            headers: {
-              Authorization: `Bearer ${currentGoogleUser.token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-        } else {
-          const metadata = {
-            name: 'lifespan_tracker_cloud_backup.json',
-            mimeType: 'application/json'
-          };
-          const form = new FormData();
-          form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-          form.append('file', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-
-          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${currentGoogleUser.token}` },
-            body: form
-          });
-        }
-      } catch (err) {
-        console.error('Drive upload error:', err);
-      }
-    }
-
-    // 同步儲存至帳號雲端空間 (支援跨帳號切換隔離測試)
-    localStorage.setItem(CLOUD_STORAGE_PREFIX + currentGoogleUser.email, JSON.stringify(payload));
-    localStorage.setItem(GOOGLE_SYNC_TIME_KEY, nowStr);
-
-    setTimeout(() => {
-      if (headerSyncDot) headerSyncDot.className = 'sync-dot';
-      updateGoogleUI();
-      if (!isSilent) showToast('☁️ 已成功將紀錄上傳至個人雲端！');
-    }, 400);
-  }
-
-  // 從雲端下載同步 (Download from Cloud)
-  async function downloadFromCloud() {
-    if (!currentGoogleUser || !currentGoogleUser.email) {
-      showToast('請先登入 Google 帳號！');
-      return;
-    }
-
-    if (headerSyncDot) headerSyncDot.className = 'sync-dot syncing';
-
-    let cloudData = null;
-
-    if (currentGoogleUser.isRealDrive && currentGoogleUser.token) {
-      try {
-        const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name='lifespan_tracker_cloud_backup.json'+and+trashed=false", {
-          headers: { Authorization: `Bearer ${currentGoogleUser.token}` }
-        });
-        const searchData = await searchRes.json();
-        const fileId = searchData.files && searchData.files[0] ? searchData.files[0].id : null;
-
-        if (fileId) {
-          const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-            headers: { Authorization: `Bearer ${currentGoogleUser.token}` }
-          });
-          cloudData = await contentRes.json();
-        }
-      } catch (err) {
-        console.error('Drive download error:', err);
-      }
-    }
-
-    if (!cloudData) {
-      const stored = localStorage.getItem(CLOUD_STORAGE_PREFIX + currentGoogleUser.email);
-      if (stored) {
-        try { cloudData = JSON.parse(stored); } catch (e) {}
-      }
-    }
-
-    if (cloudData && Array.isArray(cloudData.items)) {
-      items = cloudData.items;
-      saveItems();
-      renderApp();
-      const nowStr = new Date().toLocaleString();
-      localStorage.setItem(GOOGLE_SYNC_TIME_KEY, nowStr);
-      if (headerSyncDot) headerSyncDot.className = 'sync-dot';
-      updateGoogleUI();
-      showToast(`⬇️ 已從雲端同步最新 ${items.length} 筆紀錄！`);
-    } else {
-      if (headerSyncDot) headerSyncDot.className = 'sync-dot';
-      showToast('雲端尚無備份，已為您將本機紀錄上傳備份！');
-      uploadToCloud(true);
-    }
-  }
-
-  // 自動同步 (防手滑、背景防遺失)
-  let autoSyncTimer = null;
-  function autoSyncIfLoggedIn() {
-    if (!currentGoogleUser || !currentGoogleUser.email) return;
-    clearTimeout(autoSyncTimer);
-    autoSyncTimer = setTimeout(() => {
-      uploadToCloud(true);
-    }, 1200);
-  }
-
-  if (btnCloudUpload) btnCloudUpload.addEventListener('click', () => uploadToCloud(false));
-  if (btnCloudDownload) btnCloudDownload.addEventListener('click', downloadFromCloud);
-
-  // 切換模擬帳號
-  if (btnSwitchMockAccount) {
-    btnSwitchMockAccount.addEventListener('click', function () {
-      const nextEmail = prompt('請輸入要切換的 Google 帳號：', 'work.account@gmail.com');
-      if (!nextEmail || nextEmail.trim() === currentGoogleUser.email) return;
-
-      const newUser = {
-        name: nextEmail.split('@')[0],
-        email: nextEmail.trim(),
-        picture: '',
-        isRealDrive: false
-      };
-      saveGoogleUser(newUser);
-
-      // 檢查新帳號是否有雲端紀錄
-      const cloudDataStr = localStorage.getItem(CLOUD_STORAGE_PREFIX + newUser.email);
-      if (cloudDataStr) {
-        try {
-          const parsed = JSON.parse(cloudDataStr);
-          if (parsed && Array.isArray(parsed.items)) {
-            items = parsed.items;
-            saveItems();
-            renderApp();
-            showToast(`🔄 已切換至 ${newUser.email}，並自動同步其專屬雲端紀錄！`);
-            return;
-          }
-        } catch (e) {}
-      }
-
-      // 新帳號若為全新，給予獨立示範資料或清空
-      if (confirm(`帳號「${newUser.email}」雲端無紀錄。\n是否為此新帳號建立全新的範例紀錄？`)) {
-        items = createSeedItems();
-        saveItems();
-        renderApp();
-        uploadToCloud(true);
-        showToast(`✨ 已切換至全新帳號 ${newUser.email}！`);
-      } else {
-        uploadToCloud(true);
-        showToast(`已切換至 ${newUser.email}，並將目前清單備份至此帳號！`);
-      }
-    });
-  }
-
-  // 登出 Google 帳號
-  if (btnGoogleSignOut) {
-    btnGoogleSignOut.addEventListener('click', function () {
-      if (confirm('確定要登出 Google 帳號嗎？本機資料仍會保留')) {
-        saveGoogleUser(null);
-        showToast('已登出 Google 帳號');
-      }
-    });
-  }
-
-  // 自訂 Client ID 折疊面板
-  if (btnToggleClientIdConfig) {
-    btnToggleClientIdConfig.addEventListener('click', function () {
-      const isHidden = clientIdConfigContent.style.display === 'none';
-      clientIdConfigContent.style.display = isHidden ? 'flex' : 'none';
-      if (configChevron) configChevron.textContent = isHidden ? '▴' : '▾';
-    });
-  }
-
-  if (btnSaveGoogleClientId) {
-    btnSaveGoogleClientId.addEventListener('click', function () {
-      const val = customGoogleClientId.value.trim();
-      localStorage.setItem(GOOGLE_CLIENT_ID_KEY, val);
-      showToast(val ? '已儲存 Google Client ID！點擊登入即可使用正式 Drive API' : '已清除自訂 Client ID');
-    });
-  }
 
   // ==========================================
   // 8. 導航與篩選控制 (今天 vs 我的物品 / 全部 vs 快到了 vs 已超過)
@@ -2970,8 +2561,15 @@
 
   function switchViewTab(tab, smooth = true) {
     currentNavTab = tab;
+    // 切換頁面時使畫面保持在頂部
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     if (viewsSliderViewport) viewsSliderViewport.scrollLeft = 0;
     document.documentElement.scrollLeft = 0;
+    const iosMain = document.querySelector('.ios-main');
+    if (iosMain) iosMain.scrollTop = 0;
+
     if (viewsSliderTrack) {
       if (!smooth) {
         viewsSliderTrack.classList.add('dragging');
@@ -3836,7 +3434,6 @@
   document.documentElement.setAttribute('data-theme', savedTheme);
   loadItems();
   loadCustomCategories();
-  loadGoogleUser();
   currentCategoryChip = getFirstPageCategory();
 
   if (urlParams.get('sort')) {
@@ -3853,18 +3450,6 @@
   renderCategoryChips();
   populateCategorySelect();
   populateFirstPageCategorySelect();
-
-  if (urlParams.get('mockGoogle') === '1') {
-    currentGoogleUser = {
-      name: 'Alex Chen',
-      email: 'alex.chen@gmail.com',
-      picture: '',
-      isRealDrive: false
-    };
-    saveGoogleUser(currentGoogleUser);
-    localStorage.setItem(GOOGLE_SYNC_TIME_KEY, '2026/09/09 02:22:15');
-    updateGoogleUI();
-  }
 
   renderApp();
 

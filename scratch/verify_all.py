@@ -14,35 +14,43 @@ def run_tests():
 
     errors = []
 
-    # 1. Check permanent group settings button
-    if 'id="btnOpenGroupSettings"' not in html:
-        errors.append("btnOpenGroupSettings missing from index.html")
-    if 'id="btnGroupSettingsBar"' not in html:
-        errors.append("btnGroupSettingsBar missing from index.html")
-    if 'btnOpenGroupSettings' not in js:
-        errors.append("btnOpenGroupSettings not wired in app.js")
-    if 'btnGroupSettingsBar' not in js:
-        errors.append("btnGroupSettingsBar not wired in app.js")
+    # 1. Check startup stall prevention (no scrollIntoView in renderCategoryChips, slider setup)
+    if 'activeChip.scrollIntoView' in js:
+        errors.append("scrollIntoView found in renderCategoryChips, which can shift views-slider-viewport on startup!")
+    if 'overflow-x: clip' not in css:
+        errors.append("overflow-x: clip missing from style.css for view-panel")
 
-    # 2. Check old add group button removed from chipRow in app.js
-    if 'btnAddCategoryChip' in js:
-        errors.append("Old btnAddCategoryChip still present in app.js")
-    if '➕ 新增群組' in js:
-        errors.append("Old '➕ 新增群組' still present in app.js")
+    # 2. Check exactly ONE group settings button
+    group_btns = re.findall(r'id=["\']btnOpenGroupSettings["\']', html)
+    if len(group_btns) != 1:
+        errors.append(f"Expected exactly 1 btnOpenGroupSettings in HTML, found {len(group_btns)}")
+    if 'btnGroupSettingsBar' in html or 'btnGroupSettingsBar' in js:
+        errors.append("Duplicate btnGroupSettingsBar still exists")
+    if 'category-nav-bar' in html:
+        errors.append("category-nav-bar still exists in HTML")
 
-    # 3. Check default to home page (today) on startup
-    if "switchViewTab('today', false)" not in js:
-        errors.append("Default home page switchViewTab('today', false) missing from startup in app.js")
+    # 3. Check Google account and cloud sync completely removed
+    for term in ['accounts.google.com', 'btnHeaderGoogle', 'loadGoogleUser', 'saveCloudClientId']:
+        if term in html:
+            errors.append(f"Google reference '{term}' found in index.html")
+        if term in js:
+            errors.append(f"Google reference '{term}' found in app.js")
 
-    # 4. Check swipe gesture on item card
-    if "|| e.target.closest('.ios-item-card')" in js:
-        errors.append(".ios-item-card still blocked in mousedown in app.js")
-    if "hasSwipedHorizontally" not in js:
-        errors.append("hasSwipedHorizontally drag-suppression missing from app.js")
-    if "touch-action: pan-y" not in css:
-        errors.append("touch-action: pan-y missing from style.css")
+    # 4. Check scroll to top on tab switch
+    if "window.scrollTo({ top: 0, left: 0, behavior: 'instant' })" not in js:
+        errors.append("Scroll to top on tab switch missing from switchViewTab in app.js")
 
-    # 5. Check Chinese parentheses in visible HTML texts
+    # 5. Check no auto-focus on add item modal (no keyboard popup)
+    if 'itemNameInput.focus()' in js:
+        errors.append("itemNameInput.focus() found in app.js (triggers virtual keyboard popup on mobile)")
+
+    # 6. Check category chip row full width and thumb-friendly ergonomics
+    if '.category-chip-row {' not in css:
+        errors.append(".category-chip-row missing from style.css")
+    if '.btn-group-settings-main' not in css:
+        errors.append(".btn-group-settings-main missing from style.css")
+
+    # 7. Check Chinese parentheses in visible HTML texts
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)
     clean_html = re.sub(r'<script[\s\S]*?</script>', '', clean_html)
     clean_html = re.sub(r'<style[\s\S]*?</style>', '', clean_html)
@@ -55,12 +63,12 @@ def run_tests():
     if parens_found:
         errors.append(f"Chinese parentheses found in HTML: {parens_found}")
 
-    # 6. Check '二級選單' across all files
+    # 8. Check '二級選單' across all files
     for name, content in [('index.html', html), ('app.js', js), ('style.css', css)]:
         if '二級選單' in content:
             errors.append(f"'二級選單' found in {name}")
 
-    # 7. Check server status
+    # 9. Check server status
     try:
         res = urllib.request.urlopen('http://localhost:8080/', timeout=3)
         if res.status != 200:
@@ -74,7 +82,7 @@ def run_tests():
             print(" -", err)
         return False
     else:
-        print("SUCCESS: ALL 7 TEST CATEGORIES PASSED WITH 0 ERRORS!")
+        print("SUCCESS: ALL USER REQUIREMENTS AND QUALITY GATES PASSED WITH 0 ERRORS!")
         return True
 
 if __name__ == '__main__':
