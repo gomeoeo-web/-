@@ -965,14 +965,15 @@ html, body {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 40px;
-  padding: 0.3rem 0.4rem;
+  padding: 0.32rem 0.42rem;
   display: flex;
   align-items: center;
   gap: 0.35rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   z-index: 80;
-  max-width: min(calc(var(--app-max-width, 440px) - 1.5rem), calc(100vw - 1.5rem));
-  transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, max-width 0.28s ease, padding 0.25s ease;
+  max-width: calc(100vw - 1.8rem);
+  box-sizing: border-box;
+  transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, box-shadow 0.28s ease;
   will-change: transform, opacity;
 }
 
@@ -982,42 +983,119 @@ html, body {
   pointer-events: none;
 }
 
+/* 切換分頁時的微動態波紋與光暈特效 */
+.floating-island-dock.dock-switching {
+  animation: dockSwitchPulse 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dockSwitchPulse {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  45% {
+    transform: translateX(-50%) scale(1.055);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 255, 255, 0.22);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+}
+
+[data-theme="light"] .floating-island-dock.dock-switching {
+  animation: dockSwitchPulseLight 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dockSwitchPulseLight {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  45% {
+    transform: translateX(-50%) scale(1.055);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 0 22px rgba(0, 122, 255, 0.28);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
 .dock-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  padding: 0.5rem 1.45rem;
+  padding: 0.52rem 1.6rem;
   border-radius: 32px;
   background: transparent;
   color: var(--ios-text-secondary);
   border: none;
   cursor: pointer;
-  transition: all var(--transition-ios);
+  transition: all 0.26s cubic-bezier(0.34, 1.4, 0.64, 1);
   font-family: inherit;
+  position: relative;
+  user-select: none;
 }
 
-.dock-icon {
+.dock-tab .dock-icon {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-tab .dock-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .dock-label {
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: -0.01em;
+  transition: color 0.2s ease, font-weight 0.2s ease;
 }
 
 .dock-tab.active {
-  background: #252528;
+  background: #28282c;
+  color: #ffffff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dock-tab.active .dock-icon {
+  transform: scale(1.15) translateY(-1px);
+}
+
+.dock-tab.active .dock-label {
+  font-weight: 700;
   color: #ffffff;
 }
 
 [data-theme="light"] .dock-tab.active {
   background: #e5e5ea;
   color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .dock-tab.active .dock-label {
+  color: #000000;
+}
+
+/* 分頁切換激活彈跳特效 */
+.dock-tab.tab-switching-pop {
+  animation: tabPopEffect 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tabPopEffect {
+  0% {
+    transform: scale(0.92);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ==========================================================================
@@ -1055,6 +1133,37 @@ html, body {
   animation: slideUpModal 0.25s cubic-bezier(0.32, 0.72, 0, 1);
   overscroll-behavior: contain;
   touch-action: pan-y;
+}
+
+/* Modal & Action Sheet Closing Animations (各項功能關閉特效) */
+.ios-modal-backdrop.modal-closing,
+.ios-action-backdrop.modal-closing {
+  animation: fadeOutModalBackdrop 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  pointer-events: none;
+}
+
+.ios-modal-backdrop.modal-closing .ios-modal-card {
+  animation: popOutModalCard 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+}
+
+@keyframes fadeOutModalBackdrop {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes popOutModalCard {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.92) translateY(18px);
+    opacity: 0;
+  }
 }
 
 .ios-modal-sm {
@@ -1944,6 +2053,21 @@ input[type="time"]::-webkit-date-and-time-value {
   animation: slideUpSheet 0.25s cubic-bezier(0.32, 0.72, 0, 1);
   touch-action: pan-y;
   will-change: transform;
+}
+
+.ios-action-backdrop.modal-closing .ios-action-sheet {
+  animation: slideDownActionSheet 0.24s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
+}
+
+@keyframes slideDownActionSheet {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(105%);
+    opacity: 0.5;
+  }
 }
 
 .sheet-drag-handle {
@@ -3989,80 +4113,7 @@ body.modal-open .view-panel {
   max-width: min(600px, calc(100vw - 1.8rem));
 }
 
-/* Navigation Dock Screen-Fit Adaptations (主頁與物品分類框自動配合顯示比例) */
-[data-screen-fit="standard"] .floating-island-dock {
-  max-width: min(360px, calc(100vw - 1.5rem));
-  padding: 0.28rem 0.35rem;
-  gap: 0.3rem;
-  bottom: max(1.15rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
-}
-[data-screen-fit="standard"] .dock-tab {
-  padding: 0.46rem 1.3rem;
-}
-[data-screen-fit="standard"] .dock-label {
-  font-size: 0.72rem;
-}
-[data-screen-fit="standard"] .dock-icon svg {
-  width: 20px;
-  height: 20px;
-}
 
-[data-screen-fit="plus"] .floating-island-dock {
-  max-width: min(400px, calc(100vw - 1.8rem));
-  padding: 0.34rem 0.45rem;
-  gap: 0.4rem;
-  bottom: max(1.35rem, calc(0.9rem + env(safe-area-inset-bottom, 0px)));
-}
-[data-screen-fit="plus"] .dock-tab {
-  padding: 0.54rem 1.65rem;
-}
-[data-screen-fit="plus"] .dock-label {
-  font-size: 0.78rem;
-}
-[data-screen-fit="plus"] .dock-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-[data-screen-fit="tablet"] .floating-island-dock {
-  max-width: min(560px, calc(100vw - 2.5rem));
-  padding: 0.42rem 0.6rem;
-  gap: 0.6rem;
-  border-radius: 46px;
-  bottom: max(1.6rem, calc(1.1rem + env(safe-area-inset-bottom, 0px)));
-}
-[data-screen-fit="tablet"] .dock-tab {
-  padding: 0.68rem 2.4rem;
-  border-radius: 36px;
-}
-[data-screen-fit="tablet"] .dock-label {
-  font-size: 0.88rem;
-  font-weight: 700;
-}
-[data-screen-fit="tablet"] .dock-icon svg {
-  width: 25px;
-  height: 25px;
-}
-
-[data-screen-fit="full"] .floating-island-dock {
-  max-width: min(620px, calc(100vw - 2.5rem));
-  padding: 0.45rem 0.65rem;
-  gap: 0.65rem;
-  border-radius: 46px;
-  bottom: max(1.6rem, calc(1.1rem + env(safe-area-inset-bottom, 0px)));
-}
-[data-screen-fit="full"] .dock-tab {
-  padding: 0.7rem 2.55rem;
-  border-radius: 36px;
-}
-[data-screen-fit="full"] .dock-label {
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-[data-screen-fit="full"] .dock-icon svg {
-  width: 26px;
-  height: 26px;
-}
 
 @media (max-width: 480px) {
   .ios-modal-backdrop {

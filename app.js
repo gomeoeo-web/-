@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.5.3';
+  const APP_VERSION = '1.5.5';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -781,10 +781,38 @@
     lockBodyScroll();
   }
 
+  // ==========================================
+  // 通用功能彈窗平滑關閉動畫控制器 (各項功能關閉特效)
+  // ==========================================
+  function closeModalWithAnimation(modalEl, onClosed) {
+    if (!modalEl || modalEl.style.display === 'none') {
+      if (typeof onClosed === 'function') onClosed();
+      return;
+    }
+    if (modalEl.classList.contains('modal-closing')) return;
+
+    modalEl.classList.add('modal-closing');
+    const isSheet = modalEl.classList.contains('ios-action-backdrop');
+    const duration = isSheet ? 240 : 220;
+
+    setTimeout(() => {
+      modalEl.style.display = 'none';
+      modalEl.classList.remove('modal-closing');
+      const card = modalEl.querySelector('.ios-modal-card, .ios-action-sheet');
+      if (card) {
+        card.style.transform = '';
+        card.style.transition = '';
+      }
+      if (typeof onClosed === 'function') {
+        onClosed();
+      }
+      unlockBodyScroll();
+    }, duration);
+  }
+
   function closeRecentlyDeletedModal() {
-    const modal = document.getElementById('recentlyDeletedModal');
-    if (modal) modal.style.display = 'none';
-    unlockBodyScroll();
+    const modal = document.getElementById('recentlyDeletedModal') || document.getElementById('trashModal');
+    closeModalWithAnimation(modal);
   }
 
   // ==========================================
@@ -961,9 +989,8 @@
   }
 
   function closeArchiveModal() {
-    const modal = document.getElementById('archiveModal');
-    if (modal) modal.style.display = 'none';
-    unlockBodyScroll();
+    const modal = document.getElementById('archiveModal') || document.getElementById('archiveListModal');
+    closeModalWithAnimation(modal);
   }
 
   // ==========================================
@@ -1791,12 +1818,19 @@
     showToast(`已將「${it.name}」移出「${catLabel}」`);
   }
 
-  function closeActionSheet() {
+  function closeActionSheet(immediate = false) {
     clearResetConfirmation();
     clearDeleteConfirmation();
-    actionSheet.style.display = 'none';
     activeSheetItemId = null;
-    unlockBodyScroll();
+    if (immediate || !actionSheet || actionSheet.style.display === 'none') {
+      if (actionSheet) {
+        actionSheet.style.display = 'none';
+        actionSheet.classList.remove('modal-closing');
+      }
+      unlockBodyScroll();
+      return;
+    }
+    closeModalWithAnimation(actionSheet);
   }
 
   // 換新 / 重設週期 (具備雙重確認防止誤觸，4 秒未確認自動取消)
@@ -1871,10 +1905,7 @@
   }
 
   function closeDeleteConfirmModal() {
-    if (deleteConfirmModal) {
-      deleteConfirmModal.style.display = 'none';
-    }
-    unlockBodyScroll();
+    closeModalWithAnimation(deleteConfirmModal);
   }
 
   if (btnSheetDelete) {
@@ -2160,9 +2191,9 @@
   }
 
   function closeBgRemovalStudio() {
-    if (bgRemovalModal) bgRemovalModal.style.display = 'none';
-    isColorPickMode = false;
-    unlockBodyScroll();
+    closeModalWithAnimation(bgRemovalModal, () => {
+      isColorPickMode = false;
+    });
   }
 
   // AI 智慧自動採樣背景色（採樣圖片四角、邊緣週邊）
@@ -2813,8 +2844,7 @@
   }
 
   function closeModal() {
-    itemModal.style.display = 'none';
-    unlockBodyScroll();
+    closeModalWithAnimation(itemModal);
   }
 
   // 雙向換算：從週期天數同步到期日
@@ -3056,8 +3086,7 @@
   }
 
   function closeSettingsModal() {
-    if (settingsModal) settingsModal.style.display = 'none';
-    unlockBodyScroll();
+    closeModalWithAnimation(settingsModal);
   }
 
   btnOpenSettings.addEventListener('click', openSettingsModal);
@@ -3428,9 +3457,7 @@
   }
 
   function closeHomeSortModal() {
-    if (!homeSortModal) return;
-    homeSortModal.style.display = 'none';
-    unlockBodyScroll();
+    closeModalWithAnimation(homeSortModal);
   }
 
   if (btnOpenCustomSort) {
@@ -3536,6 +3563,28 @@
     }
   }
 
+  function triggerDockSwitchEffect(activeTab) {
+    const navDock = document.querySelector('.floating-island-dock');
+    if (!navDock) return;
+    navDock.classList.remove('dock-hidden');
+    navDock.classList.remove('dock-switching');
+    void navDock.offsetWidth;
+    navDock.classList.add('dock-switching');
+    setTimeout(() => {
+      if (navDock) navDock.classList.remove('dock-switching');
+    }, 420);
+
+    const targetTabEl = (activeTab === 'today') ? dockTabToday : dockTabInventory;
+    if (targetTabEl) {
+      targetTabEl.classList.remove('tab-switching-pop');
+      void targetTabEl.offsetWidth;
+      targetTabEl.classList.add('tab-switching-pop');
+      setTimeout(() => {
+        targetTabEl.classList.remove('tab-switching-pop');
+      }, 400);
+    }
+  }
+
   function switchViewTab(tab, smooth = true) {
     currentNavTab = tab;
     // 切換頁面時使畫面保持在頂部
@@ -3544,8 +3593,7 @@
     document.body.scrollTop = 0;
     const iosMain = document.querySelector('.ios-main');
     if (iosMain) iosMain.scrollTop = 0;
-    const navDock = document.querySelector('.floating-island-dock');
-    if (navDock) navDock.classList.remove('dock-hidden');
+    triggerDockSwitchEffect(tab);
 
     // 開始滑動/切換：立即喚醒所有面板確保滑動視覺完整
     setPanelsSwipingState(true);
@@ -3837,8 +3885,7 @@
   }
 
   function closeAddItemsToCategoryModal() {
-    if (addItemsToCategoryModal) addItemsToCategoryModal.style.display = 'none';
-    unlockBodyScroll();
+    closeModalWithAnimation(addItemsToCategoryModal);
   }
 
   if (btnAddItemsToCurrentCategory) {
@@ -3917,8 +3964,7 @@
   }
 
   function closeCustomCategoryModal() {
-    if (customCategoryModal) customCategoryModal.style.display = 'none';
-    unlockBodyScroll();
+    closeModalWithAnimation(customCategoryModal);
   }
 
   const btnOpenGroupSettings = document.getElementById('btnOpenGroupSettings');
@@ -4343,8 +4389,7 @@
   }
 
   function closeEditCategoryModal() {
-    if (editCategoryModal) editCategoryModal.style.display = 'none';
-    unlockBodyScroll();
+    closeModalWithAnimation(editCategoryModal);
   }
 
   if (btnCloseEditCategoryModal) {
@@ -4441,12 +4486,12 @@
   function isAnyModalOpen() {
     const modals = document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop');
     for (const el of modals) {
-      if (el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('active')) {
+      if ((el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('active')) && !el.classList.contains('modal-closing')) {
         return true;
       }
     }
     const actionSheetEl = document.getElementById('actionSheet');
-    if (actionSheetEl && actionSheetEl.style.display !== 'none' && actionSheetEl.style.display !== '') {
+    if (actionSheetEl && actionSheetEl.style.display !== 'none' && actionSheetEl.style.display !== '' && !actionSheetEl.classList.contains('modal-closing')) {
       return true;
     }
     return false;
@@ -4510,10 +4555,12 @@
       isClosingSheet = true;
       actionSheetCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
       actionSheetCard.style.transform = 'translateY(100%)';
+      actionSheet.classList.add('modal-closing');
       setTimeout(() => {
         actionSheetCard.style.transform = '';
         actionSheetCard.style.transition = '';
-        closeActionSheet();
+        actionSheet.classList.remove('modal-closing');
+        closeActionSheet(true);
         isClosingSheet = false;
       }, 180);
     }
@@ -4606,6 +4653,13 @@
 
         if (targetTab !== currentNavTab) {
           currentNavTab = targetTab;
+          // 往左右滑切換頁面時自動至頂至頁面上方
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+          const iosMain = document.querySelector('.ios-main');
+          if (iosMain) iosMain.scrollTop = 0;
+
           if (targetTab === 'today') {
             dockTabToday.classList.add('active');
             dockTabInventory.classList.remove('active');
@@ -4626,6 +4680,7 @@
             renderCategoryChips();
             updateCategoryActionBar();
           }
+          triggerDockSwitchEffect(targetTab);
           renderApp();
         }
       }, 70);

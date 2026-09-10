@@ -21,6 +21,8 @@ tests = [
     'scratch/test_v15_features.py',
     'scratch/test_v152_layout_and_cleanup.py',
     'scratch/test_v153_dock_and_sheet_gestures.py',
+    'scratch/test_v154_dock_effects_and_swipe_top.py',
+    'scratch/test_v155_close_animations.py',
     'scratch/find_parens.py'
 ]
 

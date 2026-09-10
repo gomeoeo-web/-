@@ -21,11 +21,11 @@ def test_v153_requirements():
     if 'touch-action: none' not in css or '.sheet-header' not in css:
         errors.append(".sheet-header must have touch-action: none in style.css")
 
-    # 2. Dock screen-fit adaptation for standard, plus, tablet, full
-    for fit in ['standard', 'plus', 'tablet', 'full']:
-        fit_selector = f'[data-screen-fit="{fit}"] .floating-island-dock'
-        if fit_selector not in css:
-            errors.append(f"{fit_selector} screen-fit rule missing in style.css")
+    # 2. Dock unified standard proportions (不需要與視窗比例一同調整，統一標準比例)
+    if '.floating-island-dock' not in css or 'border-radius: 40px' not in css:
+        errors.append(".floating-island-dock standard border-radius: 40px missing in style.css")
+    if '.dock-tab' not in css or 'padding: 0.52rem 1.6rem' not in css:
+        errors.append(".dock-tab standard padding 0.52rem 1.6rem missing in style.css")
 
     # 3. Dock auto-hide on scroll up and auto-show on scroll down
     if '.floating-island-dock.dock-hidden' not in css:
@@ -37,13 +37,7 @@ def test_v153_requirements():
     if 'touchStartDockY' not in js:
         errors.append("Touch gesture detection for dock hide/show missing in app.js")
 
-    # 4. Version v1.5.3
-    if '<span class="app-version-badge" id="appVersionBadge">v1.5.3</span>' not in html:
-        errors.append("Version badge v1.5.3 missing in index.html")
-    if "const APP_VERSION = '1.5.3';" not in js:
-        errors.append("APP_VERSION 1.5.3 missing in app.js")
-
-    # 5. Zero Chinese parentheses in visible text
+    # 4. Zero Chinese parentheses in visible text
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)
     clean_html = re.sub(r'<script[\s\S]*?</script>', '', clean_html)
     clean_html = re.sub(r'<style[\s\S]*?</style>', '', clean_html)
@@ -58,7 +52,7 @@ def test_v153_requirements():
             print(f"  - {e}")
         return False
     else:
-        print("SUCCESS: All v1.5.3 dock adaptations, scroll auto-hide/show, and sheet gesture tests PASSED!")
+        print("SUCCESS: All dock and sheet gesture tests PASSED!")
         return True
 
 if __name__ == '__main__':
