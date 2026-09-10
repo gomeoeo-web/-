@@ -39,10 +39,10 @@ def test_v152_requirements():
         errors.append("first-page-cat-card should be removed from index.html")
 
     # 3. Version check
-    if 'id="appVersionBadge"' not in html or 'v1.5.5' not in html:
-        errors.append("v1.5.5 badge missing in index.html")
-    if "const APP_VERSION = '1.5.5';" not in js:
-        errors.append("APP_VERSION 1.5.5 missing in app.js")
+    if 'id="appVersionBadge"' not in html or 'v1.5.7' not in html:
+        errors.append("v1.5.7 badge missing in index.html")
+    if "const APP_VERSION = '1.5.7';" not in js:
+        errors.append("APP_VERSION 1.5.7 missing in app.js")
 
     # 4. Zero Chinese parentheses in visible text
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)

@@ -23,6 +23,8 @@ tests = [
     'scratch/test_v153_dock_and_sheet_gestures.py',
     'scratch/test_v154_dock_effects_and_swipe_top.py',
     'scratch/test_v155_close_animations.py',
+    'scratch/test_v156_dock_label_and_pre_swipe_top.py',
+    'scratch/test_v157_current_page_retain_next_top.py',
     'scratch/find_parens.py'
 ]
 
@@ -34,8 +36,10 @@ for t in tests:
             print(f"[PASS] {t}")
         else:
             print(f"[FAIL] {t} (exit {res.returncode}):")
-            print(res.stdout)
-            print(res.stderr)
+            if res.stdout:
+                sys.stdout.buffer.write((res.stdout + '\n').encode('utf-8', errors='replace'))
+            if res.stderr:
+                sys.stderr.buffer.write((res.stderr + '\n').encode('utf-8', errors='replace'))
             all_passed = False
 
 if all_passed:

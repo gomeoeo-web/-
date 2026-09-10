@@ -1035,9 +1035,11 @@ html, body {
   font-family: inherit;
   position: relative;
   user-select: none;
+  white-space: nowrap;
 }
 
 .dock-tab .dock-icon {
+  order: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1050,9 +1052,16 @@ html, body {
 }
 
 .dock-label {
+  order: 2;
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: -0.01em;
+  writing-mode: horizontal-tb;
+  white-space: nowrap;
+  word-break: keep-all;
+  display: block;
+  text-align: center;
+  line-height: 1.2;
   transition: color 0.2s ease, font-weight 0.2s ease;
 }
 

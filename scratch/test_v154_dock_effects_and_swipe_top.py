@@ -44,11 +44,11 @@ def test_v154_requirements():
     if 'triggerDockSwitchEffect' not in js:
         errors.append("triggerDockSwitchEffect function missing from app.js")
 
-    # 4. Version v1.5.5 check
-    if '<span class="app-version-badge" id="appVersionBadge">v1.5.5</span>' not in html:
-        errors.append("v1.5.5 badge missing in index.html")
-    if "const APP_VERSION = '1.5.5';" not in js:
-        errors.append("APP_VERSION 1.5.5 missing in app.js")
+    # 4. Version v1.5.7 check
+    if '<span class="app-version-badge" id="appVersionBadge">v1.5.7</span>' not in html:
+        errors.append("v1.5.7 badge missing in index.html")
+    if "const APP_VERSION = '1.5.7';" not in js:
+        errors.append("APP_VERSION 1.5.7 missing in app.js")
 
     # 5. Zero Chinese parentheses
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)

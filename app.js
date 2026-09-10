@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.5.5';
+  const APP_VERSION = '1.5.7';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -3563,6 +3563,37 @@
     }
   }
 
+  function prepareIncomingPanelForSwipe(targetTab) {
+    const currentScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const effectiveTargetTab = targetTab || ((currentNavTab === 'today') ? 'inventory' : 'today');
+    const targetPanel = (effectiveTargetTab === 'today') ? viewPanelToday : viewPanelInventory;
+    const currentPanel = (effectiveTargetTab === 'today') ? viewPanelInventory : viewPanelToday;
+
+    // 目前頁面狀態保留到切換頁面完成：目前頁面不滾動置頂，下一頁位移以在視窗呈現置頂狀態
+    if (targetPanel) {
+      if (currentScrollY > 0) {
+        targetPanel.style.transform = `translateY(${currentScrollY}px)`;
+        targetPanel.style.willChange = 'transform';
+      } else {
+        targetPanel.style.transform = '';
+      }
+    }
+    if (currentPanel) {
+      currentPanel.style.transform = '';
+    }
+  }
+
+  function clearIncomingPanelTransform() {
+    if (viewPanelToday) {
+      viewPanelToday.style.transform = '';
+      viewPanelToday.style.willChange = '';
+    }
+    if (viewPanelInventory) {
+      viewPanelInventory.style.transform = '';
+      viewPanelInventory.style.willChange = '';
+    }
+  }
+
   function triggerDockSwitchEffect(activeTab) {
     const navDock = document.querySelector('.floating-island-dock');
     if (!navDock) return;
@@ -3586,18 +3617,23 @@
   }
 
   function switchViewTab(tab, smooth = true) {
+    if (tab === currentNavTab) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const currentScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     currentNavTab = tab;
-    // 切換頁面時使畫面保持在頂部
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    const iosMain = document.querySelector('.ios-main');
-    if (iosMain) iosMain.scrollTop = 0;
     triggerDockSwitchEffect(tab);
 
     // 開始滑動/切換：立即喚醒所有面板確保滑動視覺完整
     setPanelsSwipingState(true);
     clearTimeout(panelSwitchSettleTimer);
+
+    // 目前頁面狀態保留到切換頁面完成：下一頁進入畫面時對齊視窗頂部
+    if (smooth && currentScrollY > 0) {
+      prepareIncomingPanelForSwipe(tab);
+    }
 
     if (viewsSliderViewport) {
       const targetLeft = (tab === 'today') ? 0 : viewsSliderViewport.clientWidth;
@@ -3607,14 +3643,22 @@
       });
     }
 
-    if (smooth) {
-      panelSwitchSettleTimer = setTimeout(() => {
-        setPanelsSwipingState(false);
-        setActivePanel(tab);
-      }, 300);
-    } else {
+    const onComplete = () => {
+      // 切換頁面完成：目前頁面狀態保留結束，下一頁正式置頂
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      const iosMain = document.querySelector('.ios-main');
+      if (iosMain) iosMain.scrollTop = 0;
+      clearIncomingPanelTransform();
       setPanelsSwipingState(false);
       setActivePanel(tab);
+    };
+
+    if (smooth) {
+      panelSwitchSettleTimer = setTimeout(onComplete, 280);
+    } else {
+      onComplete();
     }
 
     if (tab === 'today') {
@@ -4636,15 +4680,48 @@
   // ==========================================
   if (viewsSliderViewport) {
     let scrollSnapTimer = null;
+    let hasPreparedIncomingPanel = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    // 觸控手勢在滑動時：保留目前頁面狀態，並使下一頁在滑入時即呈現置頂狀態
+    viewsSliderViewport.addEventListener('touchstart', function (e) {
+      if (isAnyModalOpen()) return;
+      if (e.touches && e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        hasPreparedIncomingPanel = false;
+      }
+    }, { passive: true });
+
+    viewsSliderViewport.addEventListener('touchmove', function (e) {
+      if (isAnyModalOpen() || hasPreparedIncomingPanel) return;
+      if (e.touches && e.touches.length === 1) {
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        // 當偵測到使用者橫向滑動切換分頁時：保留當前頁面滾動位置，將下一頁對齊頂部
+        if (dx > dy && dx > 4) {
+          hasPreparedIncomingPanel = true;
+          prepareIncomingPanelForSwipe();
+        }
+      }
+    }, { passive: true });
 
     viewsSliderViewport.addEventListener('scroll', function () {
       if (isAnyModalOpen()) return;
       hasSwipedHorizontally = true;
       setPanelsSwipingState(true);
 
+      // 滑動過程中確保下一頁對齊頂部，目前頁面狀態維持不動
+      if (!hasPreparedIncomingPanel) {
+        hasPreparedIncomingPanel = true;
+        prepareIncomingPanelForSwipe();
+      }
+
       clearTimeout(scrollSnapTimer);
       scrollSnapTimer = setTimeout(() => {
         hasSwipedHorizontally = false;
+        hasPreparedIncomingPanel = false;
         const scrollLeft = viewsSliderViewport.scrollLeft;
         const width = viewsSliderViewport.clientWidth || 375;
         const targetTab = (scrollLeft >= width * 0.5) ? 'inventory' : 'today';
@@ -4653,12 +4730,13 @@
 
         if (targetTab !== currentNavTab) {
           currentNavTab = targetTab;
-          // 往左右滑切換頁面時自動至頂至頁面上方
+          // 切換頁面完成：重設畫面為置頂狀態，同時清除過渡位移
           window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
           document.documentElement.scrollTop = 0;
           document.body.scrollTop = 0;
           const iosMain = document.querySelector('.ios-main');
           if (iosMain) iosMain.scrollTop = 0;
+          clearIncomingPanelTransform();
 
           if (targetTab === 'today') {
             dockTabToday.classList.add('active');
@@ -4682,6 +4760,9 @@
           }
           triggerDockSwitchEffect(targetTab);
           renderApp();
+        } else {
+          // 未切換分頁（彈回原分頁）：保留目前頁面狀態，僅清除下一頁位移
+          clearIncomingPanelTransform();
         }
       }, 70);
     }, { passive: true });
@@ -4708,6 +4789,10 @@
         mouseMoved = true;
         hasSwipedHorizontally = true;
         setPanelsSwipingState(true);
+        if (!hasPreparedIncomingPanel) {
+          hasPreparedIncomingPanel = true;
+          prepareIncomingPanelForSwipe();
+        }
         viewsSliderViewport.style.scrollSnapType = 'none';
         viewsSliderViewport.scrollLeft = mouseStartScrollLeft - dx;
       }
@@ -4730,14 +4815,24 @@
         } else {
           targetTab = (scrollLeft >= width * 0.5) ? 'inventory' : 'today';
         }
-        switchViewTab(targetTab, true);
+        if (targetTab !== currentNavTab) {
+          switchViewTab(targetTab, true);
+        } else {
+          clearIncomingPanelTransform();
+          hasSwipedHorizontally = false;
+          hasPreparedIncomingPanel = false;
+          setPanelsSwipingState(false);
+          setActivePanel(currentNavTab);
+        }
 
         setTimeout(() => {
           hasSwipedHorizontally = false;
           mouseMoved = false;
         }, 120);
       } else {
+        clearIncomingPanelTransform();
         hasSwipedHorizontally = false;
+        hasPreparedIncomingPanel = false;
         setPanelsSwipingState(false);
         setActivePanel(currentNavTab);
       }
