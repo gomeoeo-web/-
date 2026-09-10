@@ -21,6 +21,7 @@
   const CUSTOM_ORDER_KEY = 'lifespan_tracker_custom_order_v1';
   const CATEGORY_ORDER_KEY = 'lifespan_tracker_category_order_v1';
   const RECENTLY_DELETED_KEY = 'lifespan_recently_deleted_v1';
+  const ARCHIVE_KEY = 'lifespan_archive_items_v1';
   const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const DEVICE_INITIALIZED_KEY = 'lifespan_device_initialized_v1';
 
@@ -786,6 +787,185 @@
   }
 
   // ==========================================
+  // 已封存物品庫 (Archive Store - 永久保存不刪除)
+  // ==========================================
+  let archivedItems = [];
+
+  function loadArchivedItems() {
+    try {
+      const stored = localStorage.getItem(ARCHIVE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          archivedItems = parsed;
+          updateArchiveBadge();
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load archived items:', e);
+    }
+    archivedItems = [];
+    updateArchiveBadge();
+  }
+
+  function saveArchivedItems(notifyBadge = true) {
+    try {
+      localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedItems));
+    } catch (e) {
+      console.error('Failed to save archived items:', e);
+    }
+    if (notifyBadge) {
+      updateArchiveBadge();
+    }
+  }
+
+  function updateArchiveBadge() {
+    const badge = document.getElementById('archiveBadgeCount');
+    const descText = document.getElementById('settingsArchiveCountText');
+    const count = archivedItems.length;
+
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
+    if (descText) {
+      if (count > 0) {
+        descText.textContent = `已安全封存 ${count} 項物品，不顯示於主頁`;
+      } else {
+        descText.textContent = '永久封存不刪除，隨時可解除封存';
+      }
+    }
+  }
+
+  function archiveItem(id) {
+    const item = items.find(it => it.id === id);
+    if (!item) return;
+    const name = item.name || '物品';
+    if (!window.confirm(`確定要封存「${name}」嗎？\n封存後物品將移出主頁與提醒計數，歷史資料完整保留，可隨時在設定的已封存物品中解除封存。`)) {
+      return;
+    }
+
+    const archiveEntry = {
+      ...item,
+      archivedAt: Date.now()
+    };
+    archivedItems.unshift(archiveEntry);
+    items = items.filter(it => it.id !== id);
+
+    saveItems();
+    saveArchivedItems(true);
+    closeActionSheet();
+    renderApp();
+    showToast(`已將「${name}」移至已封存物品`);
+  }
+
+  function unarchiveItem(id) {
+    const idx = archivedItems.findIndex(it => it.id === id);
+    if (idx === -1) return;
+    const [archiveEntry] = archivedItems.splice(idx, 1);
+    const restoredItem = { ...archiveEntry };
+    delete restoredItem.archivedAt;
+
+    items.unshift(restoredItem);
+    saveItems();
+    saveArchivedItems(true);
+    renderArchiveList();
+    renderApp();
+    showToast(`已將「${restoredItem.name}」解除封存並移回清單`);
+  }
+
+  function restoreAllArchive() {
+    if (archivedItems.length === 0) return;
+    const count = archivedItems.length;
+    if (!window.confirm(`確定要將全部 ${count} 項封存物品解除封存並移回清單嗎？`)) {
+      return;
+    }
+
+    const currentIdSet = new Set(items.map(it => it.id));
+    archivedItems.forEach(r => {
+      const restored = { ...r };
+      delete restored.archivedAt;
+      if (!currentIdSet.has(restored.id)) {
+        items.unshift(restored);
+        currentIdSet.add(restored.id);
+      }
+    });
+
+    archivedItems = [];
+    saveItems();
+    saveArchivedItems(true);
+    renderArchiveList();
+    renderApp();
+    showToast(`已成功解除封存全部 ${count} 項物品！`);
+  }
+
+  function renderArchiveList() {
+    const listEl = document.getElementById('archiveItemsList');
+    const emptyEl = document.getElementById('archiveEmpty');
+    const actionsBar = document.getElementById('archiveActionsBar');
+    if (!listEl) return;
+
+    if (archivedItems.length === 0) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = 'block';
+      if (actionsBar) actionsBar.style.display = 'none';
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (actionsBar) actionsBar.style.display = 'flex';
+
+    const allCats = getAllCategories();
+
+    listEl.innerHTML = archivedItems.map(item => {
+      const catLabel = allCats[item.category]?.label || item.category || '未分類';
+      let mediaHtml = '';
+      if (item.image) {
+        mediaHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+      } else {
+        mediaHtml = escapeHtml(item.emoji || '📦');
+      }
+
+      const archiveDateStr = item.archivedAt ? new Date(item.archivedAt).toLocaleDateString() : '';
+
+      return `
+        <div class="trash-item-card" data-id="${item.id}">
+          <div class="trash-item-left">
+            <div class="trash-item-emoji">${mediaHtml}</div>
+            <div class="trash-item-info">
+              <span class="trash-item-title">${escapeHtml(item.name)}</span>
+              <div class="trash-item-meta">
+                <span>${escapeHtml(catLabel)}</span>
+                ${archiveDateStr ? `<span>• 封存於 ${archiveDateStr}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="trash-item-actions">
+            <button type="button" class="btn-unarchive" data-action="unarchive" data-id="${item.id}" title="解除封存並移回清單">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+              <span>解除封存</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openArchiveModal() {
+    renderArchiveList();
+    const modal = document.getElementById('archiveModal');
+    if (modal) modal.style.display = 'flex';
+    lockBodyScroll();
+  }
+
+  function closeArchiveModal() {
+    const modal = document.getElementById('archiveModal');
+    if (modal) modal.style.display = 'none';
+    unlockBodyScroll();
+  }
+
+  // ==========================================
   // 3. 生命週期指標計算 (支援無到期日項目)
   // ==========================================
   function calculateMetrics(item) {
@@ -921,6 +1101,7 @@
     let total = items.length;
     let urgent = 0;
     let expired = 0;
+    let dueToday = 0;
 
     items.forEach(item => {
       const m = calculateMetrics(item);
@@ -929,9 +1110,14 @@
           expired++;
         } else if (m.status === 'urgent') {
           urgent++;
+          if (m.remainingDays === 0) {
+            dueToday++;
+          }
         }
       }
     });
+
+    const upcoming = urgent - dueToday;
 
     pillCountAll.textContent = total;
     pillCountUrgent.textContent = urgent;
@@ -960,15 +1146,38 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         `;
         if (noticeStatusTag) noticeStatusTag.className = 'notice-status-tag warning';
-        if (noticeStatusText) noticeStatusText.textContent = '即將到期';
+        if (noticeStatusText) {
+          noticeStatusText.textContent = '即將到期';
+          if (dueToday > 0 && upcoming === 0) noticeStatusText.textContent = '今天到期';
+        }
       }
 
-      if (expired > 0 && urgent > 0) {
-        noticeTitle.textContent = `有 ${expired} 項已過期、${urgent} 項即將到期`;
-      } else if (expired > 0) {
-        noticeTitle.textContent = `有 ${expired} 項已過期`;
+      if (dueToday > 0) {
+        const segments = [];
+        const htmlSegments = [];
+        if (expired > 0) {
+          segments.push(`${expired} 項已過期`);
+          htmlSegments.push(`<span class="notice-num expired">${expired}</span> 項已過期`);
+        }
+        segments.push(`${dueToday} 項今天到期`);
+        htmlSegments.push(`<span class="notice-num due-today">${dueToday}</span> 項今天到期`);
+        if (upcoming > 0) {
+          segments.push(`${upcoming} 項即將到期`);
+          htmlSegments.push(`<span class="notice-num urgent">${upcoming}</span> 項即將到期`);
+        }
+        noticeTitle.textContent = `有 ${segments.join('、')}`;
+        noticeTitle.innerHTML = `有 ${htmlSegments.join('、')}`;
       } else {
-        noticeTitle.textContent = `有 ${urgent} 項即將到期`;
+        if (expired > 0 && urgent > 0) {
+          noticeTitle.textContent = `有 ${expired} 項已過期、${urgent} 項即將到期`;
+          noticeTitle.innerHTML = `有 <span class="notice-num expired">${expired}</span> 項已過期、<span class="notice-num urgent">${urgent}</span> 項即將到期`;
+        } else if (expired > 0) {
+          noticeTitle.textContent = `有 ${expired} 項已過期`;
+          noticeTitle.innerHTML = `有 <span class="notice-num expired">${expired}</span> 項已過期`;
+        } else {
+          noticeTitle.textContent = `有 ${urgent} 項即將到期`;
+          noticeTitle.innerHTML = `有 <span class="notice-num urgent">${urgent}</span> 項即將到期`;
+        }
       }
     } else {
       noticeIconWrapper.className = 'notice-icon-wrapper';
@@ -1388,6 +1597,7 @@
   const btnSheetReset = document.getElementById('btnSheetReset');
   const btnSheetResetText = document.getElementById('btnSheetResetText');
   const btnSheetEdit = document.getElementById('btnSheetEdit');
+  const btnSheetArchive = document.getElementById('btnSheetArchive');
   const btnSheetDelete = document.getElementById('btnSheetDelete');
   const btnCloseSheet = document.getElementById('btnCloseSheet');
 
@@ -1599,6 +1809,13 @@
     closeActionSheet();
     openEditModal(id);
   });
+
+  if (btnSheetArchive) {
+    btnSheetArchive.addEventListener('click', function () {
+      if (!activeSheetItemId) return;
+      archiveItem(activeSheetItemId);
+    });
+  }
 
   // 刪除物品彈出式選單確認 (Modal 8: Delete Confirm Popup Modal)
   const deleteConfirmModal = document.getElementById('deleteConfirmModal');
@@ -2813,8 +3030,51 @@
     }
   });
 
+  // 已封存物品彈窗監聽
+  const btnOpenArchive = document.getElementById('btnOpenArchive');
+  const btnCloseArchiveModal = document.getElementById('btnCloseArchiveModal');
+  const archiveModal = document.getElementById('archiveModal');
+  const btnRestoreAllArchive = document.getElementById('btnRestoreAllArchive');
+  const archiveItemsList = document.getElementById('archiveItemsList');
+
+  if (btnOpenArchive) {
+    btnOpenArchive.addEventListener('click', function () {
+      openArchiveModal();
+    });
+  }
+
+  if (btnCloseArchiveModal) {
+    btnCloseArchiveModal.addEventListener('click', closeArchiveModal);
+  }
+
+  if (archiveModal) {
+    archiveModal.addEventListener('click', function (e) {
+      if (e.target === archiveModal) closeArchiveModal();
+    });
+  }
+
+  if (btnRestoreAllArchive) {
+    btnRestoreAllArchive.addEventListener('click', restoreAllArchive);
+  }
+
+  if (archiveItemsList) {
+    archiveItemsList.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-action="unarchive"]');
+      if (btn) {
+        const id = btn.getAttribute('data-id');
+        if (id) unarchiveItem(id);
+      }
+    });
+  }
+
   btnExportJson.addEventListener('click', function () {
-    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    const backupData = {
+      version: 'v10',
+      exportedAt: Date.now(),
+      items: items,
+      archivedItems: archivedItems
+    };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -2837,13 +3097,24 @@
           renderApp();
           closeSettingsModal();
           showToast(`已成功匯入 ${data.length} 件物品！`);
+        } else if (data && Array.isArray(data.items)) {
+          items = data.items;
+          if (Array.isArray(data.archivedItems)) {
+            archivedItems = data.archivedItems;
+            saveArchivedItems(true);
+          }
+          saveItems();
+          renderApp();
+          closeSettingsModal();
+          showToast(`已成功匯入 ${data.items.length} 件物品！`);
         }
       } catch (err) {
-        showToast('JSON 格式錯誤');
+        console.error(err);
+        showToast('匯入失敗：檔案格式不正確');
       }
-      importJsonFile.value = '';
     };
     reader.readAsText(file);
+    e.target.value = '';
   });
 
   btnRestoreDemoData.addEventListener('click', function () {
@@ -4274,7 +4545,9 @@
   setTheme(savedTheme, false);
   loadItems();
   loadRecentlyDeleted();
+  loadArchivedItems();
   updateTrashBadge();
+  updateArchiveBadge();
   loadCustomCategories();
   currentCategoryChip = getFirstPageCategory();
 

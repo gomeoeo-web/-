@@ -51,23 +51,29 @@
           <div class="view-panel active-panel" id="viewPanelToday">
             <!-- Status Notice Card (提醒欄：顯示週期、即將到期與已過期通知，不可點擊) -->
             <section class="status-notice-card" id="statusNoticeCard">
-              <div class="notice-icon-wrapper" id="noticeIconWrapper">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <div class="notice-text-group">
-                <h3 class="notice-title" id="noticeTitle">今天都在週期內</h3>
-                <p class="notice-desc" id="noticeDesc">目前沒有將到期或已過期的物品</p>
-              </div>
-              <div class="notice-actions-wrap" id="noticeActionsWrap">
-                <div class="notice-status-tag" id="noticeStatusTag">
-                  <span class="notice-status-text" id="noticeStatusText">正常</span>
+              <div class="notice-top-row notice-left-group" id="noticeTopRow">
+                <div class="notice-icon-wrapper" id="noticeIconWrapper">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
                 </div>
-                <button type="button" class="btn-clean-expired" id="btnCleanExpired" style="display:none;" title="一鍵刪除已過期項目並移至最近刪除">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  <span>一鍵刪除</span>
+                <div class="notice-text-group">
+                  <h3 class="notice-title" id="noticeTitle">今天都在週期內</h3>
+                  <p class="notice-desc" id="noticeDesc">目前沒有將到期或已過期的物品</p>
+                </div>
+              </div>
+              <div class="notice-right-actions" id="noticeRightActions">
+                <button type="button" class="btn-clean-expired" id="btnCleanExpired" style="display:none;" title="刪除過期項目並移至最近刪除" aria-label="刪除過期">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
                 </button>
+              </div>
+              <div class="notice-status-tag" id="noticeStatusTag" style="display:none;">
+                <span class="notice-status-text" id="noticeStatusText">正常</span>
               </div>
             </section>
 
@@ -491,7 +497,13 @@
             <span id="btnSheetResetText">換新耗材 / 重設時間</span>
           </button>
 
-          <!-- 3. Delete Action -->
+          <!-- 3. Archive Action (封存不刪除) -->
+          <button type="button" class="btn-sheet-action" id="btnSheetArchive">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+            <span>封存此物品</span>
+          </button>
+
+          <!-- 4. Delete Action -->
           <button type="button" class="btn-sheet-action danger" id="btnSheetDelete">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             <span>刪除此物品</span>
@@ -548,8 +560,18 @@
           </div>
         </div>
 
-        <!-- Group 2: Recently Deleted Trash -->
+        <!-- Group 2: Archive & Recently Deleted Trash -->
         <div class="settings-group">
+          <button type="button" class="settings-row-btn" id="btnOpenArchive">
+            <div class="settings-icon">📦</div>
+            <div class="settings-info">
+              <span class="settings-title">已封存物品</span>
+              <span class="settings-desc" id="settingsArchiveCountText">永久封存不刪除，隨時可解除封存</span>
+            </div>
+            <span class="trash-badge-count" id="archiveBadgeCount" style="display:none;">0</span>
+            <span class="settings-chevron">›</span>
+          </button>
+
           <button type="button" class="settings-row-btn" id="btnOpenRecentlyDeleted">
             <div class="settings-icon">🗑️</div>
             <div class="settings-info">
@@ -906,6 +928,47 @@
       <div class="delete-alert-actions">
         <button type="button" id="btnConfirmDeleteItem" class="btn-delete-confirm-destructive">移至最近刪除</button>
         <button type="button" id="btnCancelDeleteItem" class="btn-delete-confirm-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 10: Archive Modal (已封存物品庫) -->
+  <div id="archiveModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-trash">
+      <div class="ios-modal-header">
+        <div class="trash-header-titles">
+          <h2>📦 已封存物品</h2>
+          <span class="trash-subtitle">永久封存不刪除，隨時可解除封存</span>
+        </div>
+        <button id="btnCloseArchiveModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll">
+        <!-- Tip Box -->
+        <div class="trash-notice-banner">
+          <span>📌 封存的物品不會出現在主頁及提醒欄，歷史記錄與資料完整保留，可隨時復原回清單。</span>
+        </div>
+
+        <!-- Top Action Bar (Restore All Archive) -->
+        <div class="trash-actions-bar" id="archiveActionsBar" style="display:none;">
+          <button type="button" class="btn-trash-action" id="btnRestoreAllArchive" title="將所有封存物品復原回主頁清單">
+            <span>全部解除封存</span>
+          </button>
+        </div>
+
+        <!-- Archive Items List -->
+        <div class="trash-items-list" id="archiveItemsList">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="ios-empty-view" id="archiveEmpty" style="display:none;">
+          <div class="empty-icon-circle">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+          </div>
+          <h3>沒有已封存的物品</h3>
+          <p>您可以在物品操作選單中選擇封存物品</p>
+        </div>
       </div>
     </div>
   </div>

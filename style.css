@@ -240,150 +240,159 @@ html, body {
 .status-notice-card {
   background: var(--ios-surface);
   border-radius: var(--radius-card);
-  padding: 12px 16px;
+  padding: 12px 15px;
+  min-height: 52px;
   width: 100%;
   box-sizing: border-box;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 12px;
-  margin-bottom: 1.35rem;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.05rem;
   border: 1px solid var(--ios-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: background var(--transition-ios), box-shadow var(--transition-ios), border-color var(--transition-ios);
   cursor: default;
   user-select: none;
 }
 
-.notice-icon-wrapper {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #18261e;
-  color: var(--ios-green);
+.notice-top-row,
+.notice-left-group {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.notice-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: rgba(52, 199, 89, 0.14);
+  color: var(--ios-green);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all var(--transition-ios);
+}
+
+.notice-icon-wrapper svg {
+  width: 17px;
+  height: 17px;
 }
 
 .notice-icon-wrapper.warning {
-  background: #2a2012;
+  background: rgba(255, 159, 10, 0.16);
   color: var(--ios-orange);
 }
 
 .notice-icon-wrapper.expired {
-  background: #2c1616;
+  background: rgba(255, 69, 58, 0.16);
   color: var(--ios-red);
 }
 
 .notice-text-group {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  min-width: 0;
   flex: 1 1 auto;
-  min-width: 140px;
 }
 
 .notice-title {
-  font-size: 0.98rem;
+  font-size: 1.05rem;
   font-weight: 700;
+  letter-spacing: -0.015em;
   color: var(--ios-text-primary);
-  line-height: 1.35;
+  line-height: 1.52;
+  margin: 0;
+  padding: 0;
   white-space: normal;
-  word-break: keep-all;
+  word-break: normal;
   overflow-wrap: break-word;
+}
+
+/* 通知欄數字字體加大突出 */
+.notice-num {
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-block;
+  margin: 0 3px;
+  vertical-align: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.notice-num.expired {
+  color: var(--ios-red, #ff453a);
+  text-shadow: 0 1px 6px rgba(255, 69, 58, 0.25);
+}
+
+.notice-num.due-today {
+  color: #ff6b22;
+  text-shadow: 0 1px 6px rgba(255, 107, 34, 0.25);
+}
+
+.notice-num.urgent {
+  color: var(--ios-orange, #ff9f0a);
+  text-shadow: 0 1px 6px rgba(255, 159, 10, 0.25);
 }
 
 .notice-desc {
   display: none !important;
 }
 
+/* 刪除右方的已過期、即將過期框框 */
+.notice-status-tag,
 .notice-actions-wrap {
+  display: none !important;
+}
+
+/* 刪除過期按鈕：取消文字只保留圖示，置右且垂直置中 */
+.notice-right-actions,
+.notice-bottom-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  justify-content: flex-end;
   flex-shrink: 0;
   margin-left: auto;
-}
-
-.notice-status-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.72rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  letter-spacing: 0.02em;
-  background: rgba(48, 209, 88, 0.12);
-  color: var(--ios-green);
-  border: 1px solid rgba(48, 209, 88, 0.25);
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-.notice-status-tag.warning {
-  background: rgba(255, 159, 10, 0.12);
-  color: var(--ios-orange);
-  border-color: rgba(255, 159, 10, 0.25);
-}
-
-.notice-status-tag.expired {
-  background: rgba(255, 69, 58, 0.14);
-  color: var(--ios-red);
-  border-color: rgba(255, 69, 58, 0.3);
 }
 
 .btn-clean-expired {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  background: rgba(255, 69, 58, 0.18);
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: rgba(255, 69, 58, 0.12);
   color: #ff453a;
-  border: 1px solid rgba(255, 69, 58, 0.35);
-  padding: 0.35rem 0.72rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
-  font-weight: 700;
+  border: 1px solid rgba(255, 69, 58, 0.28);
+  padding: 0;
   cursor: pointer;
   transition: all var(--transition-ios);
   font-family: inherit;
-  white-space: nowrap;
   flex-shrink: 0;
 }
 .btn-clean-expired:hover {
   background: #ff453a;
   color: #ffffff;
-  transform: scale(1.03);
+  border-color: #ff453a;
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.3);
 }
 .btn-clean-expired:active {
-  transform: scale(0.96);
+  transform: scale(0.92);
 }
 
-@media (max-width: 420px) {
+@media (max-width: 350px) {
   .status-notice-card {
-    padding: 12px 14px;
-    gap: 8px 10px;
-  }
-  .notice-icon-wrapper {
-    width: 36px;
-    height: 36px;
-  }
-  .notice-title {
-    font-size: 0.92rem;
-    line-height: 1.35;
-  }
-  .notice-actions-wrap {
-    width: 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-    padding-top: 2px;
-  }
-  .notice-status-tag,
-  .btn-clean-expired {
-    padding: 0.3rem 0.65rem;
-    font-size: 0.78rem;
+    padding: 8px 12px;
   }
 }
 
@@ -4048,6 +4057,31 @@ body.modal-open .view-panel {
 [data-theme="amoled"] .trash-item-card {
   background: #181820;
   border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* 9. Archive Action Styles */
+.btn-unarchive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(52, 199, 89, 0.14);
+  color: var(--ios-green);
+  border: 1px solid rgba(52, 199, 89, 0.28);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-ios);
+  font-family: inherit;
+}
+.btn-unarchive:hover {
+  background: var(--ios-green);
+  color: #ffffff;
+  transform: scale(1.04);
+}
+.btn-unarchive:active {
+  transform: scale(0.96);
 }
 
 
