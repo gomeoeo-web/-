@@ -1,0 +1,73 @@
+import re
+import sys
+
+def verify_v15():
+    with open('index.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+
+    with open('app.js', 'r', encoding='utf-8') as f:
+        js = f.read()
+
+    with open('style.css', 'r', encoding='utf-8') as f:
+        css = f.read()
+
+    errors = []
+
+    # 1. Push notification sliding switch in settings
+    if 'id="toggleNotificationSwitch"' not in html:
+        errors.append("toggleNotificationSwitch missing in index.html")
+    if 'id="settingsNotifyStatusText"' not in html:
+        errors.append("settingsNotifyStatusText missing in index.html")
+    if 'toggleNotificationSwitch.addEventListener' not in js:
+        errors.append("toggleNotificationSwitch event listener missing in app.js")
+
+    # 2. History block rename & collapsible
+    if 'id="btnToggleHistoryCollapse"' not in html:
+        errors.append("btnToggleHistoryCollapse missing in index.html")
+    if 'id="historyBlockTitle"' not in html or '歷史重設紀錄' not in html:
+        errors.append("historyBlockTitle with '歷史重設紀錄' missing in index.html")
+    if 'id="historyCountBadge"' not in html:
+        errors.append("historyCountBadge missing in index.html")
+    if 'id="historyToggleChevron"' not in html:
+        errors.append("historyToggleChevron missing in index.html")
+    if '.history-header-toggle' not in css:
+        errors.append(".history-header-toggle class missing in style.css")
+    if 'btnToggleHistoryCollapse.addEventListener' not in js:
+        errors.append("btnToggleHistoryCollapse listener missing in app.js")
+
+    # 3. Screen border protection across all screen fits
+    if '--app-max-width: calc(100vw - 2.4rem)' not in css:
+        errors.append("Full screen-fit edge margin protection missing in style.css")
+    if 'max-width: min(var(--app-max-width, 440px), calc(100vw - 1.6rem))' not in css:
+        errors.append("ios-app-container edge margin protection missing in style.css")
+    for fit, w in [('standard', '390px'), ('plus', '440px'), ('tablet', '680px'), ('full', '600px')]:
+        expected = f'[data-screen-fit="{fit}"] .ios-modal-card,\n[data-screen-fit="{fit}"] .ios-action-sheet'
+        if expected not in css:
+            errors.append(f"Safe edge bounds missing for screen fit {fit} in style.css")
+
+    # 4. Version 1.5 check
+    if '<span class="app-version-badge" id="appVersionBadge">v1.5</span>' not in html:
+        errors.append("Version badge v1.5 missing in index.html")
+    if "const APP_VERSION = '1.5';" not in js:
+        errors.append("APP_VERSION 1.5 missing in app.js")
+
+    # 5. Chinese parentheses check
+    clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)
+    clean_html = re.sub(r'<script[\s\S]*?</script>', '', clean_html)
+    clean_html = re.sub(r'<style[\s\S]*?</style>', '', clean_html)
+    for idx, line in enumerate(clean_html.splitlines(), 1):
+        text_outside_tags = re.sub(r'<[^>]+>', '', line).strip()
+        if re.search(r'[（）]', text_outside_tags):
+            errors.append(f"Chinese parentheses found in index.html line {idx}: {text_outside_tags}")
+
+    if errors:
+        print("FAIL:")
+        for err in errors:
+            print("  - " + err)
+        sys.exit(1)
+    else:
+        print("SUCCESS: v1.5 features (notification switch, collapsible history, edge protection, v1.5 version) all verified!")
+        sys.exit(0)
+
+if __name__ == '__main__':
+    verify_v15()

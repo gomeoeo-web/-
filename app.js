@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.3';
+  const APP_VERSION = '1.5';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -1332,7 +1332,7 @@
     });
   }
 
-  function createCardElement(item) {
+  function createCardElement(item, isInventory = false) {
     const m = calculateMetrics(item);
     const card = document.createElement('div');
     card.className = 'ios-item-card';
@@ -1409,7 +1409,24 @@
       <div class="card-progress-bar">
         <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle}"></div>
       </div>
+
+      ${isInventory ? `
+        <div class="card-group-actions-row">
+          <button type="button" class="btn-card-remove-from-group" data-id="${item.id}" title="自此群組中移除">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>移除此群組</span>
+          </button>
+        </div>
+      ` : ''}
     `;
+
+    const btnRemoveFromGroup = card.querySelector('.btn-card-remove-from-group');
+    if (btnRemoveFromGroup) {
+      btnRemoveFromGroup.addEventListener('click', function (e) {
+        e.stopPropagation();
+        removeItemFromCurrentCategory(item.id);
+      });
+    }
 
     let cardTouchStartX = 0;
     let cardTouchStartY = 0;
@@ -1552,7 +1569,7 @@
         if (emptyStateInventory) emptyStateInventory.style.display = 'none';
         if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'none';
         invList.forEach(item => {
-          inventoryItemsGrid.appendChild(createCardElement(item));
+          inventoryItemsGrid.appendChild(createCardElement(item, true));
         });
       }
     }
@@ -1595,6 +1612,9 @@
   const sheetDetailsList = document.getElementById('sheetDetailsList');
   const sheetHistoryBlock = document.getElementById('sheetHistoryBlock');
   const sheetHistoryList = document.getElementById('sheetHistoryList');
+  const btnToggleHistoryCollapse = document.getElementById('btnToggleHistoryCollapse');
+  const historyCountBadge = document.getElementById('historyCountBadge');
+  const historyToggleChevron = document.getElementById('historyToggleChevron');
   const btnSheetReset = document.getElementById('btnSheetReset');
   const btnSheetResetText = document.getElementById('btnSheetResetText');
   const btnSheetEdit = document.getElementById('btnSheetEdit');
@@ -1734,9 +1754,20 @@
       ` : ''}
     `;
 
-    // 歷程紀錄
+    // 歷程紀錄 (歷史重設紀錄，支援展開收合)
     if (item.history && item.history.length > 0) {
       sheetHistoryBlock.style.display = 'block';
+      if (historyCountBadge) {
+        historyCountBadge.textContent = `${item.history.length} 次`;
+      }
+      // 預設收合狀態，點擊標頭展開
+      if (sheetHistoryList) {
+        sheetHistoryList.style.display = 'none';
+      }
+      if (btnToggleHistoryCollapse) {
+        btnToggleHistoryCollapse.classList.remove('expanded');
+        btnToggleHistoryCollapse.setAttribute('aria-expanded', 'false');
+      }
       sheetHistoryList.innerHTML = item.history.slice().reverse().map((h, i) => `
         <div>• 第 ${item.history.length - i} 次換新：${h.resetDate} • 使用 ${h.daysUsed} 天 - ${escapeHtml(h.note || '已更換')}</div>
       `).join('');
@@ -1745,8 +1776,36 @@
     }
 
     updateSheetResetButtonText();
+
+    const btnSheetRemoveGroup = document.getElementById('btnSheetRemoveGroup');
+    if (btnSheetRemoveGroup) {
+      if (currentNavTab === 'inventory') {
+        btnSheetRemoveGroup.style.display = 'flex';
+        btnSheetRemoveGroup.onclick = function () {
+          closeActionSheet();
+          removeItemFromCurrentCategory(item.id);
+        };
+      } else {
+        btnSheetRemoveGroup.style.display = 'none';
+      }
+    }
+
     actionSheet.style.display = 'flex';
     lockBodyScroll();
+  }
+
+  function removeItemFromCurrentCategory(itemId) {
+    const it = items.find(x => x.id === itemId);
+    if (!it) return;
+    const oldCat = it.category;
+    it.category = 'other';
+    saveItems();
+    renderCards();
+    renderCategoryChips();
+    updateCategoryActionBar();
+    const allCats = getAllCategories();
+    const catLabel = (allCats[oldCat] && allCats[oldCat].label) || '群組';
+    showToast(`已將「${it.name}」移出「${catLabel}」`);
   }
 
   function closeActionSheet() {
@@ -1876,6 +1935,21 @@
     if (e.target === actionSheet) closeActionSheet();
   });
 
+  if (btnToggleHistoryCollapse && sheetHistoryList) {
+    btnToggleHistoryCollapse.addEventListener('click', function () {
+      const isHidden = sheetHistoryList.style.display === 'none';
+      if (isHidden) {
+        sheetHistoryList.style.display = 'flex';
+        btnToggleHistoryCollapse.classList.add('expanded');
+        btnToggleHistoryCollapse.setAttribute('aria-expanded', 'true');
+      } else {
+        sheetHistoryList.style.display = 'none';
+        btnToggleHistoryCollapse.classList.remove('expanded');
+        btnToggleHistoryCollapse.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
   // ==========================================
   // 6. 新增與編輯物品 Modal (含智慧配圖、相片上傳、無到期日切換)
   // ==========================================
@@ -1894,6 +1968,9 @@
   const fieldDurationWrap = document.getElementById('fieldDurationWrap');
   const itemWarnDaysSelect = document.getElementById('itemWarnDaysSelect');
   const fieldReminderWrap = document.getElementById('fieldReminderWrap');
+  const itemReminderToggle = document.getElementById('itemReminderToggle');
+  const reminderDetailWrap = document.getElementById('reminderDetailWrap');
+  const reminderSwitchStatus = document.getElementById('reminderSwitchStatus');
   const presetReminderTimeWrap = document.getElementById('presetReminderTimeWrap');
   const itemPresetReminderTime = document.getElementById('itemPresetReminderTime');
   const customReminderDateTimeWrap = document.getElementById('customReminderDateTimeWrap');
@@ -2563,17 +2640,52 @@
     { value: '-1', label: '不提醒' }
   ];
 
+  function updateReminderToggleState(enabled) {
+    if (itemReminderToggle) itemReminderToggle.checked = enabled;
+    if (reminderDetailWrap) {
+      if (enabled) {
+        reminderDetailWrap.classList.remove('disabled');
+        reminderDetailWrap.style.display = 'flex';
+      } else {
+        reminderDetailWrap.classList.add('disabled');
+        reminderDetailWrap.style.display = 'none';
+      }
+    }
+    if (reminderSwitchStatus) {
+      reminderSwitchStatus.textContent = enabled ? '已開啟提醒' : '已關閉提醒';
+    }
+  }
+
+  if (itemReminderToggle) {
+    itemReminderToggle.addEventListener('change', function () {
+      updateReminderToggleState(this.checked);
+      if (this.checked) {
+        if (itemWarnDaysSelect && itemWarnDaysSelect.value === '-1') {
+          itemWarnDaysSelect.value = '7';
+        }
+        updateReminderSectionVisibility(itemWarnDaysSelect ? itemWarnDaysSelect.value : '7');
+      } else {
+        updateReminderSectionVisibility('-1');
+      }
+    });
+  }
+
   function updateReminderSectionVisibility(val) {
     if (currentModalMode === 'elapsed') {
       if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
       if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
       return;
     }
+    const isToggleOn = itemReminderToggle ? itemReminderToggle.checked : true;
+    if (!isToggleOn || val === '-1') {
+      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
+      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+      updateReminderToggleState(false);
+      return;
+    }
+    updateReminderToggleState(true);
     if (val === 'custom') {
       if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'flex';
-      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
-    } else if (val === '-1') {
-      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
       if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
     } else {
       if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
@@ -2649,6 +2761,7 @@
     if (itemPresetReminderTime) itemPresetReminderTime.value = '09:00';
     if (itemReminderCustomDate) itemReminderCustomDate.value = '';
     if (itemReminderCustomTime) itemReminderCustomTime.value = '09:00';
+    updateReminderToggleState(true);
     populateReminderOptions('7');
 
     itemEmojiInput.value = '🪑';
@@ -2687,11 +2800,14 @@
     if (item.reminderType === 'custom' || item.reminderDate) {
       if (itemReminderCustomDate) itemReminderCustomDate.value = item.reminderDate || '';
       if (itemReminderCustomTime) itemReminderCustomTime.value = item.reminderTime || '09:00';
+      updateReminderToggleState(true);
       populateReminderOptions('custom');
-    } else if (item.reminderType === 'none' || item.warnDays === -1) {
+    } else if (item.reminderType === 'none' || item.warnDays === -1 || item.warnDays === '-1') {
+      updateReminderToggleState(false);
       populateReminderOptions('-1');
     } else {
       if (itemPresetReminderTime) itemPresetReminderTime.value = item.reminderTime || '09:00';
+      updateReminderToggleState(true);
       populateReminderOptions(item.warnDays !== undefined ? item.warnDays : 7);
     }
 
@@ -2813,7 +2929,8 @@
         endDate = getOffsetDateString(startDate, durationDays);
       }
 
-      const reminderVal = itemWarnDaysSelect ? itemWarnDaysSelect.value : '7';
+      const isReminderActive = itemReminderToggle ? itemReminderToggle.checked : true;
+      const reminderVal = isReminderActive ? (itemWarnDaysSelect ? itemWarnDaysSelect.value : '7') : '-1';
       if (reminderVal === 'custom') {
         reminderType = 'custom';
         reminderDate = (itemReminderCustomDate && itemReminderCustomDate.value) ? itemReminderCustomDate.value : getOffsetDateString(endDate, -1);
@@ -2903,6 +3020,9 @@
   const btnToggleThemeSetting = document.getElementById('btnToggleThemeSetting');
   const settingsThemeText = document.getElementById('settingsThemeText');
   const btnToggleNotification = document.getElementById('btnToggleNotification');
+  const toggleNotificationSwitch = document.getElementById('toggleNotificationSwitch');
+  const settingsNotifyStatusText = document.getElementById('settingsNotifyStatusText');
+  const PUSH_NOTIFICATION_KEY = 'lifespan_push_notification_enabled';
   const btnExportJson = document.getElementById('btnExportJson');
   const importJsonFile = document.getElementById('importJsonFile');
   const btnRestoreDemoData = document.getElementById('btnRestoreDemoData');
@@ -2932,6 +3052,20 @@
       if (currentTheme === 'amoled') settingsThemeText.textContent = '目前為 OLED純黑 模式';
       else if (currentTheme === 'light') settingsThemeText.textContent = '目前為明亮淺色模式';
       else settingsThemeText.textContent = '目前為深色灰黑模式';
+    }
+    if (toggleNotificationSwitch) {
+      const hasPerm = ('Notification' in window) && Notification.permission === 'granted';
+      const isUserEnabled = localStorage.getItem(PUSH_NOTIFICATION_KEY) === 'true';
+      toggleNotificationSwitch.checked = hasPerm && isUserEnabled;
+      if (settingsNotifyStatusText) {
+        if (toggleNotificationSwitch.checked) {
+          settingsNotifyStatusText.textContent = '已開啟通知提醒';
+        } else if ('Notification' in window && Notification.permission === 'denied') {
+          settingsNotifyStatusText.textContent = '權限已被封鎖，請於系統或瀏覽器開啟';
+        } else {
+          settingsNotifyStatusText.textContent = '即將到期時接收提醒';
+        }
+      }
     }
     updateTrashBadge();
     settingsModal.style.display = 'flex';
@@ -3012,19 +3146,54 @@
     });
   }
 
-  btnToggleNotification.addEventListener('click', async function () {
-    if (!('Notification' in window)) {
-      showToast('瀏覽器不支援通知');
-      return;
-    }
-    const perm = await Notification.requestPermission();
-    if (perm === 'granted') {
-      showToast('已開啟通知提醒！');
-      btnToggleNotification.textContent = '已啟用';
-    } else {
-      showToast('未開啟通知權限');
-    }
-  });
+  if (toggleNotificationSwitch) {
+    toggleNotificationSwitch.addEventListener('change', async function () {
+      if (this.checked) {
+        if (!('Notification' in window)) {
+          showToast('瀏覽器不支援通知');
+          this.checked = false;
+          return;
+        }
+        try {
+          const perm = await Notification.requestPermission();
+          if (perm === 'granted') {
+            localStorage.setItem(PUSH_NOTIFICATION_KEY, 'true');
+            this.checked = true;
+            if (settingsNotifyStatusText) settingsNotifyStatusText.textContent = '已開啟通知提醒';
+            showToast('已開啟通知提醒！');
+          } else {
+            localStorage.setItem(PUSH_NOTIFICATION_KEY, 'false');
+            this.checked = false;
+            if (settingsNotifyStatusText) settingsNotifyStatusText.textContent = '未取得通知權限';
+            showToast('未開啟通知權限');
+          }
+        } catch (e) {
+          this.checked = false;
+          showToast('開啟通知失敗');
+        }
+      } else {
+        localStorage.setItem(PUSH_NOTIFICATION_KEY, 'false');
+        if (settingsNotifyStatusText) settingsNotifyStatusText.textContent = '即將到期時接收提醒';
+        showToast('已關閉通知提醒');
+      }
+    });
+  }
+
+  if (btnToggleNotification) {
+    btnToggleNotification.addEventListener('click', async function () {
+      if (!('Notification' in window)) {
+        showToast('瀏覽器不支援通知');
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        showToast('已開啟通知提醒！');
+        btnToggleNotification.textContent = '已啟用';
+      } else {
+        showToast('未開啟通知權限');
+      }
+    });
+  }
 
   // 已封存物品彈窗監聽
   const btnOpenArchive = document.getElementById('btnOpenArchive');

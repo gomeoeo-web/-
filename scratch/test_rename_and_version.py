@@ -17,12 +17,12 @@ def verify():
     if '<title>期效管家</title>' not in html:
         errors.append("HTML title is not <title>期效管家</title>")
 
-    # Version check (1.3)
-    if '<span class="app-version-badge" id="appVersionBadge">v1.3</span>' not in html:
-        errors.append("HTML appVersionBadge is not v1.3")
+    # Version check (1.5)
+    if '<span class="app-version-badge" id="appVersionBadge">v1.5</span>' not in html:
+        errors.append("HTML appVersionBadge is not v1.5")
 
-    if "const APP_VERSION = '1.3';" not in js:
-        errors.append("app.js APP_VERSION is not '1.3'")
+    if "const APP_VERSION = '1.5';" not in js:
+        errors.append("app.js APP_VERSION is not '1.5'")
 
     # Date custom grid check
     if 'flex-direction: column' not in css or '.date-custom-grid' not in css:

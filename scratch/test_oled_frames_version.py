@@ -13,14 +13,14 @@ def test_requirements():
 
     errors = []
 
-    # 1. Top-Left Version Badge (1.3, incrementing by 0.1 per change)
+    # 1. Top-Left Version Badge (1.5, incrementing by 0.1 per change)
     if 'id="appVersionBadge"' not in html:
         errors.append("appVersionBadge missing from index.html")
-    if '1.3' not in html:
-        errors.append("Version 1.3 missing from index.html")
+    if '1.5' not in html:
+        errors.append("Version 1.5 missing from index.html")
     if '.app-version-badge' not in css:
         errors.append(".app-version-badge style missing from style.css")
-    if "APP_VERSION = '1.3'" not in js:
+    if "APP_VERSION = '1.5'" not in js:
         errors.append("APP_VERSION constant missing from app.js")
 
     # 1.1 App Name: 期效管家
@@ -34,6 +34,20 @@ def test_requirements():
         errors.append("btnSheetResetText with '重設週期' missing in index.html")
     if "btnSheetResetText.textContent = '重設週期'" not in js:
         errors.append("btnSheetResetText textContent '重設週期' missing in app.js")
+
+    # 1.3 移除此群組按鈕 check
+    if 'id="btnSheetRemoveGroup"' not in html:
+        errors.append("btnSheetRemoveGroup missing from index.html")
+    if 'btn-card-remove-from-group' not in js:
+        errors.append("btn-card-remove-from-group missing from app.js")
+
+    # 1.4 提醒滑動開關 check
+    if 'id="itemReminderToggle"' not in html:
+        errors.append("itemReminderToggle missing from index.html")
+    if '.ios-switch' not in css:
+        errors.append(".ios-switch missing from style.css")
+    if 'itemReminderToggle' not in js:
+        errors.append("itemReminderToggle handling missing in app.js")
 
     # 2. OLED Pure Black Mode Urgent & Expired Colors
     oled_urgent_badge = '[data-theme="amoled"] .filter-btn-badge.urgent'

@@ -20,7 +20,7 @@
     <!-- Top Header -->
     <header class="ios-header">
       <div class="header-brand-placeholder">
-        <span class="app-version-badge" id="appVersionBadge">v1.3</span>
+        <span class="app-version-badge" id="appVersionBadge">v1.5</span>
       </div>
 
       <div class="header-actions">
@@ -352,28 +352,42 @@
 
           <!-- Expiration Reminder Setting -->
           <div class="ios-form-row" id="fieldReminderWrap">
-            <div class="ios-field">
-              <label for="itemWarnDaysSelect">到期提醒通知</label>
-              <div class="ios-select-wrapper">
-                <select id="itemWarnDaysSelect" class="ios-select">
-                  <option value="0">到期當天提醒</option>
-                  <option value="1">到期 1 天前提醒</option>
-                  <option value="3">到期 3 天前提醒</option>
-                  <option value="5">到期 5 天前提醒</option>
-                  <option value="7" selected>到期 7 天前提醒</option>
-                  <option value="10">到期 10 天前提醒</option>
-                  <option value="14">到期 14 天前提醒</option>
-                  <option value="30">到期 30 天前提醒</option>
-                  <option value="60">到期 60 天前提醒</option>
-                  <option value="90">到期 90 天前提醒</option>
-                  <option value="custom">🗓️ 自訂指定提醒日期與時間...</option>
-                  <option value="-1">不提醒</option>
-                </select>
-                <span class="select-chevron">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                </span>
+            <!-- iOS Sliding Toggle Switch -->
+            <div class="reminder-switch-container">
+              <div class="reminder-switch-text">
+                <span class="reminder-switch-label">到期提醒通知</span>
+                <span class="reminder-switch-status" id="reminderSwitchStatus">已開啟提醒</span>
               </div>
+              <label class="ios-switch" for="itemReminderToggle" aria-label="到期提醒開關">
+                <input type="checkbox" id="itemReminderToggle" checked>
+                <span class="ios-switch-slider"></span>
+              </label>
             </div>
+
+            <!-- Reminder Details Wrap (Controlled by sliding switch) -->
+            <div id="reminderDetailWrap" class="reminder-detail-wrap">
+              <div class="ios-field">
+                <label for="itemWarnDaysSelect">提前提醒天數</label>
+                <div class="ios-select-wrapper">
+                  <select id="itemWarnDaysSelect" class="ios-select">
+                    <option value="0">到期當天提醒</option>
+                    <option value="1">到期 1 天前提醒</option>
+                    <option value="3">到期 3 天前提醒</option>
+                    <option value="5">到期 5 天前提醒</option>
+                    <option value="7" selected>到期 7 天前提醒</option>
+                    <option value="10">到期 10 天前提醒</option>
+                    <option value="14">到期 14 天前提醒</option>
+                    <option value="30">到期 30 天前提醒</option>
+                    <option value="60">到期 60 天前提醒</option>
+                    <option value="90">到期 90 天前提醒</option>
+                    <option value="custom">🗓️ 自訂指定提醒日期與時間...</option>
+                    <option value="-1" style="display:none;">不提醒</option>
+                  </select>
+                  <span class="select-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </span>
+                </div>
+              </div>
 
             <!-- Preset Reminder Time Setting (預設提前天數下的提醒時間點) -->
             <div id="presetReminderTimeWrap" class="preset-time-inline">
@@ -404,6 +418,7 @@
               </div>
             </div>
           </div>
+        </div>
 
           <!-- Live Preview Banner for Expiry Mode -->
           <div class="ios-preview-bar" id="previewExpiryBar">
@@ -480,8 +495,14 @@
 
         <!-- History if reset before -->
         <div class="sheet-history-block" id="sheetHistoryBlock" style="display:none;">
-          <span class="history-title">歷次換新重設紀錄</span>
-          <div id="sheetHistoryList" class="history-items-list"></div>
+          <div class="history-header-toggle" id="btnToggleHistoryCollapse" role="button" aria-expanded="false" title="點擊切換展開/收合">
+            <span class="history-title" id="historyBlockTitle" data-alt="歷史重設計路">歷史重設紀錄</span>
+            <div class="history-header-right">
+              <span class="history-count-badge" id="historyCountBadge">0 次</span>
+              <span class="history-toggle-chevron" id="historyToggleChevron">▸</span>
+            </div>
+          </div>
+          <div id="sheetHistoryList" class="history-items-list" style="display:none;"></div>
         </div>
 
         <div class="sheet-actions-group">
@@ -495,6 +516,12 @@
           <button type="button" class="btn-sheet-action highlight" id="btnSheetReset" title="重設週期" aria-label="重設週期">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
             <span id="btnSheetResetText">重設週期</span>
+          </button>
+
+          <!-- 3. Remove from Group Action (移除此群組) -->
+          <button type="button" class="btn-sheet-action" id="btnSheetRemoveGroup" style="display:none;" title="自此群組中移除" aria-label="移除此群組">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>移除此群組</span>
           </button>
 
           <!-- 3. Archive Action (封存) -->
@@ -537,9 +564,12 @@
             <div class="settings-icon">🔔</div>
             <div class="settings-info">
               <span class="settings-title">到期推播通知</span>
-              <span class="settings-desc">即將到期時接收提醒</span>
+              <span class="settings-desc" id="settingsNotifyStatusText">即將到期時接收提醒</span>
             </div>
-            <button type="button" id="btnToggleNotification" class="btn-switch-theme">開啟</button>
+            <label class="ios-switch" for="toggleNotificationSwitch" aria-label="到期推播通知開關">
+              <input type="checkbox" id="toggleNotificationSwitch">
+              <span class="ios-switch-slider"></span>
+            </label>
           </div>
 
           <div class="settings-row" id="rowScreenFit">

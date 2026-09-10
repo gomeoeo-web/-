@@ -17,6 +17,8 @@ tests = [
     'scratch/test_archive_feature.py',
     'scratch/test_oled_frames_version.py',
     'scratch/test_rename_and_version.py',
+    'scratch/test_group_remove_and_reminder_switch.py',
+    'scratch/test_v15_features.py',
     'scratch/find_parens.py'
 ]
 
