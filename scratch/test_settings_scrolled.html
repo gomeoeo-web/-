@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="dark" data-screen-fit="plus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>期效管家</title>
+  <meta name="description" content="極簡物品生命週期與保固管家：更換濾網耗材、食品效期、保固時間、日化開封天數。">
+  <meta name="theme-color" content="#121212" id="metaThemeColor">
+  <meta name="color-scheme" content="dark light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+
+<style>
+.settings-group {
+    flex-shrink: 0 !important;
+}
+.ios-settings-list {
+    padding-bottom: 5rem !important;
+}
+.screen-fit-select {
+    padding: 0.32rem 1.4rem 0.32rem 0.65rem !important;
+    font-size: 0.78rem !important;
+}
+.screen-fit-select-wrap .select-arrow {
+    right: 0.45rem !important;
+}
+</style>
+</head>
+<body>
+  <div class="ios-app-container">
+    <!-- Top Header -->
+    <header class="ios-header">
+      <div class="header-brand-placeholder">
+        <span class="app-version-badge" id="appVersionBadge">v1.6.1</span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Settings Gear Button -->
+        <button id="btnOpenSettings" class="btn-circle-dark" title="設定與備份" aria-label="設定">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <!-- White Add Button -->
+        <button id="btnOpenAddModal" class="btn-circle-white" title="新增物品" aria-label="新增">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area with Direct Swipeable Views Track -->
+    <main class="ios-main">
+      <div class="views-slider-viewport" id="viewsSliderViewport">
+        <div class="views-slider-track" id="viewsSliderTrack">
+
+          <!-- View Panel 1: 主頁 (Today) -->
+          <div class="view-panel active-panel" id="viewPanelToday">
+            <!-- Status Notice Card (提醒欄：顯示週期、即將到期與已過期通知，不可點擊) -->
+            <section class="status-notice-card" id="statusNoticeCard">
+              <div class="notice-top-row notice-left-group" id="noticeTopRow">
+                <div class="notice-icon-wrapper" id="noticeIconWrapper">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <div class="notice-text-group">
+                  <h3 class="notice-title" id="noticeTitle">今天都在週期內</h3>
+                  <p class="notice-desc" id="noticeDesc">目前沒有將到期或已過期的物品</p>
+                </div>
+              </div>
+              <div class="notice-right-actions" id="noticeRightActions">
+                <button type="button" class="btn-clean-expired" id="btnCleanExpired" style="display:none;" title="刪除過期項目並移至最近刪除" aria-label="刪除過期">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+              <div class="notice-status-tag" id="noticeStatusTag" style="display:none;">
+                <span class="notice-status-text" id="noticeStatusText">正常</span>
+              </div>
+            </section>
+
+            <!-- Home Filter Buttons Bar (全部 / 將到期 / 已過期) -->
+            <section class="home-filter-buttons-row" id="segmentedPillsBar">
+              <button type="button" class="home-filter-btn active" data-filter="all" id="pillAll">
+                <span class="filter-btn-text">全部</span>
+                <span class="filter-btn-badge" id="pillCountAll">0</span>
+              </button>
+              <button type="button" class="home-filter-btn" data-filter="urgent" id="pillUrgent">
+                <span class="filter-btn-text">將到期</span>
+                <span class="filter-btn-badge urgent" id="pillCountUrgent">0</span>
+              </button>
+              <button type="button" class="home-filter-btn" data-filter="expired" id="pillExpired">
+                <span class="filter-btn-text">已過期</span>
+                <span class="filter-btn-badge expired" id="pillCountExpired">0</span>
+              </button>
+            </section>
+
+            <!-- Home Sort Toolbar (彈出式菜單) -->
+            <div class="home-sort-toolbar" id="homeSortToolbar">
+              <span class="sort-toolbar-count" id="sortToolbarCount">共 1 項物品</span>
+              <button type="button" class="btn-sort-menu-trigger" id="btnOpenCustomSort" title="選擇排序方式與自訂物品順序">
+                <span class="sort-trigger-icon">⇅</span>
+                <span class="sort-trigger-label" id="sortPillLabel">到期日 升冪</span>
+                <span class="sort-trigger-chevron">▾</span>
+              </button>
+            </div>
+
+            <div class="items-compact-grid" id="itemsGrid">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Home Empty State -->
+            <div class="ios-empty-view" id="emptyState" style="display:none;">
+              <div class="empty-icon-circle">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+              </div>
+              <h3 id="emptyTitle">目前沒有物品</h3>
+              <p id="emptyDesc">點擊右上角的「＋」開始記錄生活中的物品使用期限！</p>
+            </div>
+          </div>
+
+          <!-- View Panel 2: 物品分類 (群組頁面) -->
+          <div class="view-panel" id="viewPanelInventory" style="visibility: hidden;">
+            <!-- Search & Group Bar -->
+            <section class="inventory-controls" id="inventoryControls">
+              <div class="ios-search-field">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="inventorySearch" placeholder="搜尋物品名稱、品牌或地點...">
+                <button id="btnClearInventorySearch" class="btn-clear-search" style="display:none;">✕</button>
+              </div>
+
+              <!-- Category Chips Row (全寬橫向滑動) -->
+              <div class="category-chip-row" id="categoryChipRow">
+                <!-- Populated dynamically with Groups -->
+              </div>
+
+              <!-- Group Action Bar (顯示當前群組、單一常駐群組設定與加入物品) -->
+              <div class="category-action-bar" id="categoryActionBar">
+                <div class="category-info-badge">
+                  <span class="cat-active-emoji" id="catActiveEmoji">🚗</span>
+                  <span class="cat-active-name" id="catActiveName">車輛群組</span>
+                  <span class="cat-active-dot">·</span>
+                  <span class="cat-active-count" id="catActiveCount">1 項物品</span>
+                </div>
+                <div class="category-action-buttons-group">
+                  <button type="button" class="btn-group-settings-main" id="btnOpenGroupSettings" title="群組設定與分頁管理">
+                    <span>群組設定</span>
+                  </button>
+                  <button type="button" class="btn-add-items-to-cat" id="btnAddItemsToCurrentCategory" title="自由選擇物品加入此群組">
+                    <span class="btn-add-cat-icon">＋</span>
+                    <span>加入物品</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Inventory Sort Toolbar (彈出式菜單) -->
+            <div class="home-sort-toolbar" id="inventorySortToolbar">
+              <span class="sort-toolbar-count" id="inventorySortToolbarCount">車輛 共 1 項物品</span>
+              <button type="button" class="btn-sort-menu-trigger" id="btnOpenInventorySort" title="選擇排序方式與自訂物品順序">
+                <span class="sort-trigger-icon">⇅</span>
+                <span class="sort-trigger-label" id="inventorySortPillLabel">到期日 升冪</span>
+                <span class="sort-trigger-chevron">▾</span>
+              </button>
+            </div>
+
+            <div class="items-compact-grid" id="inventoryItemsGrid">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Inventory Empty State -->
+            <div class="ios-empty-view" id="emptyStateInventory" style="display:none;">
+              <div class="empty-icon-circle">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+              </div>
+              <h3 id="emptyTitleInventory">此群組目前沒有物品</h3>
+              <p id="emptyDescInventory">您可以從現有物品中勾選加入，或點擊右上角的「＋」新增！</p>
+              <button type="button" class="btn-empty-add-to-cat" id="btnEmptyAddItemsToCat" style="display:none;">
+                ＋ 立即加入物品至此群組
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Floating Island Dock (Navigation Bar) -->
+    <nav class="floating-island-dock" role="navigation" aria-label="底部導航">
+      <button class="dock-tab active" id="dockTabToday" data-tab="today">
+        <div class="dock-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </div>
+        <span class="dock-label">主頁</span>
+      </button>
+
+      <button class="dock-tab" id="dockTabInventory" data-tab="inventory">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
+        </div>
+        <span class="dock-label">物品分類</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Modal 1: Add / Edit Item (iOS Centered Sheet) -->
+  <div id="itemModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card">
+      <div class="ios-modal-header">
+        <h2 id="modalTitle">新增物品</h2>
+        <button id="btnCloseModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll">
+        <form id="itemForm" autocomplete="off">
+          <input type="hidden" id="itemId">
+          <input type="hidden" id="itemSubCategory" value="">
+
+          <!-- Category Selection: Cascading Two-Level Dropdown -->
+          <div class="category-boxed-frame">
+            <div class="category-box-header">
+              <div class="category-box-title">
+                <span>選單分類與細項設定</span>
+              </div>
+            </div>
+
+            <div class="category-dropdown-group">
+              <div class="ios-field">
+                <label for="itemCategorySelect">主分類</label>
+                <div class="ios-select-wrapper">
+                  <select id="itemCategorySelect" class="ios-select">
+                    <option value="warranty">🛡️ 保固</option>
+                    <option value="vehicle">🚗 車輛</option>
+                    <option value="subscription">📅 訂閱</option>
+                    <option value="medicine">💊 藥品</option>
+                    <option value="cleaning">🧼 清潔</option>
+                    <option value="filter">🔄 耗材</option>
+                    <option value="food">🥛 食品</option>
+                    <option value="pao">🧴 日用</option>
+                    <option value="other">📌 其他</option>
+                  </select>
+                  <span class="select-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </span>
+                </div>
+              </div>
+
+              <div class="ios-field">
+                <label for="itemSubCategorySelect">細項項目</label>
+                <div class="ios-select-wrapper">
+                  <select id="itemSubCategorySelect" class="ios-select">
+                    <!-- Populated dynamically by JS based on main category -->
+                  </select>
+                  <span class="select-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <!-- Optional custom subcategory input field when user selects '自訂細項...' -->
+            <div id="customSubCatRow" class="custom-subcat-row" style="display:none; margin-top: 0.65rem;">
+              <input type="text" id="customSubCategoryInput" class="ios-input-custom-sub" placeholder="輸入自訂細項名稱，例如：露營裝備、濾心、雨傘...">
+            </div>
+          </div>
+
+          <!-- Image & Icon Picker Section -->
+          <div class="ios-avatar-picker-section">
+            <div class="avatar-preview-box" id="avatarPreviewBox">
+              <span id="previewEmojiChar">🪑</span>
+              <img id="previewImageEl" src="" alt="縮圖預覽" style="display:none;">
+            </div>
+
+            <div class="avatar-controls">
+              <span class="avatar-hint" id="avatarHintText">輸入名稱自動配圖，或自行上傳相片</span>
+              <div class="avatar-buttons-row">
+                <label for="itemImageInput" class="btn-ios-upload">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  <span>上傳相片</span>
+                  <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
+                </label>
+                <button type="button" id="btnOpenBgRemoval" class="btn-ios-bg-remove" style="display:none;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9l4-6z"></path><path d="M11 3v6l-4 3"></path></svg>
+                  <span>✨ 智慧去背</span>
+                </button>
+                <button type="button" id="btnRemoveImage" class="btn-ios-remove-photo" style="display:none;">✕ 移除照片</button>
+                <div class="emoji-direct-input-wrap">
+                  <label for="itemEmoji" class="sr-only">自訂 Emoji</label>
+                  <input type="text" id="itemEmoji" class="emoji-input-box" value="🪑" maxlength="4" title="手動自訂 Emoji">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Name -->
+          <div class="ios-form-row">
+            <div class="ios-field">
+              <label for="itemName">物品名稱</label>
+              <input type="text" id="itemName" placeholder="例如：汽車機油、Netflix 訂閱、眼藥水..." required>
+            </div>
+          </div>
+
+          <!-- Tracking Mode Switcher -->
+          <div class="ios-form-row">
+            <label class="ios-label">追蹤方式</label>
+            <div class="ios-mode-segment" id="modeSegment">
+              <button type="button" class="mode-pill active" data-mode="expiry" id="btnModeExpiry">
+                <span>⏳ 設定到期/週期</span>
+              </button>
+              <button type="button" class="mode-pill" data-mode="elapsed" id="btnModeElapsed">
+                <span>♾️ 僅記使用天數</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Start Date & Custom End Date -->
+          <div class="ios-form-row">
+            <div class="date-custom-grid">
+              <div class="ios-field">
+                <label for="itemStartDate">開始使用 / 購買日</label>
+                <input type="date" id="itemStartDate" required>
+              </div>
+              <div class="ios-field" id="fieldEndDateWrap">
+                <label for="itemEndDate">自訂到期日</label>
+                <input type="date" id="itemEndDate">
+              </div>
+            </div>
+          </div>
+
+          <!-- Duration Days -->
+          <div class="ios-form-row" id="fieldDurationWrap">
+            <div class="ios-field">
+              <label for="itemDuration">或自訂週期天數</label>
+              <div class="duration-input-wrapper">
+                <input type="number" id="itemDuration" min="1" max="9999" value="180">
+                <span class="duration-unit">天</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expiration Reminder Setting -->
+          <div class="ios-form-row" id="fieldReminderWrap">
+            <!-- iOS Sliding Toggle Switch -->
+            <div class="reminder-switch-container">
+              <div class="reminder-switch-text">
+                <span class="reminder-switch-label">到期提醒通知</span>
+                <span class="reminder-switch-status" id="reminderSwitchStatus">已開啟提醒</span>
+              </div>
+              <label class="ios-switch" for="itemReminderToggle" aria-label="到期提醒開關">
+                <input type="checkbox" id="itemReminderToggle" checked>
+                <span class="ios-switch-slider"></span>
+              </label>
+            </div>
+
+            <!-- Reminder Details Wrap (Controlled by sliding switch) -->
+            <div id="reminderDetailWrap" class="reminder-detail-wrap">
+              <div class="ios-field">
+                <label for="itemWarnDaysSelect">提前提醒天數</label>
+                <div class="ios-select-wrapper">
+                  <select id="itemWarnDaysSelect" class="ios-select">
+                    <option value="0">到期當天提醒</option>
+                    <option value="1">到期 1 天前提醒</option>
+                    <option value="3">到期 3 天前提醒</option>
+                    <option value="5">到期 5 天前提醒</option>
+                    <option value="7" selected>到期 7 天前提醒</option>
+                    <option value="10">到期 10 天前提醒</option>
+                    <option value="14">到期 14 天前提醒</option>
+                    <option value="30">到期 30 天前提醒</option>
+                    <option value="60">到期 60 天前提醒</option>
+                    <option value="90">到期 90 天前提醒</option>
+                    <option value="custom">🗓️ 自訂指定提醒日期與時間...</option>
+                    <option value="-1" style="display:none;">不提醒</option>
+                  </select>
+                  <span class="select-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </span>
+                </div>
+              </div>
+
+            <!-- Preset Reminder Time Setting (預設提前天數下的提醒時間點) -->
+            <div id="presetReminderTimeWrap" class="preset-time-inline">
+              <span class="preset-time-label">提醒發送時間</span>
+              <div class="time-input-wrap">
+                <input type="time" id="itemPresetReminderTime" class="ios-time-input" value="09:00">
+              </div>
+            </div>
+
+            <!-- Custom Exact Date & Time Sub-card (自訂特定提醒日期與時間) -->
+            <div id="customReminderDateTimeWrap" class="reminder-custom-box" style="display:none;">
+              <div class="reminder-custom-header">
+                <span class="reminder-custom-title">🗓️ 指定提醒日期與時間</span>
+                <span class="reminder-custom-badge">精確排程</span>
+              </div>
+              <div class="reminder-custom-grid">
+                <div class="ios-field">
+                  <label for="itemReminderCustomDate">自訂提醒日期</label>
+                  <input type="date" id="itemReminderCustomDate">
+                </div>
+                <div class="ios-field">
+                  <label for="itemReminderCustomTime">提醒時間</label>
+                  <input type="time" id="itemReminderCustomTime" value="09:00">
+                </div>
+              </div>
+              <div class="reminder-hint">
+                💡 可指定任意特定年月日時分，系統將於該特定時點發送提醒。
+              </div>
+            </div>
+          </div>
+        </div>
+
+          <!-- Live Preview Banner for Expiry Mode -->
+          <div class="ios-preview-bar" id="previewExpiryBar">
+            <span>預計到期：<strong id="previewEndDateText">2026-09-09</strong></span>
+            <span class="preview-badge" id="previewDaysText">剩餘 180 天</span>
+          </div>
+
+          <!-- Helper Banner for Elapsed Only Mode -->
+          <div class="ios-helper-bar" id="previewElapsedBar" style="display:none;">
+            <span>✨ 模式：<strong>僅累計使用天數</strong>，無需設定到期日，持續記錄物品陪伴天數。</span>
+          </div>
+
+          <!-- Location & Brand -->
+          <div class="ios-input-group-fields">
+            <div class="ios-field">
+              <label for="itemLocation">存放地點 / 備註位置</label>
+              <input type="text" id="itemLocation" placeholder="例如：車庫、雲端、藥箱、廚房">
+            </div>
+            <div class="ios-field">
+              <label for="itemBrand">品牌型號</label>
+              <input type="text" id="itemBrand" placeholder="例如：Toyota, Netflix, 3M">
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="ios-field">
+            <label for="itemNotes">備註說明</label>
+            <input type="text" id="itemNotes" placeholder="例如：下次 5,000 公里換油、自動扣款信用卡...">
+          </div>
+
+          <div class="ios-modal-buttons">
+            <button type="button" id="btnCancelModal" class="btn-ios-secondary">取消</button>
+            <button type="submit" id="btnSaveItem" class="btn-ios-primary">儲存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Item Action Sheet (點擊卡片彈出的精緻底層選單) -->
+  <div id="actionSheet" class="ios-action-backdrop" style="display:none;">
+    <div class="ios-action-sheet">
+      <div class="sheet-drag-handle"></div>
+      <div class="sheet-header">
+        <div class="sheet-item-info">
+          <div class="sheet-emoji" id="sheetEmoji">🪑</div>
+          <div>
+            <h3 class="sheet-title" id="sheetTitle">我的椅子</h3>
+            <span class="sheet-tag" id="sheetTag">保固 • 還有 1,085 天</span>
+          </div>
+        </div>
+        <button id="btnCloseSheet" class="btn-modal-close">✕</button>
+      </div>
+
+      <div class="sheet-body">
+        <div class="sheet-metrics-row">
+          <div class="sheet-metric-box">
+            <span class="metric-lbl">已使用</span>
+            <span class="metric-val" id="sheetElapsedDays">12 <small>天</small></span>
+          </div>
+          <div class="sheet-metric-box">
+            <span class="metric-lbl">剩餘期限</span>
+            <span class="metric-val" id="sheetRemainingDays">1,085 <small>天</small></span>
+          </div>
+          <div class="sheet-metric-box">
+            <span class="metric-lbl">總週期</span>
+            <span class="metric-val" id="sheetTotalDays">1,095 <small>天</small></span>
+          </div>
+        </div>
+
+        <div class="sheet-details-list" id="sheetDetailsList">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- History if reset before -->
+        <div class="sheet-history-block" id="sheetHistoryBlock" style="display:none;">
+          <div class="history-header-toggle" id="btnToggleHistoryCollapse" role="button" aria-expanded="false" title="點擊切換展開/收合">
+            <span class="history-title" id="historyBlockTitle" data-alt="歷史重設計路">歷史重設紀錄</span>
+            <div class="history-header-right">
+              <span class="history-count-badge" id="historyCountBadge">0 次</span>
+              <span class="history-toggle-chevron" id="historyToggleChevron">▸</span>
+            </div>
+          </div>
+          <div id="sheetHistoryList" class="history-items-list" style="display:none;"></div>
+        </div>
+
+        <div class="sheet-actions-group">
+          <!-- 1. Edit Action (編輯物品) -->
+          <button type="button" class="btn-sheet-action primary" id="btnSheetEdit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>編輯物品資訊</span>
+          </button>
+
+          <!-- 2. Reset Action (重設週期) -->
+          <button type="button" class="btn-sheet-action highlight" id="btnSheetReset" title="重設週期" aria-label="重設週期">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span id="btnSheetResetText">重設週期</span>
+          </button>
+
+          <!-- 3. Remove from Group Action (移出此群組) -->
+          <button type="button" class="btn-sheet-action" id="btnSheetRemoveGroup" style="display:none;" title="自此群組中移出" aria-label="移出此群組">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>移出此群組</span>
+          </button>
+
+          <!-- 3. Archive Action (封存) -->
+          <button type="button" class="btn-sheet-action" id="btnSheetArchive">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+            <span>封存此物品</span>
+          </button>
+
+          <!-- 4. Delete Action (刪除) -->
+          <button type="button" class="btn-sheet-action danger" id="btnSheetDelete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>刪除此物品</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Settings Modal (iOS Grouped Style) -->
+  <div id="settingsModal" class="ios-modal-backdrop" style="display:flex;">
+    <div class="ios-modal-card ios-modal-sm">
+      <div class="ios-modal-header">
+        <h2>設定與資料管理</h2>
+        <button id="btnCloseSettings" class="btn-modal-close">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll ios-settings-list">
+        <!-- Group 1: Appearance & Notification -->
+        <div class="settings-group">
+          <div class="settings-row" id="rowThemeToggle">
+            <div class="settings-icon">🌓</div>
+            <div class="settings-info">
+              <span class="settings-title">深淺外觀模式</span>
+              <span class="settings-desc" id="settingsThemeText">目前為極黑模式</span>
+            </div>
+            <button type="button" id="btnToggleThemeSetting" class="btn-switch-theme">切換</button>
+          </div>
+
+          <div class="settings-row" id="rowNotification">
+            <div class="settings-icon">🔔</div>
+            <div class="settings-info">
+              <span class="settings-title">到期推播通知</span>
+              <span class="settings-desc" id="settingsNotifyStatusText">即將到期時接收提醒</span>
+            </div>
+            <label class="ios-switch" for="toggleNotificationSwitch" aria-label="到期推播通知開關">
+              <input type="checkbox" id="toggleNotificationSwitch">
+              <span class="ios-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="settings-row" id="rowScreenFit">
+            <div class="settings-icon">📐</div>
+            <div class="settings-info">
+              <span class="settings-title">視窗寬度與比例</span>
+              <span class="settings-desc" id="settingsScreenFitText">標準手機 390px</span>
+            </div>
+            <div class="screen-fit-select-wrap">
+              <select id="selectScreenFit" class="screen-fit-select" title="選擇視窗寬度與比例">
+                <option value="standard" selected>標準手機 390px</option>
+                <option value="plus">大螢幕 440px</option>
+                <option value="tablet">平板寬幅 680px</option>
+                <option value="full">滿版自適應 100%</option>
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: Archive & Recently Deleted Trash -->
+        <div class="settings-group">
+          <button type="button" class="settings-row-btn" id="btnOpenArchive">
+            <div class="settings-icon">📦</div>
+            <div class="settings-info">
+              <span class="settings-title">已封存物品</span>
+              <span class="settings-desc" id="settingsArchiveCountText">永久封存不刪除，隨時可解除封存</span>
+            </div>
+            <span class="trash-badge-count" id="archiveBadgeCount" style="display:none;">0</span>
+            <span class="settings-chevron">›</span>
+          </button>
+
+          <button type="button" class="settings-row-btn" id="btnOpenRecentlyDeleted">
+            <div class="settings-icon">🗑️</div>
+            <div class="settings-info">
+              <span class="settings-title">最近刪除</span>
+              <span class="settings-desc" id="settingsTrashCountText">保留 7 天內刪除之物品，7 天後自動清除</span>
+            </div>
+            <span class="trash-badge-count" id="trashBadgeCount" style="display:none;">0</span>
+            <span class="settings-chevron">›</span>
+          </button>
+        </div>
+
+        <!-- Group 3: Backup & Restore -->
+        <div class="settings-group">
+          <button type="button" class="settings-row-btn" id="btnExportJson">
+            <div class="settings-icon">📤</div>
+            <div class="settings-info">
+              <span class="settings-title">匯出資料備份</span>
+              <span class="settings-desc">將所有追蹤物品下載到本機儲存</span>
+            </div>
+          </button>
+
+          <label for="importJsonFile" class="settings-row-btn">
+            <div class="settings-icon">📥</div>
+            <div class="settings-info">
+              <span class="settings-title">匯入備份檔案</span>
+              <span class="settings-desc">從備份 JSON 恢復物品資料</span>
+            </div>
+            <input type="file" id="importJsonFile" accept=".json" style="display:none;">
+          </label>
+
+          <button type="button" class="settings-row-btn text-danger" id="btnRestoreDemoData">
+            <div class="settings-icon">🔄</div>
+            <div class="settings-info">
+              <span class="settings-title text-danger">重置為範例資料</span>
+              <span class="settings-desc">重新載入預設牛奶物品範例</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: AI & Custom Background Removal Studio (相片智慧去背工坊) -->
+  <div id="bgRemovalModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-studio">
+      <div class="ios-modal-header">
+        <div class="studio-header-titles">
+          <h2>🎨 智慧相片去背工坊</h2>
+          <span class="studio-subtitle">支援 AI 邊界去背、自訂敏感範圍與點按取色</span>
+        </div>
+        <button id="btnCloseBgRemovalModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="studio-body">
+        <!-- Canvas Workspace with Checkerboard Pattern -->
+        <div class="studio-canvas-container">
+          <canvas id="bgRemovalCanvas" class="bg-removal-canvas"></canvas>
+          <div class="canvas-hint-overlay" id="canvasHintOverlay">
+            <span>💡 提示：點擊畫面上任意背景位置，即可精確吸色消除背景</span>
+          </div>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="studio-controls">
+          <!-- Quick Action Buttons -->
+          <div class="studio-action-pills">
+            <button type="button" id="btnAiBgRemoval" class="studio-pill-btn primary" title="使用 @imgly/background-removal 執行 AI 智慧去背">
+              <span class="pill-btn-icon">🤖</span>
+              <span>AI 智慧去背</span>
+            </button>
+            <button type="button" id="btnColorPickRemoval" class="studio-pill-btn">
+              <span class="pill-btn-icon">🎯</span>
+              <span>點按取色去背</span>
+            </button>
+            <button type="button" id="btnResetBgRemoval" class="studio-pill-btn">
+              <span class="pill-btn-icon">↺</span>
+              <span>還原原圖</span>
+            </button>
+          </div>
+
+          <!-- Slider 1: Custom Tolerance -->
+          <div class="studio-slider-card">
+            <div class="slider-header">
+              <span class="slider-label">自訂去背容許範圍</span>
+              <span class="slider-val-badge" id="bgToleranceVal">28%</span>
+            </div>
+            <input type="range" id="bgToleranceSlider" class="ios-range-slider" min="3" max="95" value="28">
+            <div class="slider-hints">
+              <span>細緻保留主體邊緣</span>
+              <span>大範圍消除背景色</span>
+            </div>
+          </div>
+
+          <!-- Slider 2: Smooth Edge Feathering -->
+          <div class="studio-slider-card">
+            <div class="slider-header">
+              <span class="slider-label">邊緣平滑羽化</span>
+              <span class="slider-val-badge" id="bgFeatherVal">2px</span>
+            </div>
+            <input type="range" id="bgFeatherSlider" class="ios-range-slider" min="0" max="10" value="2">
+            <div class="slider-hints">
+              <span>銳利清晰邊緣</span>
+              <span>柔和半透明羽化</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="studio-modal-footer">
+          <button type="button" id="btnCancelBgRemoval" class="btn-ios-secondary">取消放棄</button>
+          <button type="button" id="btnApplyBgRemoval" class="btn-ios-primary">✅ 完成並套用去背圖片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Custom Category Manager (自訂分類項目管理) -->
+  <div id="customCategoryModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-sm">
+      <div class="ios-modal-header">
+        <h2>自訂群組與分頁順序</h2>
+        <button id="btnCloseCustomCategoryModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll" style="padding: 1.25rem 1.25rem 3.5rem 1.25rem;">
+        <!-- Add New Category Card -->
+        <div class="category-create-card">
+          <h3 class="category-create-title">➕ 新增自訂群組</h3>
+          
+          <div class="ios-field" style="margin-top: 0.75rem;">
+            <label for="newCatName">群組名稱</label>
+            <input type="text" id="newCatName" placeholder="例如：露營裝備、寵物、植栽、3C配件" required>
+          </div>
+
+          <div class="ios-field" style="margin-top: 0.75rem;">
+            <label>群組圖示</label>
+            <div class="emoji-select-row">
+              <input type="text" id="newCatEmoji" class="emoji-input-box" value="🏷️" maxlength="4">
+              <div class="emoji-quick-pills" id="emojiQuickPills">
+                <button type="button" class="quick-emoji-btn" data-emoji="⛺">⛺</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="🐱">🐱</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="🪴">🪴</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="🎮">🎮</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="📚">📚</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="🧸">🧸</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="👟">👟</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="💼">💼</button>
+                <button type="button" class="quick-emoji-btn" data-emoji="🏷️">🏷️</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ios-field" style="margin-top: 0.75rem;">
+            <label for="newCatSubItems">常用細項項目</label>
+            <input type="text" id="newCatSubItems" placeholder="以逗號分隔，例如：帳篷, 睡袋, 充氣墊, 營燈">
+          </div>
+
+          <div class="ios-field" style="margin-top: 0.85rem;">
+            <label>同步加入現有物品至新群組</label>
+            <div class="new-cat-items-picker-list" id="newCatItemsPickerList">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </div>
+
+          <button type="button" id="btnSaveNewCategory" class="btn-ios-primary" style="margin-top: 1rem; width: 100%;">
+            建立自訂群組
+          </button>
+        </div>
+
+        <!-- Existing Categories List -->
+        <div class="existing-categories-section" style="margin-top: 1.5rem;">
+          <h3 class="category-list-title">現有群組清單 第一頁至第二十頁</h3>
+          <div class="category-manage-list" id="categoryManageList">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div style="margin-top: 1.35rem; text-align: center;">
+            <button type="button" id="btnResetDefaultCategories" class="btn-reset-default-cats" title="復原所有系統預設群組">
+              ↺ 還原所有預設群組
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Edit Category Modal (編輯群組名稱、圖示與細項) -->
+  <div id="editCategoryModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-sm">
+      <div class="ios-modal-header">
+        <h2 id="editCategoryModalTitle">編輯群組資訊</h2>
+        <button type="button" id="btnCloseEditCategoryModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+      <div class="ios-modal-scroll" style="padding: 1.25rem 1.25rem 3.5rem 1.25rem;">
+        <input type="hidden" id="editCatId">
+        <div class="ios-field">
+          <label for="editCatName">群組名稱</label>
+          <input type="text" id="editCatName" placeholder="輸入群組名稱" required>
+        </div>
+
+        <div class="ios-field" style="margin-top: 0.85rem;">
+          <label>群組圖示</label>
+          <div class="emoji-select-row">
+            <input type="text" id="editCatEmoji" class="emoji-input-box" value="🏷️" maxlength="4">
+            <div class="emoji-quick-pills" id="editEmojiQuickPills">
+              <button type="button" class="quick-emoji-btn" data-emoji="⛺">⛺</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🐱">🐱</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🪴">🪴</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🎮">🎮</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="📚">📚</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🧸">🧸</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="👟">👟</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="💼">💼</button>
+              <button type="button" class="quick-emoji-btn" data-emoji="🏷️">🏷️</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ios-field" style="margin-top: 0.85rem;">
+          <label for="editCatSubItems">常用細項項目, 以逗號分隔</label>
+          <input type="text" id="editCatSubItems" placeholder="例如：帳篷, 睡袋, 充氣墊, 營燈">
+        </div>
+
+        <div style="display: flex; gap: 0.65rem; margin-top: 1.35rem;">
+          <button type="button" id="btnCancelEditCategory" class="btn-ios-secondary" style="flex: 1;">取消</button>
+          <button type="button" id="btnSaveEditCategory" class="btn-ios-primary" style="flex: 1.5;">儲存修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Add Items to Category Modal (自由加入物品至分類) -->
+  <div id="addItemsToCategoryModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-sm">
+      <div class="ios-modal-header">
+        <h2 id="addItemsToCategoryModalTitle">加入物品至分類</h2>
+        <button type="button" id="btnCloseAddItemsToCategoryModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+      <div class="ios-modal-scroll" style="padding: 1.25rem 1.25rem 3.5rem 1.25rem;">
+        <p class="modal-section-intro" id="addItemsToCategoryModalDesc">勾選要收納至此分類的物品：</p>
+        <div class="cat-picker-toolbar">
+          <button type="button" class="btn-picker-quick" id="btnSelectAllItemsForCat">全選所有物品</button>
+          <button type="button" class="btn-picker-quick" id="btnClearAllItemsForCat">清空勾選</button>
+        </div>
+        <div class="cat-items-picker-list" id="catItemsPickerList">
+          <!-- Rendered dynamically by JS -->
+        </div>
+        <button type="button" id="btnConfirmAddItemsToCategory" class="btn-ios-primary" style="margin-top: 1.25rem; width: 100%;">
+          確定套用分類
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Home Sort Custom Modal (排序方式與自訂順序) -->
+  <div id="homeSortModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-sm">
+      <div class="ios-modal-header">
+        <h2>排序方式與自訂順序</h2>
+        <button type="button" id="btnCloseHomeSortModal" class="btn-modal-close">✕</button>
+      </div>
+      <div class="ios-modal-scroll">
+        <p class="modal-section-intro">選擇主頁物品清單的排列依據與順序：</p>
+        <div class="sort-modal-options-grid" id="sortModalOptionsList">
+          <button type="button" class="sort-option-card" data-sort="custom">
+            <div class="sort-card-left">
+              <div>
+                <div class="sort-card-title">自訂義順序</div>
+                <div class="sort-card-desc">依據您自訂排定的順序排列主頁物品</div>
+              </div>
+            </div>
+            <span class="sort-card-check">✓</span>
+          </button>
+
+          <button type="button" class="sort-option-card active" data-sort="expiry_asc">
+            <div class="sort-card-left">
+              <div>
+                <div class="sort-card-title">到期日 升冪</div>
+                <div class="sort-card-desc">越接近到期、越緊急的物品排在最前面</div>
+              </div>
+            </div>
+            <span class="sort-card-check">✓</span>
+          </button>
+
+          <button type="button" class="sort-option-card" data-sort="expiry_desc">
+            <div class="sort-card-left">
+              <div>
+                <div class="sort-card-title">到期日 降冪</div>
+                <div class="sort-card-desc">到期日越久遠、安心期最長的物品排在最前面</div>
+              </div>
+            </div>
+            <span class="sort-card-check">✓</span>
+          </button>
+
+          <button type="button" class="sort-option-card" data-sort="created_desc">
+            <div class="sort-card-left">
+              <div>
+                <div class="sort-card-title">加入時間 降冪</div>
+                <div class="sort-card-desc">最新新增或最近換新的物品排在最前面</div>
+              </div>
+            </div>
+            <span class="sort-card-check">✓</span>
+          </button>
+
+          <button type="button" class="sort-option-card" data-sort="created_asc">
+            <div class="sort-card-left">
+              <div>
+                <div class="sort-card-title">加入時間 升冪</div>
+                <div class="sort-card-desc">最早加入、歷經時間最長的物品排在最前面</div>
+              </div>
+            </div>
+            <span class="sort-card-check">✓</span>
+          </button>
+        </div>
+
+        <!-- Custom Item Reorder Section (自訂每樣物品順序 - 預設隱藏，僅在選取自訂義順序時展開) -->
+        <div class="custom-order-section" id="customOrderSection" style="margin-top: 1.35rem; display: none;">
+          <div class="custom-order-header">
+            <div>
+              <h3 class="custom-order-title">自訂每樣物品排列順序</h3>
+              <p class="custom-order-desc">點擊箭頭可自由上移或下移物品順位</p>
+            </div>
+          </div>
+          <div class="custom-order-items-list" id="customOrderItemsList">
+            <!-- Rendered dynamically by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Delete Confirm Modal (刪除物品雙重確認彈出式選單) -->
+  <div id="deleteConfirmModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-alert">
+      <div class="delete-alert-icon">⚠️</div>
+      <h2 class="delete-alert-title">確定要刪除此物品嗎？</h2>
+      <p class="delete-alert-desc" id="deleteConfirmItemDesc">刪除後將移至「最近刪除」保留 7 天，可隨時復原</p>
+      <div class="delete-alert-actions">
+        <button type="button" id="btnConfirmDeleteItem" class="btn-delete-confirm-destructive">移至最近刪除</button>
+        <button type="button" id="btnCancelDeleteItem" class="btn-delete-confirm-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 10: Archive Modal (已封存物品庫) -->
+  <div id="archiveModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-trash">
+      <div class="ios-modal-header">
+        <div class="trash-header-titles">
+          <h2>📦 已封存物品</h2>
+          <span class="trash-subtitle">永久封存不刪除，隨時可解除封存</span>
+        </div>
+        <button id="btnCloseArchiveModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll">
+        <!-- Tip Box -->
+        <div class="trash-notice-banner">
+          <span>📌 封存的物品不會出現在主頁及提醒欄，歷史記錄與資料完整保留，可隨時復原回清單。</span>
+        </div>
+
+        <!-- Top Action Bar (Restore All Archive) -->
+        <div class="trash-actions-bar" id="archiveActionsBar" style="display:none;">
+          <button type="button" class="btn-trash-action" id="btnRestoreAllArchive" title="將所有封存物品復原回主頁清單">
+            <span>全部解除封存</span>
+          </button>
+        </div>
+
+        <!-- Archive Items List -->
+        <div class="trash-items-list" id="archiveItemsList">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="ios-empty-view" id="archiveEmpty" style="display:none;">
+          <div class="empty-icon-circle">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+          </div>
+          <h3>沒有已封存的物品</h3>
+          <p>您可以在物品操作選單中選擇封存物品</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Recently Deleted Modal (最近刪除回收站) -->
+  <div id="recentlyDeletedModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-trash">
+      <div class="ios-modal-header">
+        <div class="trash-header-titles">
+          <h2>🗑️ 最近刪除</h2>
+          <span class="trash-subtitle">保留 7 天，7 天後自動清除</span>
+        </div>
+        <button id="btnCloseRecentlyDeletedModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll">
+        <!-- Tip Box -->
+        <div class="trash-notice-banner">
+          <span>📌 項目將在刪除 7 天後自動永久清除。您可以隨時將物品復原至主頁清單。</span>
+        </div>
+
+        <!-- Top Action Bar (Restore All & Empty Trash) -->
+        <div class="trash-actions-bar" id="trashActionsBar" style="display:none;">
+          <button type="button" class="btn-trash-action" id="btnRestoreAllTrash" title="全部復原回清單">
+            <span>全部復原</span>
+          </button>
+          <button type="button" class="btn-trash-action text-danger" id="btnEmptyTrash" title="立即永久清空所有項目">
+            <span>清空所有項目</span>
+          </button>
+        </div>
+
+        <!-- Trash Items List -->
+        <div class="trash-items-list" id="recentlyDeletedList">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="ios-empty-view" id="recentlyDeletedEmpty" style="display:none;">
+          <div class="empty-icon-circle">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </div>
+          <h3>沒有最近刪除的物品</h3>
+          <p>刪除的物品將在此保留 7 天以供復原</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+<script id="inject-test">
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const list = document.querySelector('.ios-settings-list');
+        list.scrollTop = 9999;
+        const pre = document.createElement('pre');
+        pre.id = 'layout-results';
+        pre.textContent = JSON.stringify({
+            scrollHeight: list.scrollHeight,
+            clientHeight: list.clientHeight,
+            scrollTop: list.scrollTop,
+            canScroll: list.scrollHeight > list.clientHeight
+        }, null, 2);
+        document.body.appendChild(pre);
+    }, 300);
+});
+</script></body>
+</html>
