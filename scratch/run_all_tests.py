@@ -19,6 +19,8 @@ tests = [
     'scratch/test_rename_and_version.py',
     'scratch/test_group_remove_and_reminder_switch.py',
     'scratch/test_v15_features.py',
+    'scratch/test_v152_layout_and_cleanup.py',
+    'scratch/test_v153_dock_and_sheet_gestures.py',
     'scratch/find_parens.py'
 ]
 

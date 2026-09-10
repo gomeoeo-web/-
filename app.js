@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.5.1';
+  const APP_VERSION = '1.5.3';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -3544,6 +3544,8 @@
     document.body.scrollTop = 0;
     const iosMain = document.querySelector('.ios-main');
     if (iosMain) iosMain.scrollTop = 0;
+    const navDock = document.querySelector('.floating-island-dock');
+    if (navDock) navDock.classList.remove('dock-hidden');
 
     // 開始滑動/切換：立即喚醒所有面板確保滑動視覺完整
     setPanelsSwipingState(true);
@@ -4493,29 +4495,51 @@
     }, { passive: false });
   });
 
-  // Action Sheet 支援拖曳把手向下滑動關閉, 且拖動過程完全不影響背景
+  // Action Sheet 支援拖曳把手與標頭向下滑動極速關閉, 靈敏順暢且完全不卡頓
   const actionSheetCard = actionSheet.querySelector('.ios-action-sheet');
   if (actionSheetCard) {
     let sheetStartY = 0;
     let sheetStartX = 0;
+    let sheetStartTime = 0;
     let isDraggingSheet = false;
+    let currentSheetDy = 0;
+    let isClosingSheet = false;
+
+    function smoothlyCloseActionSheet() {
+      if (isClosingSheet) return;
+      isClosingSheet = true;
+      actionSheetCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
+      actionSheetCard.style.transform = 'translateY(100%)';
+      setTimeout(() => {
+        actionSheetCard.style.transform = '';
+        actionSheetCard.style.transition = '';
+        closeActionSheet();
+        isClosingSheet = false;
+      }, 180);
+    }
 
     actionSheetCard.addEventListener('touchstart', function (e) {
-      if (e.touches.length === 1) {
+      if (e.touches.length === 1 && !isClosingSheet) {
         sheetStartY = e.touches[0].clientY;
         sheetStartX = e.touches[0].clientX;
+        sheetStartTime = Date.now();
         isDraggingSheet = false;
+        currentSheetDy = 0;
       }
     }, { passive: true });
 
     actionSheetCard.addEventListener('touchmove', function (e) {
-      if (e.touches.length === 1) {
-        const dy = e.touches[0].clientY - sheetStartY;
+      if (e.touches.length === 1 && !isClosingSheet) {
+        const touchY = e.touches[0].clientY;
+        const dy = touchY - sheetStartY;
         const dx = Math.abs(e.touches[0].clientX - sheetStartX);
-        const isAtTop = actionSheetCard.scrollTop <= 0;
-        // 當觸控頂部把手、頂部標題或卡片在頂端時向下拖拉即可關閉卡片
-        if ((e.target.closest('.sheet-drag-handle') || e.target.closest('.sheet-header') || isAtTop) && dy > 0 && dy > dx) {
+        const isNearTop = actionSheetCard.scrollTop <= 4;
+        const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .sheet-header, .sheet-item-info, .sheet-metrics-grid');
+
+        // 當處於頂部區域或頂端，向下滑動即立即跟手拖拉，絕無延遲
+        if ((isHeaderArea || isNearTop) && dy > 4 && dy > dx * 0.7) {
           isDraggingSheet = true;
+          currentSheetDy = dy;
           if (e.cancelable) e.preventDefault();
           actionSheetCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
           actionSheetCard.style.transition = 'none';
@@ -4523,18 +4547,37 @@
       }
     }, { passive: false });
 
-    actionSheetCard.addEventListener('touchend', function (e) {
-      if (isDraggingSheet) {
+    function handleSheetTouchEnd() {
+      if (isDraggingSheet && !isClosingSheet) {
         isDraggingSheet = false;
-        actionSheetCard.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)';
-        const currentTransform = actionSheetCard.style.transform;
-        const match = currentTransform.match(/translateY\((\d+)px\)/);
-        const dy = match ? parseInt(match[1], 10) : 0;
-        if (dy > 45) { // 輕輕往下一拉即可關閉
-          actionSheetCard.style.transform = '';
-          closeActionSheet();
+        const dt = Math.max(1, Date.now() - sheetStartTime);
+        const velocityY = currentSheetDy / dt;
+
+        // 位移超過 30px 或具備向下滑動速度時立即順暢關閉
+        if (currentSheetDy > 30 || (velocityY > 0.22 && currentSheetDy > 15)) {
+          smoothlyCloseActionSheet();
         } else {
-          actionSheetCard.style.transform = '';
+          actionSheetCard.style.transition = 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)';
+          actionSheetCard.style.transform = 'translateY(0)';
+          setTimeout(() => {
+            if (!isDraggingSheet) {
+              actionSheetCard.style.transform = '';
+              actionSheetCard.style.transition = '';
+            }
+          }, 200);
+        }
+      }
+    }
+
+    actionSheetCard.addEventListener('touchend', handleSheetTouchEnd, { passive: true });
+    actionSheetCard.addEventListener('touchcancel', handleSheetTouchEnd, { passive: true });
+
+    // 支援在上方半透明遮罩層向下滑動關閉
+    actionSheet.addEventListener('touchmove', function (e) {
+      if (e.target === actionSheet && e.touches.length === 1 && !isClosingSheet) {
+        const dy = e.touches[0].clientY - sheetStartY;
+        if (dy > 20) {
+          smoothlyCloseActionSheet();
         }
       }
     }, { passive: true });
@@ -4652,6 +4695,69 @@
       }
       setActivePanel(currentNavTab);
     });
+  }
+
+  // ==========================================
+  // 主頁與物品分類框 滾動自動隱藏與顯現 (頁面往上滑自動隱藏，往下滑自動出現)
+  // ==========================================
+  const floatingIslandDock = document.querySelector('.floating-island-dock');
+  if (floatingIslandDock) {
+    let lastScrollY = window.scrollY || window.pageYOffset || 0;
+    let scrollTicking = false;
+    let touchStartDockY = 0;
+
+    function updateDockVisibility() {
+      const currentScrollY = window.scrollY || window.pageYOffset || 0;
+      const scrollDiff = currentScrollY - lastScrollY;
+
+      // 靠近頁面頂部時始終保持可見
+      if (currentScrollY < 35) {
+        floatingIslandDock.classList.remove('dock-hidden');
+      } else if (scrollDiff > 8 && currentScrollY > 60) {
+        // 頁面往上滑 (向下滾動閱讀內容) 自動隱藏
+        floatingIslandDock.classList.add('dock-hidden');
+      } else if (scrollDiff < -8) {
+        // 頁面往下滑 (回滾至上方) 自動顯現
+        floatingIslandDock.classList.remove('dock-hidden');
+      }
+
+      lastScrollY = currentScrollY;
+      scrollTicking = false;
+    }
+
+    window.addEventListener('scroll', function () {
+      if (isAnyModalOpen()) return;
+      if (!scrollTicking) {
+        window.requestAnimationFrame(updateDockVisibility);
+        scrollTicking = true;
+      }
+    }, { passive: true });
+
+    // 支援行動裝置觸控即時手勢監聽，確保滑動手感完全同步
+    window.addEventListener('touchstart', function (e) {
+      if (e.touches && e.touches.length === 1) {
+        touchStartDockY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', function (e) {
+      if (isAnyModalOpen() || !e.touches || e.touches.length !== 1) return;
+      const currentTouchY = e.touches[0].clientY;
+      const touchDiff = touchStartDockY - currentTouchY;
+      const currentScrollY = window.scrollY || window.pageYOffset || 0;
+
+      // 手指往上推動超過 12px 且不在頂部：自動隱藏
+      if (touchDiff > 12 && currentScrollY > 50) {
+        floatingIslandDock.classList.add('dock-hidden');
+      } else if (touchDiff < -12) {
+        // 手指往下拉動超過 12px：自動顯現
+        floatingIslandDock.classList.remove('dock-hidden');
+      }
+    }, { passive: true });
+
+    // 點擊底部導航分頁時立即恢復顯示
+    if (dockTabToday) dockTabToday.addEventListener('click', () => floatingIslandDock.classList.remove('dock-hidden'));
+    if (dockTabInventory) dockTabInventory.addEventListener('click', () => floatingIslandDock.classList.remove('dock-hidden'));
   }
 
   inventorySearch.addEventListener('input', function () {
