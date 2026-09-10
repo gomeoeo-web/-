@@ -17,12 +17,16 @@ def verify():
     if '<title>期效管家</title>' not in html:
         errors.append("HTML title is not <title>期效管家</title>")
 
-    # Version check
-    if '<span class="app-version-badge" id="appVersionBadge">v1.1</span>' not in html:
-        errors.append("HTML appVersionBadge is not v1.1")
+    # Version check (1.3)
+    if '<span class="app-version-badge" id="appVersionBadge">v1.3</span>' not in html:
+        errors.append("HTML appVersionBadge is not v1.3")
 
-    if "const APP_VERSION = '1.1';" not in js:
-        errors.append("app.js APP_VERSION is not '1.1'")
+    if "const APP_VERSION = '1.3';" not in js:
+        errors.append("app.js APP_VERSION is not '1.3'")
+
+    # Date custom grid check
+    if 'flex-direction: column' not in css or '.date-custom-grid' not in css:
+        errors.append(".date-custom-grid must be flex-direction: column in style.css")
 
     # Backup file name check
     if '期效管家備份_${getTodayString()}.json' not in js:

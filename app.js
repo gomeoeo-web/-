@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.1';
+  const APP_VERSION = '1.3';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -1639,32 +1639,18 @@
     if (!item) return;
 
     if (isResetConfirming) {
-      if (btnSheetResetText) btnSheetResetText.textContent = '⚠️ 確定要重設時間嗎？再次點擊確認';
+      if (btnSheetResetText) btnSheetResetText.textContent = '確定重設？再次點擊確認';
       if (btnSheetReset) {
         btnSheetReset.classList.add('confirm-active');
-        btnSheetReset.setAttribute('title', '⚠️ 確定要重設時間嗎？再次點擊確認');
+        btnSheetReset.setAttribute('title', '確定要重設時間嗎？再次點擊確認');
       }
     } else {
       if (btnSheetReset) {
         btnSheetReset.classList.remove('confirm-active');
-        btnSheetReset.setAttribute('title', '換新耗材 / 重設時間');
+        btnSheetReset.setAttribute('title', '重設週期');
       }
       if (btnSheetResetText) {
-        if (item.category === 'vehicle') {
-          btnSheetResetText.textContent = '🚗 保養換新 / 重開週期';
-        } else if (item.category === 'subscription') {
-          btnSheetResetText.textContent = '📅 續訂成功 / 重新計時';
-        } else if (item.category === 'medicine') {
-          btnSheetResetText.textContent = '💊 開新藥瓶 / 重新計時';
-        } else if (item.category === 'cleaning') {
-          btnSheetResetText.textContent = '🧼 換新備品 / 重新計時';
-        } else if (item.category === 'filter') {
-          btnSheetResetText.textContent = '🔄 換新濾網 / 重新開始倒數';
-        } else if (item.category === 'pao') {
-          btnSheetResetText.textContent = '🧴 新瓶開封 / 重新計時';
-        } else {
-          btnSheetResetText.textContent = '⏱️ 重設起始日 / 開啟新週期';
-        }
+        btnSheetResetText.textContent = '重設週期';
       }
     }
   }
@@ -1771,7 +1757,7 @@
     unlockBodyScroll();
   }
 
-  // 換新 / 重開週期 (具備雙重確認防止誤觸，4 秒未確認自動取消)
+  // 換新 / 重設週期 (具備雙重確認防止誤觸，4 秒未確認自動取消)
   btnSheetReset.addEventListener('click', function () {
     if (!activeSheetItemId) return;
     const item = items.find(it => it.id === activeSheetItemId);
@@ -1781,7 +1767,7 @@
       // 第一次點擊：進入警示確認模式
       isResetConfirming = true;
       updateSheetResetButtonText();
-      showToast('⚠️ 請再次點擊圖示以確認重設時間', 'warning');
+      showToast('請再次點擊以確認重設週期', 'warning');
       resetConfirmTimer = setTimeout(() => {
         clearResetConfirmation();
       }, 4000);

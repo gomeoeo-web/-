@@ -13,14 +13,14 @@ def test_requirements():
 
     errors = []
 
-    # 1. Top-Left Version Badge (1.1, incrementing by 0.1 per change)
+    # 1. Top-Left Version Badge (1.3, incrementing by 0.1 per change)
     if 'id="appVersionBadge"' not in html:
         errors.append("appVersionBadge missing from index.html")
-    if '1.1' not in html:
-        errors.append("Version 1.1 missing from index.html")
+    if '1.3' not in html:
+        errors.append("Version 1.3 missing from index.html")
     if '.app-version-badge' not in css:
         errors.append(".app-version-badge style missing from style.css")
-    if "APP_VERSION = '1.1'" not in js:
+    if "APP_VERSION = '1.3'" not in js:
         errors.append("APP_VERSION constant missing from app.js")
 
     # 1.1 App Name: 期效管家
@@ -28,6 +28,12 @@ def test_requirements():
         errors.append("<title>期效管家</title> missing from index.html")
     if '期效管家備份_' not in js:
         errors.append("期效管家備份_ missing from app.js")
+
+    # 1.2 重設週期 button check
+    if 'id="btnSheetResetText">重設週期</span>' not in html:
+        errors.append("btnSheetResetText with '重設週期' missing in index.html")
+    if "btnSheetResetText.textContent = '重設週期'" not in js:
+        errors.append("btnSheetResetText textContent '重設週期' missing in app.js")
 
     # 2. OLED Pure Black Mode Urgent & Expired Colors
     oled_urgent_badge = '[data-theme="amoled"] .filter-btn-badge.urgent'
