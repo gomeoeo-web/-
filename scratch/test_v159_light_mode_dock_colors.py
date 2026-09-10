@@ -1,7 +1,7 @@
 import sys
 
 def run_tests():
-    print("Testing v1.5.9 Light Mode Dock Tab Relative Color & Contrast Changes...")
+    print("Testing v1.6.0 Light Mode Dock Tab Relative Color & Contrast Changes...")
 
     with open('index.html', 'r', encoding='utf-8') as f:
         html = f.read()
@@ -12,10 +12,10 @@ def run_tests():
     with open('style.css', 'r', encoding='utf-8') as f:
         css = f.read()
 
-    # 1. Version 1.5.9 bump verification
-    assert 'v1.5.9' in html, "index.html should have v1.5.9 badge"
-    assert "APP_VERSION = '1.5.9'" in js or 'APP_VERSION = "1.5.9"' in js, "app.js should have APP_VERSION = '1.5.9'"
-    print("[PASS] Version 1.5.9 verified in index.html and app.js")
+    # 1. Version 1.6.0 bump verification
+    assert 'v1.6.0' in html, "index.html should have v1.6.0 badge"
+    assert "APP_VERSION = '1.6.0'" in js or 'APP_VERSION = "1.6.0"' in js, "app.js should have APP_VERSION = '1.6.0'"
+    print("[PASS] Version 1.6.0 verified in index.html and app.js")
 
     # 2. Check light theme floating island dock styles
     assert '[data-theme="light"] .floating-island-dock' in css, "style.css should have light theme styling for .floating-island-dock"
@@ -37,7 +37,7 @@ def run_tests():
     assert '（' not in html and '）' not in html, "index.html should not contain Chinese parentheses （ or ）"
     print("[PASS] Zero Chinese parentheses rule verified in index.html")
 
-    print("\nAll v1.5.9 tests PASSED successfully!")
+    print("\nAll v1.6.0 tests PASSED successfully!")
 
 if __name__ == '__main__':
     run_tests()

@@ -27,6 +27,7 @@ tests = [
     'scratch/test_v157_current_page_retain_next_top.py',
     'scratch/test_v158_border_distance_and_click_dock_pulse.py',
     'scratch/test_v159_light_mode_dock_colors.py',
+    'scratch/test_v160_settings_modal_scroll.py',
     'scratch/find_parens.py'
 ]
 

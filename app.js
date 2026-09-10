@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.5.9';
+  const APP_VERSION = '1.6.0';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -3094,6 +3094,78 @@
   settingsModal.addEventListener('click', function (e) {
     if (e.target === settingsModal) closeSettingsModal();
   });
+
+  // Settings Modal 滑動支援：標頭拖曳向下滑動極速關閉 ＆ 順暢滾動
+  const settingsModalCard = settingsModal ? settingsModal.querySelector('.ios-modal-card') : null;
+  const settingsScrollList = settingsModal ? settingsModal.querySelector('.ios-settings-list') : null;
+
+  if (settingsModalCard) {
+    let settingsTouchStartY = 0;
+    let settingsTouchStartX = 0;
+    let settingsTouchStartTime = 0;
+    let isDraggingSettings = false;
+    let currentSettingsDy = 0;
+
+    settingsModalCard.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
+        const isHeader = !!e.target.closest('.ios-modal-header');
+        const isAtTop = !settingsScrollList || settingsScrollList.scrollTop <= 2;
+        if (isHeader || isAtTop) {
+          settingsTouchStartY = e.touches[0].clientY;
+          settingsTouchStartX = e.touches[0].clientX;
+          settingsTouchStartTime = Date.now();
+          isDraggingSettings = false;
+          currentSettingsDy = 0;
+        }
+      }
+    }, { passive: true });
+
+    settingsModalCard.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
+        const touchY = e.touches[0].clientY;
+        const dy = touchY - settingsTouchStartY;
+        const dx = Math.abs(e.touches[0].clientX - settingsTouchStartX);
+        const isHeader = !!e.target.closest('.ios-modal-header');
+        const isAtTop = !settingsScrollList || settingsScrollList.scrollTop <= 2;
+
+        if ((isHeader || isAtTop) && dy > 6 && dy > dx * 0.8) {
+          isDraggingSettings = true;
+          currentSettingsDy = dy;
+          if (e.cancelable) e.preventDefault();
+          settingsModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+          settingsModalCard.style.transition = 'none';
+        }
+      }
+    }, { passive: false });
+
+    function handleSettingsTouchEnd() {
+      if (isDraggingSettings && !settingsModal.classList.contains('modal-closing')) {
+        isDraggingSettings = false;
+        const dt = Math.max(1, Date.now() - settingsTouchStartTime);
+        const velocityY = currentSettingsDy / dt;
+
+        if (currentSettingsDy > 50 || (velocityY > 0.25 && currentSettingsDy > 20)) {
+          settingsModalCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
+          settingsModalCard.style.transform = 'translateY(100%)';
+          setTimeout(() => {
+            closeSettingsModal();
+            settingsModalCard.style.transform = '';
+            settingsModalCard.style.transition = '';
+          }, 180);
+        } else {
+          settingsModalCard.style.transition = 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)';
+          settingsModalCard.style.transform = 'translateY(0)';
+          setTimeout(() => {
+            settingsModalCard.style.transform = '';
+            settingsModalCard.style.transition = '';
+          }, 200);
+        }
+      }
+    }
+
+    settingsModalCard.addEventListener('touchend', handleSettingsTouchEnd, { passive: true });
+    settingsModalCard.addEventListener('touchcancel', handleSettingsTouchEnd, { passive: true });
+  }
 
   btnToggleThemeSetting.addEventListener('click', function () {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';

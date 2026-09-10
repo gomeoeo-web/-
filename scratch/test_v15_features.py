@@ -45,11 +45,11 @@ def verify_v15():
         if expected not in css:
             errors.append(f"Safe edge bounds missing for screen fit {fit} in style.css")
 
-    # 4. Version 1.5.9 check
-    if '<span class="app-version-badge" id="appVersionBadge">v1.5.9</span>' not in html:
-        errors.append("Version badge v1.5.9 missing in index.html")
-    if "const APP_VERSION = '1.5.9';" not in js:
-        errors.append("APP_VERSION 1.5.9 missing in app.js")
+    # 4. Version 1.6.0 check
+    if '<span class="app-version-badge" id="appVersionBadge">v1.6.0</span>' not in html:
+        errors.append("Version badge v1.6.0 missing in index.html")
+    if "const APP_VERSION = '1.6.0';" not in js:
+        errors.append("APP_VERSION 1.6.0 missing in app.js")
 
     # 4.0 Check 移出此群組 button
     if 'id="btnSheetRemoveGroup"' not in html:

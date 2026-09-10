@@ -2,7 +2,7 @@ import sys
 import re
 
 def test_v158():
-    print("Testing v1.5.9 Reduced Border Distance & Click-Only Dock Enlarge Bounce Effect...")
+    print("Testing v1.6.0 Reduced Border Distance & Click-Only Dock Enlarge Bounce Effect...")
 
     with open('index.html', 'r', encoding='utf-8') as f:
         html = f.read()
@@ -13,10 +13,10 @@ def test_v158():
     with open('style.css', 'r', encoding='utf-8') as f:
         css = f.read()
 
-    # 1. Check version bump to 1.5.9
-    assert 'v1.5.9' in html, "index.html should have v1.5.9 badge"
-    assert "APP_VERSION = '1.5.9'" in js or 'APP_VERSION = "1.5.9"' in js, "app.js should have APP_VERSION = '1.5.9'"
-    print("[PASS] Version 1.5.9 verified in index.html and app.js")
+    # 1. Check version bump to 1.6.0
+    assert 'v1.6.0' in html, "index.html should have v1.6.0 badge"
+    assert "APP_VERSION = '1.6.0'" in js or 'APP_VERSION = "1.6.0"' in js, "app.js should have APP_VERSION = '1.6.0'"
+    print("[PASS] Version 1.6.0 verified in index.html and app.js")
 
     # 2. Check reduced edge distance in style.css
     assert 'calc(100vw - 0.75rem)' in css, ".ios-app-container should have reduced edge distance with calc(100vw - 0.75rem)"
@@ -44,7 +44,7 @@ def test_v158():
             raise AssertionError(f"Chinese parentheses found in index.html line {idx}: {text_outside_tags}")
     print("[PASS] Zero Chinese parentheses in visible index.html verified")
 
-    print("\nAll v1.5.9 tests PASSED successfully!")
+    print("\nAll v1.6.0 tests PASSED successfully!")
 
 if __name__ == '__main__':
     test_v158()

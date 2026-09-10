@@ -1252,6 +1252,9 @@ html, body {
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(90vh - 65px);
 }
 
 #itemForm {
@@ -2358,6 +2361,16 @@ input[type="time"]::-webkit-date-and-time-value {
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.25rem;
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(90vh - 65px);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .settings-group {
