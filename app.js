@@ -12,14 +12,17 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  // ==========================================
-  const STORAGE_KEY = 'lifespan_tracker_ios_v9';
+  const STORAGE_KEY = 'lifespan_tracker_ios_v10';
+  const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
   const CUSTOM_CATEGORIES_KEY = 'lifespan_tracker_custom_categories_v1';
   const HOME_SORT_KEY = 'lifespan_tracker_home_sort';
   const FIRST_PAGE_CAT_KEY = 'lifespan_tracker_first_page_cat';
   const CUSTOM_ORDER_KEY = 'lifespan_tracker_custom_order_v1';
   const CATEGORY_ORDER_KEY = 'lifespan_tracker_category_order_v1';
+  const RECENTLY_DELETED_KEY = 'lifespan_recently_deleted_v1';
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const DEVICE_INITIALIZED_KEY = 'lifespan_device_initialized_v1';
 
   // 第一頁至第二十頁分頁常數
   const PAGE_NAMES = [
@@ -391,149 +394,10 @@
     return new Intl.NumberFormat('en-US').format(num);
   }
 
-  // 產生示範資料（包含我的椅子、汽車機油、訂閱、眼藥水、菜瓜布、濾網等，滿足多樣化限時需求）
+  // 產生預設範例資料（裝置首次點開預設一項牛奶物品當範例）
   function createSeedItems() {
     const today = getTodayString();
     return [
-      {
-        id: 'seed-chair',
-        name: '我的椅子',
-        category: 'warranty',
-        subCategory: '家具',
-        emoji: '🪑',
-        image: CHAIR_SVG_BASE64,
-        location: '書房',
-        brand: 'Herman Miller',
-        startDate: getOffsetDateString(today, -12),
-        endDate: getOffsetDateString(today, 1085),
-        durationDays: 1097,
-        hasEndDate: true,
-        warnDays: 30,
-        notes: '原廠 3 年結構與氣壓棒保固',
-        history: [],
-        createdAt: Date.now() - 12 * 86400000
-      },
-      {
-        id: 'seed-caroil',
-        name: '汽車機油',
-        category: 'vehicle',
-        subCategory: '機油',
-        emoji: '🚗',
-        location: '車庫',
-        brand: 'Mobil 1 全合成',
-        startDate: getOffsetDateString(today, -45),
-        endDate: getOffsetDateString(today, 135),
-        durationDays: 180,
-        hasEndDate: true,
-        warnDays: 14,
-        notes: '每半年或 5,000 公里定期換油保養',
-        history: [],
-        createdAt: Date.now() - 45 * 86400000
-      },
-      {
-        id: 'seed-subscription',
-        name: '串流影音',
-        category: 'subscription',
-        subCategory: '影音',
-        emoji: '🎬',
-        location: '線上自動扣款',
-        brand: 'Netflix 4K',
-        startDate: getOffsetDateString(today, -18),
-        endDate: getOffsetDateString(today, 12),
-        durationDays: 30,
-        hasEndDate: true,
-        warnDays: 3,
-        notes: '每月固定扣款前檢查是否續約',
-        history: [],
-        createdAt: Date.now() - 18 * 86400000
-      },
-      {
-        id: 'seed-eyedrops',
-        name: '保濕眼藥水',
-        category: 'medicine',
-        subCategory: '眼藥水',
-        emoji: '💊',
-        location: '辦公桌抽屜',
-        brand: '保濕眼藥水',
-        startDate: getOffsetDateString(today, -22),
-        endDate: getOffsetDateString(today, 8),
-        durationDays: 30,
-        hasEndDate: true,
-        warnDays: 10,
-        notes: '開封後 30 天內使用完畢，防細菌滋生',
-        history: [],
-        createdAt: Date.now() - 22 * 86400000
-      },
-      {
-        id: 'seed-sponge',
-        name: '廚房菜瓜布',
-        category: 'cleaning',
-        subCategory: '菜瓜布',
-        emoji: '🧼',
-        location: '洗水槽',
-        brand: '3M 百利',
-        startDate: getOffsetDateString(today, -15),
-        endDate: getOffsetDateString(today, 15),
-        durationDays: 30,
-        hasEndDate: true,
-        warnDays: 5,
-        notes: '每月定期換新防黴菌',
-        history: [],
-        createdAt: Date.now() - 15 * 86400000
-      },
-      {
-        id: 'seed-filter',
-        name: '清淨機濾網',
-        category: 'filter',
-        subCategory: '濾網',
-        emoji: '🌀',
-        location: '客廳',
-        brand: 'Honeywell HPA-200',
-        startDate: getOffsetDateString(today, -90),
-        endDate: getOffsetDateString(today, 90),
-        durationDays: 180,
-        hasEndDate: true,
-        warnDays: 14,
-        notes: '維持客廳空氣品質，定期換新',
-        history: [
-          { resetDate: getOffsetDateString(today, -270), daysUsed: 180, note: '換上第 2 組濾網' }
-        ],
-        createdAt: Date.now() - 90 * 86400000
-      },
-      {
-        id: 'seed-vegetable',
-        name: '當季新鮮青菜',
-        category: 'food',
-        subCategory: '青菜',
-        emoji: '🥬',
-        location: '冰箱蔬果室',
-        brand: '水耕蔬菜',
-        startDate: getOffsetDateString(today, -2),
-        endDate: getOffsetDateString(today, 3),
-        durationDays: 5,
-        hasEndDate: true,
-        warnDays: 2,
-        notes: '綠葉蔬菜保鮮期約 3~5 天，建議盡早食用',
-        history: [],
-        createdAt: Date.now() - 2 * 86400000
-      },
-      {
-        id: 'seed-fruit',
-        name: '當季新鮮水果',
-        category: 'food',
-        subCategory: '水果',
-        emoji: '🍎',
-        location: '水果籃/冷藏',
-        brand: '蘋果/芭樂',
-        startDate: getOffsetDateString(today, -3),
-        endDate: getOffsetDateString(today, 4),
-        durationDays: 7,
-        hasEndDate: true,
-        warnDays: 2,
-        notes: '新鮮水果建議一週內享用完畢',
-        history: [],
-        createdAt: Date.now() - 3 * 86400000
-      },
       {
         id: 'seed-milk',
         name: '全脂鮮乳',
@@ -541,29 +405,15 @@
         subCategory: '鮮乳',
         emoji: '🥛',
         location: '冰箱冷藏',
-        brand: '鮮乳',
-        startDate: getOffsetDateString(today, -9),
-        endDate: getOffsetDateString(today, 3),
-        durationDays: 12,
+        brand: '優質全脂牛奶',
+        startDate: getOffsetDateString(today, -3),
+        endDate: getOffsetDateString(today, 4),
+        durationDays: 7,
         hasEndDate: true,
-        warnDays: 3,
-        notes: '開封後請於 7 天內飲用完畢',
+        warnDays: 2,
+        notes: '低溫冷藏保存，開封後請於 7 天內飲用完畢',
         history: [],
-        createdAt: Date.now() - 9 * 86400000
-      },
-      {
-        id: 'seed-sneakers',
-        name: '慢跑球鞋',
-        category: 'other',
-        subCategory: '球鞋',
-        emoji: '👟',
-        location: '玄關',
-        brand: 'Nike Invincible',
-        startDate: getOffsetDateString(today, -85),
-        hasEndDate: false,
-        notes: '僅記錄購買穿著天數，定期檢視鞋底磨損',
-        history: [],
-        createdAt: Date.now() - 85 * 86400000
+        createdAt: Date.now() - 3 * 86400000
       }
     ];
   }
@@ -640,18 +490,91 @@
   let currentUploadedImage = null; // base64 string or null
   let isManualEmojiSet = false; // 是否手動指定過 emoji
 
+  function isDeviceAlreadyInitialized() {
+    if (localStorage.getItem(DEVICE_INITIALIZED_KEY) === 'true') {
+      return true;
+    }
+    // 檢查是否有任何本程式的既有設定或儲存記錄
+    const existingKeys = [
+      STORAGE_KEY,
+      OLD_STORAGE_KEY_V9,
+      'lifespan_tracker_ios_v8',
+      'lifespan_tracker_ios_v7',
+      'lifespan_tracker_items',
+      THEME_KEY,
+      SCREEN_FIT_KEY,
+      CUSTOM_CATEGORIES_KEY,
+      CATEGORY_ORDER_KEY,
+      HOME_SORT_KEY,
+      FIRST_PAGE_CAT_KEY,
+      RECENTLY_DELETED_KEY
+    ];
+    for (const k of existingKeys) {
+      if (localStorage.getItem(k) !== null) {
+        localStorage.setItem(DEVICE_INITIALIZED_KEY, 'true');
+        return true;
+      }
+    }
+    return false;
+  }
+
   function loadItems() {
+    const alreadyInitialized = isDeviceAlreadyInitialized();
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        items = JSON.parse(stored);
+      if (stored !== null) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          items = parsed;
+          localStorage.setItem(DEVICE_INITIALIZED_KEY, 'true');
+          return;
+        }
+      }
+
+      // 檢查舊版本進行無縫繼承
+      const legacyKeys = [
+        OLD_STORAGE_KEY_V9,
+        'lifespan_tracker_ios_v8',
+        'lifespan_tracker_ios_v7',
+        'lifespan_tracker_items'
+      ];
+      for (const oldKey of legacyKeys) {
+        const oldStored = localStorage.getItem(oldKey);
+        if (oldStored !== null) {
+          try {
+            const oldItems = JSON.parse(oldStored);
+            if (Array.isArray(oldItems)) {
+              items = oldItems;
+              saveItems();
+              localStorage.setItem(DEVICE_INITIALIZED_KEY, 'true');
+              return;
+            }
+          } catch (e) {}
+        }
+      }
+
+      // 若裝置先前已開啟過程式（已有設定或先前已初始化）：
+      // 即使 items 目前為空清單，也一概保留為空，絕對不再自動加入牛奶範本
+      if (alreadyInitialized) {
+        items = [];
+        saveItems();
+        return;
+      }
+
+      // 僅在真正全新、從未開啟過程式的純新裝置上，才預設單一牛奶範本
+      items = createSeedItems();
+      saveItems();
+      localStorage.setItem(DEVICE_INITIALIZED_KEY, 'true');
+    } catch (e) {
+      console.error(e);
+      if (alreadyInitialized) {
+        items = [];
       } else {
         items = createSeedItems();
         saveItems();
+        localStorage.setItem(DEVICE_INITIALIZED_KEY, 'true');
       }
-    } catch (e) {
-      console.error(e);
-      items = createSeedItems();
     }
   }
 
@@ -662,6 +585,204 @@
       console.error('Save failed:', e);
       showToast('儲存失敗，可能超過儲存空間上限');
     }
+  }
+
+  // ==========================================
+  // 最近刪除回收站 (保留 7 天，7 天後自動清除)
+  // ==========================================
+  let recentlyDeletedItems = [];
+
+  function loadRecentlyDeleted() {
+    try {
+      const stored = localStorage.getItem(RECENTLY_DELETED_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const now = Date.now();
+          // 自動清除超過 7 天之項目
+          recentlyDeletedItems = parsed.filter(item => {
+            if (!item.deletedAt) return false;
+            return (now - item.deletedAt) < SEVEN_DAYS_MS;
+          });
+          saveRecentlyDeleted(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load recently deleted items:', e);
+    }
+    recentlyDeletedItems = [];
+  }
+
+  function saveRecentlyDeleted(notifyBadge = true) {
+    try {
+      localStorage.setItem(RECENTLY_DELETED_KEY, JSON.stringify(recentlyDeletedItems));
+    } catch (e) {
+      console.error('Failed to save recently deleted items:', e);
+    }
+    if (notifyBadge) {
+      updateTrashBadge();
+    }
+  }
+
+  function updateTrashBadge() {
+    const badge = document.getElementById('trashBadgeCount');
+    const descText = document.getElementById('settingsTrashCountText');
+    const count = recentlyDeletedItems.length;
+
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
+    if (descText) {
+      if (count > 0) {
+        descText.textContent = `目前有 ${count} 項已刪除物品，保留 7 天後自動清除`;
+      } else {
+        descText.textContent = '保留 7 天內刪除之物品，7 天後自動清除';
+      }
+    }
+  }
+
+  function moveToRecentlyDeleted(item) {
+    if (!item) return;
+    const trashEntry = {
+      ...item,
+      deletedAt: Date.now()
+    };
+    recentlyDeletedItems.unshift(trashEntry);
+    saveRecentlyDeleted(true);
+  }
+
+  function restoreItemFromTrash(id) {
+    const idx = recentlyDeletedItems.findIndex(it => it.id === id);
+    if (idx === -1) return;
+    const [trashEntry] = recentlyDeletedItems.splice(idx, 1);
+    const restoredItem = { ...trashEntry };
+    delete restoredItem.deletedAt;
+
+    if (!items.some(it => it.id === restoredItem.id)) {
+      items.unshift(restoredItem);
+    }
+    saveItems();
+    saveRecentlyDeleted(true);
+    renderRecentlyDeletedList();
+    renderApp();
+    showToast(`已復原「${restoredItem.name}」至清單`);
+  }
+
+  function restoreAllFromTrash() {
+    if (recentlyDeletedItems.length === 0) return;
+    const count = recentlyDeletedItems.length;
+    const restored = recentlyDeletedItems.map(item => {
+      const copy = { ...item };
+      delete copy.deletedAt;
+      return copy;
+    });
+
+    const currentIdSet = new Set(items.map(it => it.id));
+    restored.forEach(r => {
+      if (!currentIdSet.has(r.id)) {
+        items.unshift(r);
+        currentIdSet.add(r.id);
+      }
+    });
+
+    recentlyDeletedItems = [];
+    saveItems();
+    saveRecentlyDeleted(true);
+    renderRecentlyDeletedList();
+    renderApp();
+    showToast(`已成功復原全部 ${count} 項物品！`);
+  }
+
+  function permanentlyDeleteItem(id) {
+    const item = recentlyDeletedItems.find(it => it.id === id);
+    const name = item ? item.name : '物品';
+    if (!window.confirm(`確定要永久刪除「${name}」嗎？\n永久刪除後將無法復原。`)) {
+      return;
+    }
+    recentlyDeletedItems = recentlyDeletedItems.filter(it => it.id !== id);
+    saveRecentlyDeleted(true);
+    renderRecentlyDeletedList();
+    showToast(`已永久刪除「${name}」`);
+  }
+
+  function emptyTrash() {
+    if (recentlyDeletedItems.length === 0) return;
+    if (!window.confirm(`確定要清空最近刪除中的所有項目嗎？\n清空後將永久刪除且無法復原。`)) {
+      return;
+    }
+    const count = recentlyDeletedItems.length;
+    recentlyDeletedItems = [];
+    saveRecentlyDeleted(true);
+    renderRecentlyDeletedList();
+    showToast(`已清空最近刪除共 ${count} 項物品`);
+  }
+
+  function renderRecentlyDeletedList() {
+    const listEl = document.getElementById('recentlyDeletedList');
+    const emptyEl = document.getElementById('recentlyDeletedEmpty');
+    const actionsBar = document.getElementById('trashActionsBar');
+    if (!listEl) return;
+
+    if (recentlyDeletedItems.length === 0) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = 'block';
+      if (actionsBar) actionsBar.style.display = 'none';
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (actionsBar) actionsBar.style.display = 'flex';
+
+    const allCats = getAllCategories();
+    const now = Date.now();
+
+    listEl.innerHTML = recentlyDeletedItems.map(item => {
+      const elapsedMs = now - (item.deletedAt || now);
+      const remainingMs = Math.max(0, SEVEN_DAYS_MS - elapsedMs);
+      const daysRemaining = Math.max(1, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+      const catLabel = allCats[item.category]?.label || item.category || '未分類';
+
+      let mediaHtml = '';
+      if (item.image) {
+        mediaHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+      } else {
+        mediaHtml = escapeHtml(item.emoji || '📦');
+      }
+
+      return `
+        <div class="trash-item-card" data-id="${item.id}">
+          <div class="trash-item-left">
+            <div class="trash-item-emoji">${mediaHtml}</div>
+            <div class="trash-item-info">
+              <span class="trash-item-title">${escapeHtml(item.name)}</span>
+              <div class="trash-item-meta">
+                <span class="trash-days-left ${daysRemaining <= 2 ? 'urgent' : ''}">剩餘 ${daysRemaining} 天自動清除</span>
+                <span class="trash-item-cat">${escapeHtml(catLabel)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="trash-item-actions">
+            <button type="button" class="btn-restore-item" data-id="${item.id}" title="復原此項目">復原</button>
+            <button type="button" class="btn-delete-perm" data-id="${item.id}" title="立即永久刪除">永久刪除</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openRecentlyDeletedModal() {
+    renderRecentlyDeletedList();
+    const modal = document.getElementById('recentlyDeletedModal');
+    if (modal) modal.style.display = 'flex';
+    lockBodyScroll();
+  }
+
+  function closeRecentlyDeletedModal() {
+    const modal = document.getElementById('recentlyDeletedModal');
+    if (modal) modal.style.display = 'none';
+    unlockBodyScroll();
   }
 
   // ==========================================
@@ -696,6 +817,8 @@
 
     if (remainingDays < 0) {
       status = 'expired';
+    } else if (remainingDays <= 3) {
+      status = 'urgent';
     } else if (item.reminderType === 'custom' && item.reminderDate) {
       if (today >= item.reminderDate) {
         status = 'urgent';
@@ -802,8 +925,11 @@
     items.forEach(item => {
       const m = calculateMetrics(item);
       if (m.hasEndDate) {
-        if (m.status === 'urgent') urgent++;
-        else if (m.status === 'expired') expired++;
+        if (m.status === 'expired') {
+          expired++;
+        } else if (m.status === 'urgent') {
+          urgent++;
+        }
       }
     });
 
@@ -811,27 +937,56 @@
     pillCountUrgent.textContent = urgent;
     pillCountExpired.textContent = expired;
 
-    if (expired > 0) {
-      noticeIconWrapper.className = 'notice-icon-wrapper expired';
-      noticeIconWrapper.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-      `;
-      noticeTitle.textContent = `有 ${expired} 項物品已過期`;
-      noticeDesc.textContent = '建議盡速更換新耗材或處理過期食品';
-    } else if (urgent > 0) {
-      noticeIconWrapper.className = 'notice-icon-wrapper warning';
-      noticeIconWrapper.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      `;
-      noticeTitle.textContent = `有 ${urgent} 項物品即將到期`;
-      noticeDesc.textContent = '將到期！請留意備妥耗材或及時使用';
+    const noticeStatusTag = document.getElementById('noticeStatusTag');
+    const noticeStatusText = document.getElementById('noticeStatusText');
+
+    // 提示欄不需顯示細項，只需顯示有幾項已過期或將到期
+    if (noticeDesc) {
+      noticeDesc.textContent = '';
+      noticeDesc.style.display = 'none';
+    }
+
+    if (expired > 0 || urgent > 0) {
+      if (expired > 0) {
+        noticeIconWrapper.className = 'notice-icon-wrapper expired';
+        noticeIconWrapper.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        `;
+        if (noticeStatusTag) noticeStatusTag.className = 'notice-status-tag expired';
+        if (noticeStatusText) noticeStatusText.textContent = urgent > 0 ? '已過期 · 即將到期' : '已過期';
+      } else {
+        noticeIconWrapper.className = 'notice-icon-wrapper warning';
+        noticeIconWrapper.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        `;
+        if (noticeStatusTag) noticeStatusTag.className = 'notice-status-tag warning';
+        if (noticeStatusText) noticeStatusText.textContent = '即將到期';
+      }
+
+      if (expired > 0 && urgent > 0) {
+        noticeTitle.textContent = `有 ${expired} 項已過期、${urgent} 項即將到期`;
+      } else if (expired > 0) {
+        noticeTitle.textContent = `有 ${expired} 項已過期`;
+      } else {
+        noticeTitle.textContent = `有 ${urgent} 項即將到期`;
+      }
     } else {
       noticeIconWrapper.className = 'notice-icon-wrapper';
       noticeIconWrapper.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
       `;
       noticeTitle.textContent = '今天都在週期內';
-      noticeDesc.textContent = '目前沒有將到期或已過期的物品';
+      if (noticeStatusTag) noticeStatusTag.className = 'notice-status-tag';
+      if (noticeStatusText) noticeStatusText.textContent = '正常';
+    }
+
+    const btnCleanExpired = document.getElementById('btnCleanExpired');
+    if (btnCleanExpired) {
+      if (expired > 0) {
+        btnCleanExpired.style.display = 'inline-flex';
+      } else {
+        btnCleanExpired.style.display = 'none';
+      }
     }
   }
 
@@ -1006,6 +1161,16 @@
       progressFillStyle = `width: ${m.percent}%;`;
     }
 
+    // 物品進度條三天內到期與將到期顯示顏色與將到期菜單的數字顏色相同 (var(--ios-orange))，已過期物品進度條與已過期菜單數字顏色相同 (var(--ios-red))
+    let progressFillClass = '';
+    if (m.hasEndDate) {
+      if (m.status === 'expired') {
+        progressFillClass = 'expired';
+      } else if (m.status === 'urgent') {
+        progressFillClass = 'urgent';
+      }
+    }
+
     card.innerHTML = `
       <div>
         <!-- Top Row: Icon/Photo container + Category label -->
@@ -1032,7 +1197,7 @@
 
       <!-- Progress Bar at bottom of card -->
       <div class="card-progress-bar">
-        <div class="card-progress-fill ${m.hasEndDate ? m.status : ''}" style="${progressFillStyle}"></div>
+        <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle}"></div>
       </div>
     `;
 
@@ -1083,13 +1248,18 @@
     let todayList = items.filter(item => {
       const m = calculateMetrics(item);
       if (currentPillFilter === 'urgent') {
-        if (!m.hasEndDate || m.status !== 'urgent') return false;
+        return m.hasEndDate && m.status === 'urgent';
       } else if (currentPillFilter === 'expired') {
-        if (!m.hasEndDate || m.status !== 'expired') return false;
+        return m.hasEndDate && m.status === 'expired';
       }
       return true;
     });
     todayList = sortItemsList(todayList);
+
+    // 同步頂部選單按鈕（全部 / 將到期 / 已過期） active 狀態
+    document.querySelectorAll('.home-filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === currentPillFilter);
+    });
 
     if (itemsGrid) {
       itemsGrid.innerHTML = '';
@@ -1115,7 +1285,13 @@
 
     const sortToolbarCount = document.getElementById('sortToolbarCount');
     if (sortToolbarCount) {
-      sortToolbarCount.textContent = `共 ${todayList.length} 項物品`;
+      if (currentPillFilter === 'urgent') {
+        sortToolbarCount.textContent = `將到期 共 ${todayList.length} 項物品`;
+      } else if (currentPillFilter === 'expired') {
+        sortToolbarCount.textContent = `已過期 共 ${todayList.length} 項物品`;
+      } else {
+        sortToolbarCount.textContent = `共 ${todayList.length} 項物品`;
+      }
     }
     const sortPillLabel = document.getElementById('sortPillLabel');
     if (sortPillLabel) {
@@ -1433,7 +1609,7 @@
   function openDeleteConfirmModal(item) {
     if (!deleteConfirmModal || !item) return;
     if (deleteConfirmItemDesc) {
-      deleteConfirmItemDesc.textContent = `刪除後將無法復原「${item.name}」的所有記錄與週期資料`;
+      deleteConfirmItemDesc.textContent = `將「${item.name}」移至最近刪除，系統將保留 7 天後自動清除`;
     }
     deleteConfirmModal.style.display = 'flex';
     lockBodyScroll();
@@ -1469,14 +1645,16 @@
     btnConfirmDeleteItem.addEventListener('click', function () {
       if (!activeSheetItemId) return;
       const item = items.find(it => it.id === activeSheetItemId);
+      if (item) {
+        moveToRecentlyDeleted(item);
+      }
       const deletedName = item ? item.name : '物品';
       items = items.filter(it => it.id !== activeSheetItemId);
       saveItems();
       closeDeleteConfirmModal();
       closeActionSheet();
       renderApp();
-      showToast(`🗑️ 已成功刪除「${deletedName}」`);
-      autoSyncIfLoggedIn();
+      showToast(`🗑️ 已將「${deletedName}」移至最近刪除，保留 7 天`);
     });
   }
 
@@ -2516,9 +2694,33 @@
   const importJsonFile = document.getElementById('importJsonFile');
   const btnRestoreDemoData = document.getElementById('btnRestoreDemoData');
 
+  function setTheme(themeName, save = true) {
+    const validTheme = ['dark', 'amoled', 'light'].includes(themeName) ? themeName : 'dark';
+    document.documentElement.setAttribute('data-theme', validTheme);
+    if (save) {
+      localStorage.setItem(THEME_KEY, validTheme);
+    }
+    const metaThemeColor = document.getElementById('metaThemeColor');
+    if (metaThemeColor) {
+      if (validTheme === 'amoled') metaThemeColor.setAttribute('content', '#000000');
+      else if (validTheme === 'light') metaThemeColor.setAttribute('content', '#f2f2f7');
+      else metaThemeColor.setAttribute('content', '#121212');
+    }
+    if (settingsThemeText) {
+      if (validTheme === 'amoled') settingsThemeText.textContent = '目前為 OLED純黑 模式';
+      else if (validTheme === 'light') settingsThemeText.textContent = '目前為明亮淺色模式';
+      else settingsThemeText.textContent = '目前為深色灰黑模式';
+    }
+  }
+
   function openSettingsModal() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    settingsThemeText.textContent = currentTheme === 'dark' ? '目前為極黑模式' : '目前為明亮模式';
+    if (settingsThemeText) {
+      if (currentTheme === 'amoled') settingsThemeText.textContent = '目前為 OLED純黑 模式';
+      else if (currentTheme === 'light') settingsThemeText.textContent = '目前為明亮淺色模式';
+      else settingsThemeText.textContent = '目前為深色灰黑模式';
+    }
+    updateTrashBadge();
     settingsModal.style.display = 'flex';
     lockBodyScroll();
   }
@@ -2535,13 +2737,67 @@
   });
 
   btnToggleThemeSetting.addEventListener('click', function () {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem(THEME_KEY, next);
-    settingsThemeText.textContent = next === 'dark' ? '目前為極黑模式' : '目前為明亮模式';
-    showToast(next === 'dark' ? '已切換為極黑模式' : '已切換為明亮模式');
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    let next = 'dark';
+    if (current === 'dark') next = 'amoled';
+    else if (current === 'amoled') next = 'light';
+    else next = 'dark';
+
+    setTheme(next, true);
+
+    if (next === 'amoled') showToast('已切換為 OLED純黑 模式');
+    else if (next === 'light') showToast('已切換為明亮淺色模式');
+    else showToast('已切換為深色灰黑模式');
   });
+
+  // 最近刪除回收站彈窗監聽
+  const btnOpenRecentlyDeleted = document.getElementById('btnOpenRecentlyDeleted');
+  const btnCloseRecentlyDeletedModal = document.getElementById('btnCloseRecentlyDeletedModal');
+  const recentlyDeletedModal = document.getElementById('recentlyDeletedModal');
+  const btnRestoreAllTrash = document.getElementById('btnRestoreAllTrash');
+  const btnEmptyTrash = document.getElementById('btnEmptyTrash');
+  const recentlyDeletedList = document.getElementById('recentlyDeletedList');
+
+  if (btnOpenRecentlyDeleted) {
+    btnOpenRecentlyDeleted.addEventListener('click', function () {
+      openRecentlyDeletedModal();
+    });
+  }
+
+  if (btnCloseRecentlyDeletedModal) {
+    btnCloseRecentlyDeletedModal.addEventListener('click', closeRecentlyDeletedModal);
+  }
+
+  if (recentlyDeletedModal) {
+    recentlyDeletedModal.addEventListener('click', function (e) {
+      if (e.target === recentlyDeletedModal) closeRecentlyDeletedModal();
+    });
+  }
+
+  if (btnRestoreAllTrash) {
+    btnRestoreAllTrash.addEventListener('click', restoreAllFromTrash);
+  }
+
+  if (btnEmptyTrash) {
+    btnEmptyTrash.addEventListener('click', emptyTrash);
+  }
+
+  if (recentlyDeletedList) {
+    recentlyDeletedList.addEventListener('click', function (e) {
+      const restoreBtn = e.target.closest('.btn-restore-item');
+      if (restoreBtn) {
+        const id = restoreBtn.dataset.id;
+        if (id) restoreItemFromTrash(id);
+        return;
+      }
+      const deleteBtn = e.target.closest('.btn-delete-perm');
+      if (deleteBtn) {
+        const id = deleteBtn.dataset.id;
+        if (id) permanentlyDeleteItem(id);
+        return;
+      }
+    });
+  }
 
   btnToggleNotification.addEventListener('click', async function () {
     if (!('Notification' in window)) {
@@ -2613,7 +2869,6 @@
   const segmentedPillsBar = document.getElementById('segmentedPillsBar');
   const inventoryControls = document.getElementById('inventoryControls');
   const homeSortToolbar = document.getElementById('homeSortToolbar');
-  const homeSortSelect = document.getElementById('homeSortSelect');
 
   // 頂部選單按鈕（全部 / 將到期 / 已過期）點擊切換與篩選
   const homeFilterBtns = document.querySelectorAll('.home-filter-btn');
@@ -2625,36 +2880,38 @@
     });
   });
 
-  // 點擊「即將到期」狀態卡片，自動啟用「將到期」按鈕並篩選顯示將到期物品
-  if (statusNoticeCard) {
-    statusNoticeCard.addEventListener('click', function () {
-      currentPillFilter = 'urgent';
-      homeFilterBtns.forEach(b => b.classList.toggle('active', b.id === 'pillUrgent'));
-      renderCards();
-      const firstUrgentCard = document.querySelector('.ios-item-card');
-      if (firstUrgentCard) {
-        firstUrgentCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    });
-  }
+  // 提醒欄為不可點擊之純資訊卡，狀態即時同步，篩選請透過下方之按鈕群組操作
+  // statusNoticeCard is non-clickable
 
-  // 物品排序選單（原生下拉選單）
-  if (homeSortSelect) {
-    homeSortSelect.value = currentSortMode;
-    homeSortSelect.addEventListener('change', function () {
-      currentSortMode = this.value;
-      localStorage.setItem(HOME_SORT_KEY, currentSortMode);
-      const SORT_LABEL_MAP = {
-        expiry_asc: '到期日 升冪',
-        expiry_desc: '到期日 降冪',
-        created_desc: '加入時間 降冪',
-        created_asc: '加入時間 升冪'
-      };
-      const sortPillLabel = document.getElementById('sortPillLabel');
-      if (sortPillLabel) {
-        sortPillLabel.textContent = SORT_LABEL_MAP[currentSortMode] || '到期日 升冪';
+  // 一鍵將已過期物品移至「最近刪除」
+  const btnCleanExpired = document.getElementById('btnCleanExpired');
+  if (btnCleanExpired) {
+    btnCleanExpired.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const expiredItems = items.filter(it => {
+        const m = calculateMetrics(it);
+        return m.hasEndDate && m.status === 'expired';
+      });
+
+      if (expiredItems.length === 0) {
+        showToast('目前沒有已過期的物品');
+        return;
       }
-      renderCards();
+
+      const count = expiredItems.length;
+      if (!window.confirm(`確定要將 ${count} 項已過期物品移至「最近刪除」嗎？\n移至最近刪除後保留 7 天，可隨時至設定中復原。`)) {
+        return;
+      }
+
+      const expiredIdSet = new Set(expiredItems.map(it => it.id));
+      expiredItems.forEach(item => {
+        moveToRecentlyDeleted(item);
+      });
+
+      items = items.filter(it => !expiredIdSet.has(it.id));
+      saveItems();
+      renderApp();
+      showToast(`已將 ${count} 項已過期物品移至最近刪除，保留 7 天`);
     });
   }
 
@@ -2820,6 +3077,45 @@
   // ==========================================
   const viewsSliderTrack = document.getElementById('viewsSliderTrack');
   const viewsSliderViewport = document.getElementById('viewsSliderViewport');
+  const viewPanelToday = document.getElementById('viewPanelToday');
+  const viewPanelInventory = document.getElementById('viewPanelInventory');
+  let panelSwitchSettleTimer = null;
+
+  function setPanelsSwipingState(swiping) {
+    if (viewsSliderViewport) {
+      if (swiping) {
+        viewsSliderViewport.classList.add('is-swiping');
+      } else {
+        viewsSliderViewport.classList.remove('is-swiping');
+      }
+    }
+    if (swiping) {
+      if (viewPanelToday) viewPanelToday.style.visibility = 'visible';
+      if (viewPanelInventory) viewPanelInventory.style.visibility = 'visible';
+    }
+  }
+
+  function setActivePanel(tab) {
+    const isToday = (tab === 'today');
+    if (viewPanelToday) {
+      if (isToday) {
+        viewPanelToday.classList.add('active-panel');
+        viewPanelToday.style.visibility = 'visible';
+      } else {
+        viewPanelToday.classList.remove('active-panel');
+        viewPanelToday.style.visibility = 'hidden';
+      }
+    }
+    if (viewPanelInventory) {
+      if (!isToday) {
+        viewPanelInventory.classList.add('active-panel');
+        viewPanelInventory.style.visibility = 'visible';
+      } else {
+        viewPanelInventory.classList.remove('active-panel');
+        viewPanelInventory.style.visibility = 'hidden';
+      }
+    }
+  }
 
   function switchViewTab(tab, smooth = true) {
     currentNavTab = tab;
@@ -2830,12 +3126,26 @@
     const iosMain = document.querySelector('.ios-main');
     if (iosMain) iosMain.scrollTop = 0;
 
+    // 開始滑動/切換：立即喚醒所有面板確保滑動視覺完整
+    setPanelsSwipingState(true);
+    clearTimeout(panelSwitchSettleTimer);
+
     if (viewsSliderViewport) {
       const targetLeft = (tab === 'today') ? 0 : viewsSliderViewport.clientWidth;
       viewsSliderViewport.scrollTo({
         left: targetLeft,
         behavior: smooth ? 'smooth' : 'instant'
       });
+    }
+
+    if (smooth) {
+      panelSwitchSettleTimer = setTimeout(() => {
+        setPanelsSwipingState(false);
+        setActivePanel(tab);
+      }, 300);
+    } else {
+      setPanelsSwipingState(false);
+      setActivePanel(tab);
     }
 
     if (tab === 'today') {
@@ -2912,7 +3222,7 @@
         if (chipIdx === 0) {
           categoryChipRow.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          const targetLeft = Math.max(0, this.offsetLeft - (categoryChipRow.clientWidth / 2) + (this.offsetWidth / 2));
+          const targetLeft = Math.max(0, this.getBoundingClientRect().left - categoryChipRow.getBoundingClientRect().left + categoryChipRow.scrollLeft);
           categoryChipRow.scrollTo({ left: targetLeft, behavior: 'smooth' });
         }
         updateCategoryActionBar();
@@ -2923,7 +3233,7 @@
 
     updateCategoryActionBar();
 
-    // 僅在當前視圖為物品分類時移動膠囊, 第一個預設在最左側, 否則平滑對齊記憶群組
+    // 僅在當前視圖為物品分類時移動膠囊, 點擊或記憶之群組自動靠左對齊
     if (currentNavTab === 'inventory') {
       setTimeout(() => {
         const activeChip = categoryChipRow.querySelector('.category-chip.active');
@@ -2931,7 +3241,7 @@
           if (activeChip === categoryChipRow.firstElementChild) {
             categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
           } else {
-            const targetLeft = Math.max(0, activeChip.offsetLeft - (categoryChipRow.clientWidth / 2) + (activeChip.offsetWidth / 2));
+            const targetLeft = Math.max(0, activeChip.getBoundingClientRect().left - categoryChipRow.getBoundingClientRect().left + categoryChipRow.scrollLeft);
             categoryChipRow.scrollTo({ left: targetLeft, behavior: 'smooth' });
           }
         }
@@ -3822,12 +4132,17 @@
     viewsSliderViewport.addEventListener('scroll', function () {
       if (isAnyModalOpen()) return;
       hasSwipedHorizontally = true;
+      setPanelsSwipingState(true);
+
       clearTimeout(scrollSnapTimer);
       scrollSnapTimer = setTimeout(() => {
         hasSwipedHorizontally = false;
         const scrollLeft = viewsSliderViewport.scrollLeft;
         const width = viewsSliderViewport.clientWidth || 375;
         const targetTab = (scrollLeft >= width * 0.5) ? 'inventory' : 'today';
+        setPanelsSwipingState(false);
+        setActivePanel(targetTab);
+
         if (targetTab !== currentNavTab) {
           currentNavTab = targetTab;
           if (targetTab === 'today') {
@@ -3852,7 +4167,7 @@
           }
           renderApp();
         }
-      }, 50);
+      }, 70);
     }, { passive: true });
 
     // 桌面滑鼠拖曳橫向切換支援
@@ -3876,6 +4191,7 @@
       if (Math.abs(dx) > 6) {
         mouseMoved = true;
         hasSwipedHorizontally = true;
+        setPanelsSwipingState(true);
         viewsSliderViewport.style.scrollSnapType = 'none';
         viewsSliderViewport.scrollLeft = mouseStartScrollLeft - dx;
       }
@@ -3906,6 +4222,8 @@
         }, 120);
       } else {
         hasSwipedHorizontally = false;
+        setPanelsSwipingState(false);
+        setActivePanel(currentNavTab);
       }
     });
 
@@ -3914,6 +4232,7 @@
       if (viewsSliderViewport && currentNavTab === 'inventory') {
         viewsSliderViewport.scrollTo({ left: viewsSliderViewport.clientWidth, behavior: 'instant' });
       }
+      setActivePanel(currentNavTab);
     });
   }
 
@@ -3952,8 +4271,10 @@
   // ==========================================
   const urlParams = new URLSearchParams(window.location.search);
   const savedTheme = urlParams.get('theme') || localStorage.getItem(THEME_KEY) || 'dark';
-  document.documentElement.setAttribute('data-theme', savedTheme);
+  setTheme(savedTheme, false);
   loadItems();
+  loadRecentlyDeleted();
+  updateTrashBadge();
   loadCustomCategories();
   currentCategoryChip = getFirstPageCategory();
 
@@ -3985,7 +4306,9 @@
   renderApp();
 
   // 首次開起的頁面預設為首頁
-  if (!urlParams.get('tab')) {
+  if (urlParams.get('tab') === 'inventory') {
+    switchViewTab('inventory', false);
+  } else {
     switchViewTab('today', false);
   }
 

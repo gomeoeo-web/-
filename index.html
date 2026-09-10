@@ -2,9 +2,14 @@
 <html lang="zh-TW" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>物品天數</title>
   <meta name="description" content="極簡物品生命週期與保固管家：更換濾網耗材、食品效期、保固時間、日化開封天數。">
+  <meta name="theme-color" content="#121212" id="metaThemeColor">
+  <meta name="color-scheme" content="dark light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -43,9 +48,9 @@
         <div class="views-slider-track" id="viewsSliderTrack">
 
           <!-- View Panel 1: 主頁 (Today) -->
-          <div class="view-panel" id="viewPanelToday">
-            <!-- Status Notice Card (可點按進入即將到期物品清單) -->
-            <section class="status-notice-card clickable" id="statusNoticeCard" role="button" tabindex="0" title="點擊查看即將到期物品清單">
+          <div class="view-panel active-panel" id="viewPanelToday">
+            <!-- Status Notice Card (提醒欄：顯示週期、即將到期與已過期通知，不可點擊) -->
+            <section class="status-notice-card" id="statusNoticeCard">
               <div class="notice-icon-wrapper" id="noticeIconWrapper">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
@@ -55,11 +60,14 @@
                 <h3 class="notice-title" id="noticeTitle">今天都在週期內</h3>
                 <p class="notice-desc" id="noticeDesc">目前沒有將到期或已過期的物品</p>
               </div>
-              <div class="notice-action-chevron">
-                <span class="notice-action-text">即將到期</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
+              <div class="notice-actions-wrap" id="noticeActionsWrap">
+                <div class="notice-status-tag" id="noticeStatusTag">
+                  <span class="notice-status-text" id="noticeStatusText">正常</span>
+                </div>
+                <button type="button" class="btn-clean-expired" id="btnCleanExpired" style="display:none;" title="一鍵刪除已過期項目並移至最近刪除">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>一鍵刪除</span>
+                </button>
               </div>
             </section>
 
@@ -79,9 +87,9 @@
               </button>
             </section>
 
-            <!-- Home Sort Toolbar (整合排序與自訂順序) -->
+            <!-- Home Sort Toolbar (彈出式菜單) -->
             <div class="home-sort-toolbar" id="homeSortToolbar">
-              <span class="sort-toolbar-count" id="sortToolbarCount">共 8 項物品</span>
+              <span class="sort-toolbar-count" id="sortToolbarCount">共 1 項物品</span>
               <button type="button" class="btn-sort-menu-trigger" id="btnOpenCustomSort" title="選擇排序方式與自訂物品順序">
                 <span class="sort-trigger-icon">⇅</span>
                 <span class="sort-trigger-label" id="sortPillLabel">到期日 升冪</span>
@@ -104,7 +112,7 @@
           </div>
 
           <!-- View Panel 2: 物品分類 (群組頁面) -->
-          <div class="view-panel" id="viewPanelInventory">
+          <div class="view-panel" id="viewPanelInventory" style="visibility: hidden;">
             <!-- Search & Group Bar -->
             <section class="inventory-controls" id="inventoryControls">
               <div class="ios-search-field">
@@ -138,7 +146,7 @@
               </div>
             </section>
 
-            <!-- Inventory Sort Toolbar -->
+            <!-- Inventory Sort Toolbar (彈出式菜單) -->
             <div class="home-sort-toolbar" id="inventorySortToolbar">
               <span class="sort-toolbar-count" id="inventorySortToolbarCount">車輛 共 1 項物品</span>
               <button type="button" class="btn-sort-menu-trigger" id="btnOpenInventorySort" title="選擇排序方式與自訂物品順序">
@@ -219,7 +227,6 @@
           <div class="category-boxed-frame">
             <div class="category-box-header">
               <div class="category-box-title">
-                <span class="box-icon">📂</span>
                 <span>選單分類與細項設定</span>
               </div>
             </div>
@@ -541,7 +548,20 @@
           </div>
         </div>
 
-        <!-- Group 2: Backup & Restore -->
+        <!-- Group 2: Recently Deleted Trash -->
+        <div class="settings-group">
+          <button type="button" class="settings-row-btn" id="btnOpenRecentlyDeleted">
+            <div class="settings-icon">🗑️</div>
+            <div class="settings-info">
+              <span class="settings-title">最近刪除</span>
+              <span class="settings-desc" id="settingsTrashCountText">保留 7 天內刪除之物品，7 天後自動清除</span>
+            </div>
+            <span class="trash-badge-count" id="trashBadgeCount" style="display:none;">0</span>
+            <span class="settings-chevron">›</span>
+          </button>
+        </div>
+
+        <!-- Group 3: Backup & Restore -->
         <div class="settings-group">
           <button type="button" class="settings-row-btn" id="btnExportJson">
             <div class="settings-icon">📤</div>
@@ -564,7 +584,7 @@
             <div class="settings-icon">🔄</div>
             <div class="settings-info">
               <span class="settings-title text-danger">重置為範例資料</span>
-              <span class="settings-desc">包含我的椅子、濾網、鮮乳等預設範本</span>
+              <span class="settings-desc">重新載入預設牛奶物品範例</span>
             </div>
           </button>
         </div>
@@ -882,10 +902,54 @@
     <div class="ios-modal-card ios-modal-alert">
       <div class="delete-alert-icon">⚠️</div>
       <h2 class="delete-alert-title">確定要刪除此物品嗎？</h2>
-      <p class="delete-alert-desc" id="deleteConfirmItemDesc">刪除後將無法復原此物品的所有記錄與週期資料</p>
+      <p class="delete-alert-desc" id="deleteConfirmItemDesc">刪除後將移至「最近刪除」保留 7 天，可隨時復原</p>
       <div class="delete-alert-actions">
-        <button type="button" id="btnConfirmDeleteItem" class="btn-delete-confirm-destructive">確定刪除</button>
+        <button type="button" id="btnConfirmDeleteItem" class="btn-delete-confirm-destructive">移至最近刪除</button>
         <button type="button" id="btnCancelDeleteItem" class="btn-delete-confirm-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Recently Deleted Modal (最近刪除回收站) -->
+  <div id="recentlyDeletedModal" class="ios-modal-backdrop" style="display:none;">
+    <div class="ios-modal-card ios-modal-trash">
+      <div class="ios-modal-header">
+        <div class="trash-header-titles">
+          <h2>🗑️ 最近刪除</h2>
+          <span class="trash-subtitle">保留 7 天，7 天後自動清除</span>
+        </div>
+        <button id="btnCloseRecentlyDeletedModal" class="btn-modal-close" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="ios-modal-scroll">
+        <!-- Tip Box -->
+        <div class="trash-notice-banner">
+          <span>📌 項目將在刪除 7 天後自動永久清除。您可以隨時將物品復原至主頁清單。</span>
+        </div>
+
+        <!-- Top Action Bar (Restore All & Empty Trash) -->
+        <div class="trash-actions-bar" id="trashActionsBar" style="display:none;">
+          <button type="button" class="btn-trash-action" id="btnRestoreAllTrash" title="全部復原回清單">
+            <span>全部復原</span>
+          </button>
+          <button type="button" class="btn-trash-action text-danger" id="btnEmptyTrash" title="立即永久清空所有項目">
+            <span>清空所有項目</span>
+          </button>
+        </div>
+
+        <!-- Trash Items List -->
+        <div class="trash-items-list" id="recentlyDeletedList">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="ios-empty-view" id="recentlyDeletedEmpty" style="display:none;">
+          <div class="empty-icon-circle">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </div>
+          <h3>沒有最近刪除的物品</h3>
+          <p>刪除的物品將在此保留 7 天以供復原</p>
+        </div>
       </div>
     </div>
   </div>

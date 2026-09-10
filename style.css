@@ -3,7 +3,8 @@
    ========================================================================== */
 
 :root {
-  /* Dark Theme (Default - Exactly like the user reference screenshot) */
+  color-scheme: dark light;
+  /* Dark Theme (Default - Apple Dark Minimalist) */
   --ios-bg: #121212;
   --ios-surface: #222225;
   --ios-surface-elevated: #2c2c2e;
@@ -36,6 +37,35 @@
   --app-max-width: 440px;
 }
 
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* OLED Pure Black Mode OLED純黑模式 */
+[data-theme="amoled"] {
+  color-scheme: dark;
+  --ios-bg: #000000;
+  --ios-surface: #141419;
+  --ios-surface-elevated: #24242e;
+  --ios-surface-secondary: #1c1c24;
+  --ios-dock-bg: rgba(18, 18, 24, 0.96);
+  --ios-border: rgba(255, 255, 255, 0.12);
+  --ios-border-strong: rgba(255, 255, 255, 0.25);
+
+  --ios-text-primary: #ffffff;
+  --ios-text-secondary: #a0a5ab;
+  --ios-text-muted: #70757a;
+  --ios-text-inverse: #000000;
+
+  --ios-green: #30d158;
+  --ios-green-bg: rgba(48, 209, 88, 0.25);
+  --ios-orange: #ff9f0a;
+  --ios-orange-bg: rgba(255, 159, 10, 0.25);
+  --ios-red: #ff453a;
+  --ios-red-bg: rgba(255, 69, 58, 0.25);
+  --ios-blue: #0a84ff;
+}
+
 [data-screen-fit="standard"] {
   --app-max-width: 390px;
 }
@@ -53,6 +83,7 @@
 }
 
 [data-theme="light"] {
+  color-scheme: light;
   --ios-bg: #f2f2f7;
   --ios-surface: #ffffff;
   --ios-surface-elevated: #e5e5ea;
@@ -95,12 +126,12 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Container */
+/* Container - 支援 Android/Samsung 虛擬導航列與挖孔相機安全區域 */
 .ios-app-container {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 1.25rem 1rem 7.5rem 1rem;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px)) 1rem max(7.5rem, calc(6.5rem + env(safe-area-inset-bottom, 0px))) 1rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -111,7 +142,7 @@ html, body {
 @media (min-width: 500px) {
   .ios-app-container {
     max-width: var(--app-max-width, 440px);
-    padding: 2rem 1.25rem 8rem 1.25rem;
+    padding: max(2rem, env(safe-area-inset-top, 0px)) 1.25rem max(8rem, calc(7rem + env(safe-area-inset-bottom, 0px))) 1.25rem;
   }
 }
 
@@ -204,44 +235,28 @@ html, body {
 }
 
 /* ==========================================================================
-   Notice Card (可點按進入即將到期)
+   Notice Card (提醒欄：不可點擊之資訊卡)
    ========================================================================== */
 .status-notice-card {
   background: var(--ios-surface);
   border-radius: var(--radius-card);
-  padding: 1.15rem 1.25rem;
+  padding: 12px 16px;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   margin-bottom: 1.35rem;
   border: 1px solid var(--ios-border);
-  transition: background var(--transition-ios), transform var(--transition-ios), box-shadow var(--transition-ios), border-color var(--transition-ios);
-}
-
-.status-notice-card.clickable {
-  cursor: pointer;
+  transition: background var(--transition-ios), box-shadow var(--transition-ios), border-color var(--transition-ios);
+  cursor: default;
   user-select: none;
-}
-.status-notice-card.clickable:hover {
-  background: var(--ios-surface-elevated);
-  border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
-}
-.status-notice-card.clickable:active {
-  transform: scale(0.985);
-  opacity: 0.92;
-}
-
-[data-theme="light"] .status-notice-card.clickable:hover {
-  background: #f7f7f9;
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .notice-icon-wrapper {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #18261e;
   color: var(--ios-green);
@@ -264,42 +279,133 @@ html, body {
 .notice-text-group {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 140px;
 }
 
 .notice-title {
-  font-size: 1.08rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--ios-text-primary);
-  line-height: 1.25;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .notice-desc {
-  font-size: 0.86rem;
-  color: var(--ios-text-secondary);
-  margin-top: 0.2rem;
-  line-height: 1.3;
+  display: none !important;
 }
 
-.notice-action-chevron {
+.notice-actions-wrap {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  color: var(--ios-blue);
-  background: rgba(10, 132, 255, 0.12);
-  padding: 0.35rem 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.notice-status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.72rem;
   border-radius: var(--radius-pill);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   flex-shrink: 0;
-  transition: all var(--transition-ios);
-}
-.notice-action-text {
   letter-spacing: 0.02em;
+  background: rgba(48, 209, 88, 0.12);
+  color: var(--ios-green);
+  border: 1px solid rgba(48, 209, 88, 0.25);
+  pointer-events: none;
+  white-space: nowrap;
 }
-.status-notice-card.clickable:hover .notice-action-chevron {
-  background: rgba(10, 132, 255, 0.22);
-  transform: translateX(2px);
+
+.notice-status-tag.warning {
+  background: rgba(255, 159, 10, 0.12);
+  color: var(--ios-orange);
+  border-color: rgba(255, 159, 10, 0.25);
+}
+
+.notice-status-tag.expired {
+  background: rgba(255, 69, 58, 0.14);
+  color: var(--ios-red);
+  border-color: rgba(255, 69, 58, 0.3);
+}
+
+.btn-clean-expired {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 69, 58, 0.18);
+  color: #ff453a;
+  border: 1px solid rgba(255, 69, 58, 0.35);
+  padding: 0.35rem 0.72rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-ios);
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-clean-expired:hover {
+  background: #ff453a;
+  color: #ffffff;
+  transform: scale(1.03);
+}
+.btn-clean-expired:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 420px) {
+  .status-notice-card {
+    padding: 12px 14px;
+    gap: 8px 10px;
+  }
+  .notice-icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+  .notice-title {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+  .notice-actions-wrap {
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+    padding-top: 2px;
+  }
+  .notice-status-tag,
+  .btn-clean-expired {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.78rem;
+  }
+}
+
+[data-theme="light"] .notice-status-tag {
+  background: rgba(52, 199, 89, 0.12);
+  color: #248a3d;
+  border-color: rgba(52, 199, 89, 0.2);
+}
+[data-theme="light"] .notice-status-tag.warning {
+  background: rgba(255, 149, 0, 0.12);
+  color: #c97500;
+  border-color: rgba(255, 149, 0, 0.2);
+}
+[data-theme="light"] .notice-status-tag.expired {
+  background: rgba(255, 59, 48, 0.12);
+  color: #d70015;
+  border-color: rgba(255, 59, 48, 0.2);
+}
+[data-theme="light"] .btn-clean-expired {
+  background: rgba(255, 59, 48, 0.12);
+  border-color: rgba(255, 59, 48, 0.25);
+  color: #d70015;
 }
 
 /* ==========================================================================
@@ -535,12 +641,12 @@ html, body {
   white-space: nowrap;
 }
 
+/* Sort Trigger Button (彈出式菜單觸發按鈕) */
 .btn-sort-menu-trigger {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.42rem 0.88rem;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
   border-radius: var(--radius-pill);
   background: var(--ios-surface-secondary);
   border: 1px solid var(--ios-border);
@@ -548,43 +654,23 @@ html, body {
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
   transition: all var(--transition-ios);
-  white-space: nowrap;
 }
 .btn-sort-menu-trigger:hover {
   background: var(--ios-surface-elevated);
   border-color: rgba(255, 255, 255, 0.25);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
-.btn-sort-menu-trigger:active {
-  transform: scale(0.96);
-}
-
 .sort-trigger-icon {
   font-size: 0.92rem;
   color: var(--ios-text-secondary);
 }
-
 .sort-trigger-label {
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
-
 .sort-trigger-chevron {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--ios-text-secondary);
-}
-
-.sort-native-select {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  -webkit-appearance: none;
-  font-family: inherit;
 }
 
 /* ==========================================================================
@@ -2913,34 +2999,36 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--ios-surface-elevated);
-  border: 1px solid var(--ios-border);
-  color: var(--ios-text-primary);
+  background: #363646;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
   font-size: 0.82rem;
   font-weight: 700;
-  padding: 0.46rem 0.82rem;
+  padding: 0.46rem 0.88rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-ios);
   font-family: inherit;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 .btn-group-settings-main:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #46465c;
+  border-color: rgba(255, 255, 255, 0.45);
   transform: translateY(-1px);
 }
 .btn-group-settings-main:active {
   transform: scale(0.96);
 }
 [data-theme="light"] .btn-group-settings-main {
-  background: #f2f2f7;
-  border-color: rgba(0, 0, 0, 0.12);
-  color: #000000;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  background: #1c1c1e;
+  border-color: #000000;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 [data-theme="light"] .btn-group-settings-main:hover {
-  background: #e5e5ea;
+  background: #2c2c2e;
+  color: #ffffff;
 }
 
 .category-info-badge {
@@ -3279,6 +3367,7 @@ html, body {
    ========================================================================== */
 .views-slider-viewport {
   width: 100%;
+  overflow: hidden;
   overflow-x: auto;
   overflow-y: hidden;
   position: relative;
@@ -3287,6 +3376,7 @@ html, body {
   scrollbar-width: none;
   touch-action: pan-x pan-y;
   scroll-behavior: smooth;
+  contain: paint;
 }
 .views-slider-viewport::-webkit-scrollbar {
   display: none;
@@ -3294,7 +3384,7 @@ html, body {
 
 .views-slider-track {
   display: flex;
-  width: 200%;
+  width: 100%;
   transform: none !important;
   transition: none !important;
   will-change: auto;
@@ -3306,14 +3396,37 @@ html, body {
 }
 
 .view-panel {
-  width: 50%;
-  flex-shrink: 0;
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   min-width: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  overflow-x: hidden;
   overflow-x: clip; /* 杜絕跨頁陰影溢出滲透至相鄰頁面 */
   touch-action: pan-x pan-y;
+  contain: paint;
+  transition: opacity 0.15s ease;
+}
+
+/* 非當前活動面板在靜止時徹底隱藏, 杜絕次像素邊界殘留與邊緣漏光 */
+.views-slider-viewport:not(.is-swiping) .view-panel:not(.active-panel) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.view-panel.active-panel {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* 滑動切換過程中喚醒所有面板, 確保平滑滾動視覺流暢 */
+.views-slider-viewport.is-swiping .view-panel {
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Modal & Action Sheet Background Scroll Lock (彈出選單背景鎖定) */
@@ -3544,6 +3657,397 @@ body.modal-open .view-panel {
     padding: 0.5rem 0.4rem;
     font-size: 0.88rem;
   }
+}
+
+/* ==========================================================================
+   Recently Deleted Modal & Trash Styles (最近刪除回收站)
+   ========================================================================== */
+.trash-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.trash-subtitle {
+  font-size: 0.78rem;
+  color: var(--ios-text-secondary);
+}
+
+.trash-notice-banner {
+  background: rgba(255, 159, 10, 0.1);
+  border: 1px solid rgba(255, 159, 10, 0.25);
+  border-radius: var(--radius-subcard);
+  padding: 0.85rem 1rem;
+  font-size: 0.84rem;
+  color: var(--ios-orange);
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+[data-theme="light"] .trash-notice-banner {
+  background: rgba(255, 149, 0, 0.1);
+  color: #b26500;
+}
+
+.trash-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
+.btn-trash-action {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--ios-surface-elevated);
+  border: 1px solid var(--ios-border);
+  color: var(--ios-text-primary);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-ios);
+  font-family: inherit;
+  text-align: center;
+}
+.btn-trash-action:hover {
+  background: var(--ios-surface-secondary);
+}
+.btn-trash-action.text-danger {
+  color: var(--ios-red);
+  border-color: rgba(255, 69, 58, 0.3);
+  background: rgba(255, 69, 58, 0.08);
+}
+.btn-trash-action.text-danger:hover {
+  background: rgba(255, 69, 58, 0.18);
+}
+
+.trash-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trash-item-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: var(--ios-surface-secondary);
+  border: 1px solid var(--ios-border);
+  border-radius: var(--radius-subcard);
+  gap: 0.75rem;
+  transition: all var(--transition-ios);
+}
+.trash-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+.trash-item-emoji {
+  font-size: 1.6rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ios-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.trash-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.trash-item-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--ios-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.trash-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+}
+.trash-days-left {
+  color: var(--ios-orange);
+  font-weight: 600;
+}
+.trash-days-left.urgent {
+  color: var(--ios-red);
+}
+.trash-item-cat {
+  color: var(--ios-text-secondary);
+}
+
+.trash-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+.btn-restore-item {
+  padding: 0.42rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--ios-blue);
+  color: #ffffff;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  font-family: inherit;
+}
+.btn-restore-item:active {
+  transform: scale(0.95);
+}
+.btn-delete-perm {
+  padding: 0.42rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ios-text-muted);
+  border: 1px solid var(--ios-border);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-ios);
+  font-family: inherit;
+}
+.btn-delete-perm:hover {
+  color: var(--ios-red);
+  border-color: rgba(255, 69, 58, 0.35);
+  background: rgba(255, 69, 58, 0.1);
+}
+
+.trash-badge-count {
+  background: var(--ios-red);
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  min-width: 20px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: 0.35rem;
+}
+
+/* ==========================================================================
+   OLED Pure Black Mode - Lighter UI Icon & Component Styles OLED純黑模式
+   所有UI圖式背景顏色調淺，避免與純黑背景融合，提升層次感與對比度
+   ========================================================================== */
+
+/* 1. All Icon, Emoji and Thumbnail Boxes (圖示與縮圖底色調淺，加上細緻邊框) */
+[data-theme="amoled"] .card-icon-box {
+  background: #2e2e38;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="amoled"] .sheet-emoji,
+[data-theme="amoled"] .sort-card-emoji,
+[data-theme="amoled"] .order-item-thumb,
+[data-theme="amoled"] .picker-item-thumb,
+[data-theme="amoled"] .trash-item-emoji,
+[data-theme="amoled"] .cat-manage-emoji,
+[data-theme="amoled"] .avatar-display-box {
+  background: #2e2e38;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+/* 2. Header & Action Circular Buttons (頂部圓形按鈕底色調淺) */
+[data-theme="amoled"] .btn-circle-dark,
+[data-theme="amoled"] .btn-icon-circle {
+  background: #262632;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+[data-theme="amoled"] .btn-circle-dark:hover,
+[data-theme="amoled"] .btn-icon-circle:hover {
+  background: #323240;
+}
+
+/* 3. Settings Icons (設定項目圖示外框與底色) */
+[data-theme="amoled"] .settings-icon {
+  background: #282834;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 4. Empty State Icon Circle (空白狀態圖示圓圈) */
+[data-theme="amoled"] .empty-icon-circle {
+  background: #242430;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #d1d1d6;
+}
+
+/* 5. Main Status Notice Card & Status Icons (主頁提醒欄圖示底色調淺更鮮明) */
+[data-theme="amoled"] .status-notice-card {
+  background: #141419;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="amoled"] .notice-icon-wrapper {
+  background: #1c3d26;
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.42);
+}
+
+[data-theme="amoled"] .notice-icon-wrapper.warning {
+  background: #3e2810;
+  color: #ff9f0a;
+  border: 1px solid rgba(255, 159, 10, 0.45);
+}
+
+[data-theme="amoled"] .notice-icon-wrapper.expired {
+  background: #421616;
+  color: #ff453a;
+  border: 1px solid rgba(255, 69, 58, 0.45);
+}
+
+/* 6. Filter Buttons & Category Chips (分類與篩選膠囊調淺，避免深陷純黑) */
+[data-theme="amoled"] .home-filter-btn {
+  background: #202028;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #d1d1d6;
+}
+[data-theme="amoled"] .home-filter-btn:hover {
+  background: #282834;
+}
+[data-theme="amoled"] .home-filter-btn.active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+[data-theme="amoled"] .filter-btn-badge {
+  background: #2e2e3a;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+[data-theme="amoled"] .category-chip {
+  background: #202028;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e5e5ea;
+}
+[data-theme="amoled"] .category-chip:hover {
+  background: #2a2a36;
+}
+[data-theme="amoled"] .category-chip.active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+[data-theme="amoled"] .category-action-bar,
+[data-theme="amoled"] .category-info-badge {
+  background: #202028;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+[data-theme="amoled"] .btn-group-settings-main {
+  background: #323244;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+[data-theme="amoled"] .btn-group-settings-main:hover {
+  background: #44445a;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 物品分類分頁「加入物品」按鈕在 OLED純黑 模式下改為白色高對比 */
+[data-theme="amoled"] .btn-add-items-to-cat {
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.25);
+}
+[data-theme="amoled"] .btn-add-items-to-cat:hover {
+  background: #f2f2f7;
+  color: #000000;
+  transform: scale(1.03);
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.35);
+}
+[data-theme="amoled"] .btn-add-items-to-cat .btn-add-cat-icon {
+  color: #000000;
+}
+[data-theme="amoled"] .btn-empty-add-to-cat {
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.25);
+}
+[data-theme="amoled"] .btn-empty-add-to-cat:hover {
+  background: #f2f2f7;
+  color: #000000;
+}
+
+/* 7. Sort Trigger Button & Sort Modal Elements (排序按鈕與選單卡片) */
+[data-theme="amoled"] .btn-sort-menu-trigger {
+  background: #22222c;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+[data-theme="amoled"] .btn-sort-menu-trigger:hover {
+  background: #2e2e3a;
+}
+[data-theme="amoled"] .sort-option-card {
+  background: #1c1c24;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+[data-theme="amoled"] .sort-option-card:hover {
+  background: #262632;
+}
+[data-theme="amoled"] .sort-option-card.active {
+  background: #242430;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+[data-theme="amoled"] .custom-order-section {
+  background: #16161e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+[data-theme="amoled"] .order-item-row {
+  background: #22222c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+[data-theme="amoled"] .btn-move-order {
+  background: #2e2e3a;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+[data-theme="amoled"] .order-rank-badge {
+  background: #2a2a36;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e5e5ea;
+}
+
+/* 8. Item Cards & Trash Item Cards */
+[data-theme="amoled"] .ios-item-card {
+  background: #141419;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+[data-theme="amoled"] .trash-item-card {
+  background: #181820;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 
