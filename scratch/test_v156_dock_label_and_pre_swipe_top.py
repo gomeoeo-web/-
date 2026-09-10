@@ -2,7 +2,7 @@ import sys
 import re
 
 def test_v156():
-    print("Testing v1.6.0 Dock horizontal label below icon & pre-swipe top state...")
+    print("Testing v1.6.1 Dock horizontal label below icon & pre-swipe top state...")
 
     with open('index.html', 'r', encoding='utf-8') as f:
         html = f.read()
@@ -13,10 +13,10 @@ def test_v156():
     with open('style.css', 'r', encoding='utf-8') as f:
         css = f.read()
 
-    # 1. Check version bump to 1.6.0
-    assert 'v1.6.0' in html, "index.html should have v1.6.0 badge"
-    assert "APP_VERSION = '1.6.0'" in js or 'APP_VERSION = "1.6.0"' in js, "app.js should have APP_VERSION = '1.6.0'"
-    print("[PASS] Version 1.6.0 verified in index.html and app.js")
+    # 1. Check version bump to 1.6.1
+    assert 'v1.6.1' in html, "index.html should have v1.6.1 badge"
+    assert "APP_VERSION = '1.6.1'" in js or 'APP_VERSION = "1.6.1"' in js, "app.js should have APP_VERSION = '1.6.1'"
+    print("[PASS] Version 1.6.1 verified in index.html and app.js")
 
     # 2. Check Dock label horizontally displayed below icon in style.css
     assert '.dock-tab' in css, "style.css should have .dock-tab"
@@ -41,7 +41,7 @@ def test_v156():
             raise AssertionError(f"Chinese parentheses found in index.html line {idx}: {text_outside_tags}")
     print("[PASS] Zero Chinese parentheses in visible index.html verified")
 
-    print("\nAll v1.6.0 tests PASSED successfully!")
+    print("\nAll v1.6.1 tests PASSED successfully!")
 
 if __name__ == '__main__':
     test_v156()

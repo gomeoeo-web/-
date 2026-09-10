@@ -29,11 +29,11 @@ def test_new_features():
     if 'updateReminderToggleState' not in js:
         errors.append("updateReminderToggleState function missing in app.js")
 
-    # 3. 版本號 1.6.0
-    if '<span class="app-version-badge" id="appVersionBadge">v1.6.0</span>' not in html:
-        errors.append("v1.6.0 badge missing in index.html")
-    if "const APP_VERSION = '1.6.0';" not in js:
-        errors.append("APP_VERSION 1.6.0 missing in app.js")
+    # 3. 版本號 1.6.1
+    if '<span class="app-version-badge" id="appVersionBadge">v1.6.1</span>' not in html:
+        errors.append("v1.6.1 badge missing in index.html")
+    if "const APP_VERSION = '1.6.1';" not in js:
+        errors.append("APP_VERSION 1.6.1 missing in app.js")
 
     if errors:
         print("FAIL:")

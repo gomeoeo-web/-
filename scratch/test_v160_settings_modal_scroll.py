@@ -2,7 +2,7 @@ import sys
 import re
 
 def run_tests():
-    print("Testing v1.6.0 Settings Modal Scrolling & Swipe Down Dismiss...")
+    print("Testing v1.6.1 Settings Modal Scrolling & Swipe Down Dismiss...")
 
     with open('index.html', 'r', encoding='utf-8') as f:
         html = f.read()
@@ -13,10 +13,10 @@ def run_tests():
     with open('style.css', 'r', encoding='utf-8') as f:
         css = f.read()
 
-    # 1. Version 1.6.0 bump verification
-    assert 'v1.6.0' in html, "index.html should have v1.6.0 badge"
-    assert "APP_VERSION = '1.6.0'" in js or 'APP_VERSION = "1.6.0"' in js, "app.js should have APP_VERSION = '1.6.0'"
-    print("[PASS] Version 1.6.0 verified in index.html and app.js")
+    # 1. Version 1.6.1 bump verification
+    assert 'v1.6.1' in html, "index.html should have v1.6.1 badge"
+    assert "APP_VERSION = '1.6.1'" in js or 'APP_VERSION = "1.6.1"' in js, "app.js should have APP_VERSION = '1.6.1'"
+    print("[PASS] Version 1.6.1 verified in index.html and app.js")
 
     # 2. settingsModal in index.html contains ios-modal-scroll
     assert 'class="ios-modal-scroll ios-settings-list"' in html, "settingsModal should have class ios-modal-scroll ios-settings-list"
@@ -46,7 +46,7 @@ def run_tests():
             raise AssertionError(f"Chinese parentheses found in index.html line {idx}: {text_outside_tags}")
     print("[PASS] Zero Chinese parentheses rule verified in index.html")
 
-    print("\nAll v1.6.0 tests PASSED successfully!")
+    print("\nAll v1.6.1 tests PASSED successfully!")
 
 if __name__ == '__main__':
     run_tests()

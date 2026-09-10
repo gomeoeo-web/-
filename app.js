@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.6.0';
+  const APP_VERSION = '1.6.1';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -3109,8 +3109,7 @@
     settingsModalCard.addEventListener('touchstart', function (e) {
       if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
         const isHeader = !!e.target.closest('.ios-modal-header');
-        const isAtTop = !settingsScrollList || settingsScrollList.scrollTop <= 2;
-        if (isHeader || isAtTop) {
+        if (isHeader) {
           settingsTouchStartY = e.touches[0].clientY;
           settingsTouchStartX = e.touches[0].clientX;
           settingsTouchStartTime = Date.now();
@@ -3122,18 +3121,19 @@
 
     settingsModalCard.addEventListener('touchmove', function (e) {
       if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
-        const touchY = e.touches[0].clientY;
-        const dy = touchY - settingsTouchStartY;
-        const dx = Math.abs(e.touches[0].clientX - settingsTouchStartX);
         const isHeader = !!e.target.closest('.ios-modal-header');
-        const isAtTop = !settingsScrollList || settingsScrollList.scrollTop <= 2;
+        if (isHeader) {
+          const touchY = e.touches[0].clientY;
+          const dy = touchY - settingsTouchStartY;
+          const dx = Math.abs(e.touches[0].clientX - settingsTouchStartX);
 
-        if ((isHeader || isAtTop) && dy > 6 && dy > dx * 0.8) {
-          isDraggingSettings = true;
-          currentSettingsDy = dy;
-          if (e.cancelable) e.preventDefault();
-          settingsModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
-          settingsModalCard.style.transition = 'none';
+          if (dy > 6 && dy > dx * 0.8) {
+            isDraggingSettings = true;
+            currentSettingsDy = dy;
+            if (e.cancelable) e.preventDefault();
+            settingsModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+            settingsModalCard.style.transition = 'none';
+          }
         }
       }
     }, { passive: false });

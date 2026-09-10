@@ -13,14 +13,14 @@ def test_requirements():
 
     errors = []
 
-    # 1. Top-Left Version Badge (1.6.0, incrementing by 0.0.1 per change)
+    # 1. Top-Left Version Badge (1.6.1, incrementing by 0.0.1 per change)
     if 'id="appVersionBadge"' not in html:
         errors.append("appVersionBadge missing from index.html")
-    if '1.6.0' not in html:
-        errors.append("Version 1.6.0 missing from index.html")
+    if '1.6.1' not in html:
+        errors.append("Version 1.6.1 missing from index.html")
     if '.app-version-badge' not in css:
         errors.append(".app-version-badge style missing from style.css")
-    if "APP_VERSION = '1.6.0'" not in js:
+    if "APP_VERSION = '1.6.1'" not in js:
         errors.append("APP_VERSION constant missing from app.js")
 
     # 1.1 App Name: 期效管家

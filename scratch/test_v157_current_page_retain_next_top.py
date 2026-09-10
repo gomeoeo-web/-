@@ -2,7 +2,7 @@ import sys
 import re
 
 def test_v157():
-    print("Testing v1.6.0 Next page top state & Current page state retention until switch completion...")
+    print("Testing v1.6.1 Next page top state & Current page state retention until switch completion...")
 
     with open('index.html', 'r', encoding='utf-8') as f:
         html = f.read()
@@ -13,10 +13,10 @@ def test_v157():
     with open('style.css', 'r', encoding='utf-8') as f:
         css = f.read()
 
-    # 1. Version 1.6.0 bump
-    assert 'v1.6.0' in html, "index.html should have v1.6.0 badge"
-    assert "APP_VERSION = '1.6.0'" in js or 'APP_VERSION = "1.6.0"' in js, "app.js should have APP_VERSION = '1.6.0'"
-    print("[PASS] Version 1.6.0 verified in index.html and app.js")
+    # 1. Version 1.6.1 bump
+    assert 'v1.6.1' in html, "index.html should have v1.6.1 badge"
+    assert "APP_VERSION = '1.6.1'" in js or 'APP_VERSION = "1.6.1"' in js, "app.js should have APP_VERSION = '1.6.1'"
+    print("[PASS] Version 1.6.1 verified in index.html and app.js")
 
     # 2. prepareIncomingPanelForSwipe and clearIncomingPanelTransform defined
     assert 'function prepareIncomingPanelForSwipe' in js, "prepareIncomingPanelForSwipe must be defined in app.js"
@@ -47,7 +47,7 @@ def test_v157():
             raise AssertionError(f"Chinese parentheses found in index.html line {idx}: {text_outside_tags}")
     print("[PASS] Zero Chinese parentheses in visible index.html verified")
 
-    print("\nAll v1.6.0 tests PASSED successfully!")
+    print("\nAll v1.6.1 tests PASSED successfully!")
 
 if __name__ == '__main__':
     test_v157()
