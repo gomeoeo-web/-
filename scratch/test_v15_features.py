@@ -45,11 +45,31 @@ def verify_v15():
         if expected not in css:
             errors.append(f"Safe edge bounds missing for screen fit {fit} in style.css")
 
-    # 4. Version 1.5 check
-    if '<span class="app-version-badge" id="appVersionBadge">v1.5</span>' not in html:
-        errors.append("Version badge v1.5 missing in index.html")
-    if "const APP_VERSION = '1.5';" not in js:
-        errors.append("APP_VERSION 1.5 missing in app.js")
+    # 4. Version 1.5.1 check
+    if '<span class="app-version-badge" id="appVersionBadge">v1.5.1</span>' not in html:
+        errors.append("Version badge v1.5.1 missing in index.html")
+    if "const APP_VERSION = '1.5.1';" not in js:
+        errors.append("APP_VERSION 1.5.1 missing in app.js")
+
+    # 4.0 Check 移出此群組 button
+    if 'id="btnSheetRemoveGroup"' not in html:
+        errors.append("btnSheetRemoveGroup missing in index.html")
+    if '移出此群組' not in html:
+        errors.append("移出此群組 missing in index.html")
+    if 'btn-card-remove-from-group' in js:
+        errors.append("btn-card-remove-from-group should be removed from app.js card rendering")
+
+    # 4.1 Check alarm clock icon removed from 提醒發送時間
+    if '⏰ 提醒發送時間' in html:
+        errors.append("Alarm icon ⏰ still present in 提醒發送時間")
+    if '提醒發送時間' not in html:
+        errors.append("提醒發送時間 missing in index.html")
+
+    # 4.2 Check date/time overflow prevention styles in style.css
+    if '-webkit-appearance: none !important' not in css:
+        errors.append("-webkit-appearance: none !important missing for date/time inputs in style.css")
+    if 'input[type="date"]::-webkit-date-and-time-value' not in css:
+        errors.append("WebKit date-and-time-value containment missing in style.css")
 
     # 5. Chinese parentheses check
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)

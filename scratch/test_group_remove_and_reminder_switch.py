@@ -11,11 +11,13 @@ def test_new_features():
 
     errors = []
 
-    # 1. 移除此群組按鈕
+    # 1. 移出此群組按鈕 (只保留點入物品裡的移出此群組按鈕)
     if 'id="btnSheetRemoveGroup"' not in html:
         errors.append("btnSheetRemoveGroup missing in index.html")
-    if 'btn-card-remove-from-group' not in html and 'btn-card-remove-from-group' not in js:
-        errors.append("btn-card-remove-from-group missing in app.js")
+    if '移出此群組' not in html:
+        errors.append("移出此群組 missing in index.html")
+    if 'btn-card-remove-from-group' in js:
+        errors.append("btn-card-remove-from-group should be removed from app.js card rendering")
     if 'removeItemFromCurrentCategory' not in js:
         errors.append("removeItemFromCurrentCategory missing in app.js")
 
@@ -27,11 +29,11 @@ def test_new_features():
     if 'updateReminderToggleState' not in js:
         errors.append("updateReminderToggleState function missing in app.js")
 
-    # 3. 版本號 1.5
-    if '<span class="app-version-badge" id="appVersionBadge">v1.5</span>' not in html:
-        errors.append("v1.5 badge missing in index.html")
-    if "const APP_VERSION = '1.5';" not in js:
-        errors.append("APP_VERSION 1.5 missing in app.js")
+    # 3. 版本號 1.5.1
+    if '<span class="app-version-badge" id="appVersionBadge">v1.5.1</span>' not in html:
+        errors.append("v1.5.1 badge missing in index.html")
+    if "const APP_VERSION = '1.5.1';" not in js:
+        errors.append("APP_VERSION 1.5.1 missing in app.js")
 
     if errors:
         print("FAIL:")

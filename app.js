@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.5';
+  const APP_VERSION = '1.5.1';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -1409,24 +1409,7 @@
       <div class="card-progress-bar">
         <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle}"></div>
       </div>
-
-      ${isInventory ? `
-        <div class="card-group-actions-row">
-          <button type="button" class="btn-card-remove-from-group" data-id="${item.id}" title="自此群組中移除">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            <span>移除此群組</span>
-          </button>
-        </div>
-      ` : ''}
     `;
-
-    const btnRemoveFromGroup = card.querySelector('.btn-card-remove-from-group');
-    if (btnRemoveFromGroup) {
-      btnRemoveFromGroup.addEventListener('click', function (e) {
-        e.stopPropagation();
-        removeItemFromCurrentCategory(item.id);
-      });
-    }
 
     let cardTouchStartX = 0;
     let cardTouchStartY = 0;
