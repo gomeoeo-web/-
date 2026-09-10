@@ -13,10 +13,10 @@ def test_v155_close_animations():
     with open('style.css', 'r', encoding='utf-8') as f:
         css = f.read()
 
-    # 1. Check version bump to 1.5.7
-    assert 'v1.5.7' in html, "index.html should have v1.5.7 badge"
-    assert "APP_VERSION = '1.5.7'" in js or 'APP_VERSION = "1.5.7"' in js, "app.js should have APP_VERSION = '1.5.7'"
-    print("[PASS] Version 1.5.7 verified in index.html and app.js")
+    # 1. Check version bump to 1.5.9
+    assert 'v1.5.9' in html, "index.html should have v1.5.9 badge"
+    assert "APP_VERSION = '1.5.9'" in js or 'APP_VERSION = "1.5.9"' in js, "app.js should have APP_VERSION = '1.5.9'"
+    print("[PASS] Version 1.5.9 verified in index.html and app.js")
 
     # 2. Check CSS closing animations
     assert '.modal-closing' in css, "style.css should have .modal-closing class"

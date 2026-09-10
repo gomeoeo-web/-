@@ -79,7 +79,7 @@
 }
 
 [data-screen-fit="full"] {
-  --app-max-width: calc(100vw - 2.4rem);
+  --app-max-width: calc(100vw - 1rem);
 }
 
 [data-theme="light"] {
@@ -126,12 +126,12 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Container - 支援 Android/Samsung 虛擬導航列與挖孔相機安全區域 */
+/* Container - 支援 Android/Samsung 虛擬導航列與挖孔相機安全區域，適度縮小離邊框距離避免壅擠 */
 .ios-app-container {
   width: 100%;
-  max-width: min(var(--app-max-width, 440px), calc(100vw - 1.6rem));
+  max-width: min(var(--app-max-width, 440px), calc(100vw - 0.75rem));
   margin: 0 auto;
-  padding: max(1.25rem, env(safe-area-inset-top, 0px)) max(1.2rem, calc(env(safe-area-inset-right, 0px) + 1.2rem)) max(7.5rem, calc(6.5rem + env(safe-area-inset-bottom, 0px))) max(1.2rem, calc(env(safe-area-inset-left, 0px) + 1.2rem));
+  padding: max(1.2rem, env(safe-area-inset-top, 0px)) max(0.5rem, calc(env(safe-area-inset-right, 0px) + 0.5rem)) max(7.5rem, calc(6.5rem + env(safe-area-inset-bottom, 0px))) max(0.5rem, calc(env(safe-area-inset-left, 0px) + 0.5rem));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -141,8 +141,8 @@ html, body {
 
 @media (min-width: 500px) {
   .ios-app-container {
-    max-width: min(var(--app-max-width, 440px), calc(100vw - 2.2rem));
-    padding: max(2rem, env(safe-area-inset-top, 0px)) 1.35rem max(8rem, calc(7rem + env(safe-area-inset-bottom, 0px))) 1.35rem;
+    max-width: min(var(--app-max-width, 440px), calc(100vw - 1.2rem));
+    padding: max(2rem, env(safe-area-inset-top, 0px)) 1rem max(8rem, calc(7rem + env(safe-area-inset-bottom, 0px))) 1rem;
   }
 }
 
@@ -977,6 +977,12 @@ html, body {
   will-change: transform, opacity;
 }
 
+[data-theme="light"] .floating-island-dock {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
 .floating-island-dock.dock-hidden {
   transform: translate(-50%, calc(100% + 2.5rem)) scale(0.92);
   opacity: 0;
@@ -1080,14 +1086,36 @@ html, body {
   color: #ffffff;
 }
 
+[data-theme="light"] .dock-tab {
+  background: transparent;
+  color: #8e8e93;
+}
+
+[data-theme="light"] .dock-tab .dock-icon svg {
+  stroke: #8e8e93;
+}
+
+[data-theme="light"] .dock-tab .dock-label {
+  color: #8e8e93;
+}
+
 [data-theme="light"] .dock-tab.active {
-  background: #e5e5ea;
-  color: #000000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .dock-tab.active .dock-icon {
+  color: #ffffff;
+}
+
+[data-theme="light"] .dock-tab.active .dock-icon svg {
+  stroke: #ffffff;
 }
 
 [data-theme="light"] .dock-tab.active .dock-label {
-  color: #000000;
+  color: #ffffff !important;
+  font-weight: 700;
 }
 
 /* 分頁切換激活彈跳特效 */
@@ -3431,18 +3459,42 @@ input[type="time"]::-webkit-date-and-time-value {
 }
 
 /* 8. Bottom Navigation Dock */
-[data-theme="light"] .ios-bottom-dock {
+[data-theme="light"] .ios-bottom-dock,
+[data-theme="light"] .floating-island-dock {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 [data-theme="light"] .dock-tab {
+  background: transparent;
   color: #8e8e93;
+}
+[data-theme="light"] .dock-tab .dock-icon svg {
+  stroke: #8e8e93;
+}
+[data-theme="light"] .dock-tab .dock-label {
+  color: #8e8e93;
+}
+[data-theme="light"] .dock-tab:not(.active):hover {
+  color: #000000;
+}
+[data-theme="light"] .dock-tab:not(.active):hover .dock-icon svg {
+  stroke: #000000;
+}
+[data-theme="light"] .dock-tab:not(.active):hover .dock-label {
+  color: #000000;
 }
 [data-theme="light"] .dock-tab.active {
   background: #000000;
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+[data-theme="light"] .dock-tab.active .dock-icon svg {
+  stroke: #ffffff;
+}
+[data-theme="light"] .dock-tab.active .dock-label {
+  color: #ffffff !important;
+  font-weight: 700;
 }
 
 /* ==========================================================================

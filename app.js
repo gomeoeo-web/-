@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.5.7';
+  const APP_VERSION = '1.5.9';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -3616,15 +3616,22 @@
     }
   }
 
-  function switchViewTab(tab, smooth = true) {
+  function switchViewTab(tab, smooth = true, isUserClick = false) {
     if (tab === currentNavTab) {
+      if (isUserClick) {
+        triggerDockSwitchEffect(tab);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     const currentScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     currentNavTab = tab;
-    triggerDockSwitchEffect(tab);
+
+    // 只有在點按主頁或物品分類時才出現放大彈跳特效 (滑動完成時不觸發)
+    if (isUserClick) {
+      triggerDockSwitchEffect(tab);
+    }
 
     // 開始滑動/切換：立即喚醒所有面板確保滑動視覺完整
     setPanelsSwipingState(true);
@@ -3685,11 +3692,11 @@
   }
 
   dockTabToday.addEventListener('click', function () {
-    switchViewTab('today', true);
+    switchViewTab('today', true, true);
   });
 
   dockTabInventory.addEventListener('click', function () {
-    switchViewTab('inventory', true);
+    switchViewTab('inventory', true, true);
   });
 
   // 動態渲染分類膠囊標籤, 第一個群組預設在最左側, 支援群組狀態記憶與平滑對齊
@@ -4758,7 +4765,7 @@
             renderCategoryChips();
             updateCategoryActionBar();
           }
-          triggerDockSwitchEffect(targetTab);
+          // 主頁與物品分類框在滑動完成時不需有放大特效，只有在點按主頁或物品分類時才出現放大彈跳特效
           renderApp();
         } else {
           // 未切換分頁（彈回原分頁）：保留目前頁面狀態，僅清除下一頁位移
@@ -4816,7 +4823,7 @@
           targetTab = (scrollLeft >= width * 0.5) ? 'inventory' : 'today';
         }
         if (targetTab !== currentNavTab) {
-          switchViewTab(targetTab, true);
+          switchViewTab(targetTab, true, false);
         } else {
           clearIncomingPanelTransform();
           hasSwipedHorizontally = false;

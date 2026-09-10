@@ -25,6 +25,8 @@ tests = [
     'scratch/test_v155_close_animations.py',
     'scratch/test_v156_dock_label_and_pre_swipe_top.py',
     'scratch/test_v157_current_page_retain_next_top.py',
+    'scratch/test_v158_border_distance_and_click_dock_pulse.py',
+    'scratch/test_v159_light_mode_dock_colors.py',
     'scratch/find_parens.py'
 ]
 

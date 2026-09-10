@@ -36,20 +36,20 @@ def verify_v15():
         errors.append("btnToggleHistoryCollapse listener missing in app.js")
 
     # 3. Screen border protection across all screen fits
-    if '--app-max-width: calc(100vw - 2.4rem)' not in css:
+    if '--app-max-width: calc(100vw - 1rem)' not in css:
         errors.append("Full screen-fit edge margin protection missing in style.css")
-    if 'max-width: min(var(--app-max-width, 440px), calc(100vw - 1.6rem))' not in css:
+    if 'max-width: min(var(--app-max-width, 440px), calc(100vw - 0.75rem))' not in css:
         errors.append("ios-app-container edge margin protection missing in style.css")
     for fit, w in [('standard', '390px'), ('plus', '440px'), ('tablet', '680px'), ('full', '600px')]:
         expected = f'[data-screen-fit="{fit}"] .ios-modal-card,\n[data-screen-fit="{fit}"] .ios-action-sheet'
         if expected not in css:
             errors.append(f"Safe edge bounds missing for screen fit {fit} in style.css")
 
-    # 4. Version 1.5.7 check
-    if '<span class="app-version-badge" id="appVersionBadge">v1.5.7</span>' not in html:
-        errors.append("Version badge v1.5.7 missing in index.html")
-    if "const APP_VERSION = '1.5.7';" not in js:
-        errors.append("APP_VERSION 1.5.7 missing in app.js")
+    # 4. Version 1.5.9 check
+    if '<span class="app-version-badge" id="appVersionBadge">v1.5.9</span>' not in html:
+        errors.append("Version badge v1.5.9 missing in index.html")
+    if "const APP_VERSION = '1.5.9';" not in js:
+        errors.append("APP_VERSION 1.5.9 missing in app.js")
 
     # 4.0 Check 移出此群組 button
     if 'id="btnSheetRemoveGroup"' not in html:
