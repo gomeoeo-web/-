@@ -15,6 +15,7 @@ tests = [
     'scratch/test_single_milk_sample.py',
     'scratch/test_session_requirements.py',
     'scratch/test_archive_feature.py',
+    'scratch/test_oled_frames_version.py',
     'scratch/find_parens.py'
 ]
 

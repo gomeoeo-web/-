@@ -12,6 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
+  const APP_VERSION = '1.0';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';

@@ -131,7 +131,7 @@ html, body {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: max(1.25rem, env(safe-area-inset-top, 0px)) 1rem max(7.5rem, calc(6.5rem + env(safe-area-inset-bottom, 0px))) 1rem;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px)) max(1.2rem, calc(env(safe-area-inset-right, 0px) + 1.2rem)) max(7.5rem, calc(6.5rem + env(safe-area-inset-bottom, 0px))) max(1.2rem, calc(env(safe-area-inset-left, 0px) + 1.2rem));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -142,7 +142,7 @@ html, body {
 @media (min-width: 500px) {
   .ios-app-container {
     max-width: var(--app-max-width, 440px);
-    padding: max(2rem, env(safe-area-inset-top, 0px)) 1.25rem max(8rem, calc(7rem + env(safe-area-inset-bottom, 0px))) 1.25rem;
+    padding: max(2rem, env(safe-area-inset-top, 0px)) 1.35rem max(8rem, calc(7rem + env(safe-area-inset-bottom, 0px))) 1.35rem;
   }
 }
 
@@ -165,6 +165,40 @@ html, body {
   align-items: center;
   gap: 0.5rem;
   flex: 1;
+}
+
+/* Top-Left Version Badge 左上角版本號碼 (從1.0開始) */
+.app-version-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ios-text-secondary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ios-border);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--transition-ios);
+}
+.app-version-badge:hover {
+  color: var(--ios-text-primary);
+  background: rgba(255, 255, 255, 0.14);
+}
+[data-theme="light"] .app-version-badge {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #636366;
+}
+[data-theme="amoled"] .app-version-badge {
+  background: #1c1c24;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #a0a5ab;
 }
 
 .header-actions {
@@ -1643,19 +1677,18 @@ html, body {
    ========================================================================== */
 .ios-action-backdrop {
   align-items: flex-end; /* Bottom sheet */
-  padding: 0;
+  padding: 0 0.75rem max(0.75rem, env(safe-area-inset-bottom, 0px)) 0.75rem;
 }
 
 .ios-action-sheet {
   background: var(--ios-surface);
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
+  border-radius: 26px;
   width: 100%;
-  max-width: 540px;
+  max-width: 500px;
   margin: 0 auto;
   padding: 0.75rem 1.25rem 2.25rem 1.25rem;
   border: 1px solid var(--ios-border);
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   animation: slideUpSheet 0.25s cubic-bezier(0.32, 0.72, 0, 1);
   overscroll-behavior: contain;
   touch-action: pan-y;
@@ -3616,26 +3649,27 @@ body.modal-open .view-panel {
    Responsive Modal Card & Screen-Fit Adaptations (防左右滑動橫向溢出)
    ========================================================================== */
 [data-screen-fit="standard"] .ios-modal-card {
-  max-width: min(390px, 94vw);
+  max-width: min(390px, calc(100vw - 1.6rem));
 }
 [data-screen-fit="plus"] .ios-modal-card {
-  max-width: min(440px, 94vw);
+  max-width: min(440px, calc(100vw - 1.6rem));
 }
 [data-screen-fit="tablet"] .ios-modal-card {
-  max-width: min(560px, 94vw);
+  max-width: min(560px, calc(100vw - 1.6rem));
 }
 [data-screen-fit="full"] .ios-modal-card {
-  max-width: min(600px, 94vw);
+  max-width: min(600px, calc(100vw - 1.6rem));
 }
 
 @media (max-width: 480px) {
   .ios-modal-backdrop {
-    padding: 0.6rem 0.5rem;
+    padding: 0.85rem 0.85rem;
   }
   .ios-modal-card {
-    max-width: 100%;
+    max-width: calc(100% - 0.5rem);
+    margin: 0 auto;
     border-radius: 20px;
-    max-height: 92vh;
+    max-height: 90vh;
   }
   .ios-modal-header {
     padding: 1rem 1.15rem;
@@ -3949,6 +3983,56 @@ body.modal-open .view-panel {
   background: #000000;
   color: #ffffff;
   border-color: #000000;
+}
+
+/* OLED純黑模式：主頁將到期與已過期顏色修復與鮮明對比 */
+[data-theme="amoled"] .filter-btn-badge.urgent {
+  background: rgba(255, 159, 10, 0.25);
+  color: #ff9f0a;
+  border: 1px solid rgba(255, 159, 10, 0.45);
+}
+[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge.urgent {
+  background: #ff9f0a;
+  color: #000000;
+  border-color: #ff9f0a;
+}
+[data-theme="amoled"] .filter-btn-badge.expired {
+  background: rgba(255, 69, 58, 0.25);
+  color: #ff453a;
+  border: 1px solid rgba(255, 69, 58, 0.45);
+}
+[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge.expired {
+  background: #ff453a;
+  color: #ffffff;
+  border-color: #ff453a;
+}
+[data-theme="amoled"] .card-metric-sub.urgent {
+  color: #ff9f0a;
+  font-weight: 700;
+}
+[data-theme="amoled"] .card-metric-sub.expired {
+  color: #ff453a;
+  font-weight: 700;
+}
+[data-theme="amoled"] .card-progress-fill.urgent {
+  background: #ff9f0a;
+  box-shadow: 0 0 8px rgba(255, 159, 10, 0.4);
+}
+[data-theme="amoled"] .card-progress-fill.expired {
+  background: #ff453a;
+  box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
+}
+[data-theme="amoled"] .notice-num.expired {
+  color: #ff453a;
+  text-shadow: 0 1px 8px rgba(255, 69, 58, 0.4);
+}
+[data-theme="amoled"] .notice-num.due-today {
+  color: #ff6b22;
+  text-shadow: 0 1px 8px rgba(255, 107, 34, 0.4);
+}
+[data-theme="amoled"] .notice-num.urgent {
+  color: #ff9f0a;
+  text-shadow: 0 1px 8px rgba(255, 159, 10, 0.4);
 }
 
 [data-theme="amoled"] .category-chip {
