@@ -13,15 +13,21 @@ def test_requirements():
 
     errors = []
 
-    # 1. Top-Left Version Badge (1.0)
+    # 1. Top-Left Version Badge (1.1, incrementing by 0.1 per change)
     if 'id="appVersionBadge"' not in html:
         errors.append("appVersionBadge missing from index.html")
-    if '1.0' not in html:
-        errors.append("Version 1.0 missing from index.html")
+    if '1.1' not in html:
+        errors.append("Version 1.1 missing from index.html")
     if '.app-version-badge' not in css:
         errors.append(".app-version-badge style missing from style.css")
-    if "APP_VERSION = '1.0'" not in js:
-        errors.append("APP_VERSION = '1.0' constant missing from app.js")
+    if "APP_VERSION = '1.1'" not in js:
+        errors.append("APP_VERSION constant missing from app.js")
+
+    # 1.1 App Name: 期效管家
+    if '<title>期效管家</title>' not in html:
+        errors.append("<title>期效管家</title> missing from index.html")
+    if '期效管家備份_' not in js:
+        errors.append("期效管家備份_ missing from app.js")
 
     # 2. OLED Pure Black Mode Urgent & Expired Colors
     oled_urgent_badge = '[data-theme="amoled"] .filter-btn-badge.urgent'
@@ -77,7 +83,52 @@ def test_requirements():
     if 'max-width: calc(100% - 0.5rem);' not in css:
         errors.append(".ios-modal-card in mobile media query should protect edges with calc(100% - 0.5rem)")
 
-    # 4. Zero Chinese Parentheses
+    # 4. Action Sheet Vertical Button Stacking & Height Constrained
+    if 'max-height: min(85vh' not in css and 'max-height: min(88vh' not in css and 'max-height:' not in sheet_m.group(1):
+        errors.append(".ios-action-sheet must constrain max-height")
+    if 'overflow-y: auto' not in sheet_m.group(1):
+        errors.append(".ios-action-sheet must have overflow-y: auto")
+
+    # Check 4 buttons exist and are in vertical list inside .sheet-actions-group
+    for btn_id in ['btnSheetEdit', 'btnSheetReset', 'btnSheetArchive', 'btnSheetDelete']:
+        if f'id="{btn_id}"' not in html:
+            errors.append(f"{btn_id} missing from index.html")
+
+    # Check sheet-actions-group is flex column
+    actions_group_m = re.search(r'\.sheet-actions-group\s*\{([^}]+)\}', css)
+    if not actions_group_m or 'flex-direction: column' not in actions_group_m.group(1):
+        errors.append(".sheet-actions-group must have flex-direction: column for vertical arrangement")
+
+    # 5. Icons in 到期提醒, 存放地點, 備註說明 must all be removed
+    if '🔔 到期提醒' in html:
+        errors.append("🔔 icon still present in 到期提醒通知 in index.html")
+    if '🔔' in js and '${getWarnDaysLabel(item)}' in js and '🔔 ${getWarnDaysLabel(item)}' in js:
+        errors.append("🔔 icon still present in 到期提醒 in app.js")
+    if '📍 ${escapeHtml(item.location)}' in js:
+        errors.append("📍 icon still present in 存放地點 in app.js")
+    if '💬 ${escapeHtml(item.notes)}' in js:
+        errors.append("💬 icon still present in 備註說明 in app.js")
+
+    # 6. Default Screen Fit: 大螢幕 (plus)
+    if 'data-screen-fit="plus"' not in html:
+        errors.append("html element must have default data-screen-fit='plus'")
+
+    # 7. Card Top Row Overlap Fix
+    top_row_m = re.search(r'\.card-top-row\s*\{([^}]+)\}', css)
+    if not top_row_m or 'gap:' not in top_row_m.group(1):
+        errors.append(".card-top-row must have gap property")
+    if not top_row_m or 'min-width: 0' not in top_row_m.group(1):
+        errors.append(".card-top-row must have min-width: 0")
+
+    cat_tag_m = re.search(r'\.card-category-tag\s*\{([^}]+)\}', css)
+    if not cat_tag_m or 'text-overflow: ellipsis' not in cat_tag_m.group(1):
+        errors.append(".card-category-tag must have text-overflow: ellipsis")
+    if not cat_tag_m or 'white-space: nowrap' not in cat_tag_m.group(1):
+        errors.append(".card-category-tag must have white-space: nowrap")
+    if not cat_tag_m or 'overflow: hidden' not in cat_tag_m.group(1):
+        errors.append(".card-category-tag must have overflow: hidden")
+
+    # 8. Zero Chinese Parentheses
     clean_html = re.sub(r'<!--[\s\S]*?-->', '', html)
     clean_html = re.sub(r'<script[\s\S]*?</script>', '', clean_html)
     clean_html = re.sub(r'<style[\s\S]*?</style>', '', clean_html)
@@ -86,7 +137,7 @@ def test_requirements():
         if re.search(r'[（）]', text_outside_tags):
             errors.append(f"Chinese parentheses found in index.html line {idx}: {text_outside_tags}")
 
-    # 5. Zero '二級選單'
+    # 9. Zero '二級選單'
     for name, content in [('index.html', html), ('app.js', js), ('style.css', css)]:
         if '二級選單' in content:
             errors.append(f"'二級選單' found in {name}")
@@ -97,7 +148,7 @@ def test_requirements():
             print(f"  - {e}")
         return False
     else:
-        print("SUCCESS: All OLED colors, frame edge safety, and v1.0 version tag requirements PASSED!")
+        print("SUCCESS: All vertical button layout, icon removals, OLED colors, frame edge safety, and v1.01 requirements PASSED!")
         return True
 
 if __name__ == '__main__':

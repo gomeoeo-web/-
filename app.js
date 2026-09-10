@@ -1,5 +1,5 @@
 /**
- * 買了之後 / 今天需要注意 (LifeSpan Tracker) - 極簡 iOS 邏輯控制器
+ * 期效管家 (LifeSpan Tracker) - 極簡 iOS 邏輯控制器
  * 支援：
  * 1. 智慧輸入物品自動匹配圖標 (Smart Icon Matcher)
  * 2. 使用者自訂相片上傳與輕量壓縮儲存 (Custom Photo Upload)
@@ -12,7 +12,7 @@
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.0';
+  const APP_VERSION = '1.1';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -1639,24 +1639,32 @@
     if (!item) return;
 
     if (isResetConfirming) {
-      btnSheetResetText.textContent = '⚠️ 確定要重設時間嗎？再次點擊確認';
-      btnSheetReset.classList.add('confirm-active');
+      if (btnSheetResetText) btnSheetResetText.textContent = '⚠️ 確定要重設時間嗎？再次點擊確認';
+      if (btnSheetReset) {
+        btnSheetReset.classList.add('confirm-active');
+        btnSheetReset.setAttribute('title', '⚠️ 確定要重設時間嗎？再次點擊確認');
+      }
     } else {
-      btnSheetReset.classList.remove('confirm-active');
-      if (item.category === 'vehicle') {
-        btnSheetResetText.textContent = '🚗 保養換新 / 重開週期';
-      } else if (item.category === 'subscription') {
-        btnSheetResetText.textContent = '📅 續訂成功 / 重新計時';
-      } else if (item.category === 'medicine') {
-        btnSheetResetText.textContent = '💊 開新藥瓶 / 重新計時';
-      } else if (item.category === 'cleaning') {
-        btnSheetResetText.textContent = '🧼 換新備品 / 重新計時';
-      } else if (item.category === 'filter') {
-        btnSheetResetText.textContent = '🔄 換新濾網 / 重新開始倒數';
-      } else if (item.category === 'pao') {
-        btnSheetResetText.textContent = '🧴 新瓶開封 / 重新計時';
-      } else {
-        btnSheetResetText.textContent = '⏱️ 重設起始日 / 開啟新週期';
+      if (btnSheetReset) {
+        btnSheetReset.classList.remove('confirm-active');
+        btnSheetReset.setAttribute('title', '換新耗材 / 重設時間');
+      }
+      if (btnSheetResetText) {
+        if (item.category === 'vehicle') {
+          btnSheetResetText.textContent = '🚗 保養換新 / 重開週期';
+        } else if (item.category === 'subscription') {
+          btnSheetResetText.textContent = '📅 續訂成功 / 重新計時';
+        } else if (item.category === 'medicine') {
+          btnSheetResetText.textContent = '💊 開新藥瓶 / 重新計時';
+        } else if (item.category === 'cleaning') {
+          btnSheetResetText.textContent = '🧼 換新備品 / 重新計時';
+        } else if (item.category === 'filter') {
+          btnSheetResetText.textContent = '🔄 換新濾網 / 重新開始倒數';
+        } else if (item.category === 'pao') {
+          btnSheetResetText.textContent = '🧴 新瓶開封 / 重新計時';
+        } else {
+          btnSheetResetText.textContent = '⏱️ 重設起始日 / 開啟新週期';
+        }
       }
     }
   }
@@ -1712,7 +1720,7 @@
         </div>
         <div class="sheet-detail-row">
           <span>到期提醒</span>
-          <span>🔔 ${getWarnDaysLabel(item)}</span>
+          <span>${getWarnDaysLabel(item)}</span>
         </div>
       ` : `
         <div class="sheet-detail-row">
@@ -1723,7 +1731,7 @@
       ${item.location ? `
         <div class="sheet-detail-row">
           <span>存放地點</span>
-          <span>📍 ${escapeHtml(item.location)}</span>
+          <span>${escapeHtml(item.location)}</span>
         </div>
       ` : ''}
       ${item.brand ? `
@@ -1735,7 +1743,7 @@
       ${item.notes ? `
         <div class="sheet-detail-row">
           <span>備註說明</span>
-          <span>💬 ${escapeHtml(item.notes)}</span>
+          <span>${escapeHtml(item.notes)}</span>
         </div>
       ` : ''}
     `;
@@ -1773,6 +1781,7 @@
       // 第一次點擊：進入警示確認模式
       isResetConfirming = true;
       updateSheetResetButtonText();
+      showToast('⚠️ 請再次點擊圖示以確認重設時間', 'warning');
       resetConfirmTimer = setTimeout(() => {
         clearResetConfirmation();
       }, 4000);
@@ -3079,7 +3088,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `物品天數備份_${getTodayString()}.json`;
+    a.download = `期效管家備份_${getTodayString()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('備份檔案已匯出');
@@ -3424,7 +3433,7 @@
       dockTabToday.classList.add('active');
       dockTabInventory.classList.remove('active');
       if (headerSublabel) headerSublabel.textContent = '主頁';
-      if (headerMainTitle) headerMainTitle.textContent = '物品天數';
+      if (headerMainTitle) headerMainTitle.textContent = '期效管家';
     } else {
       dockTabToday.classList.remove('active');
       dockTabInventory.classList.add('active');
@@ -4365,14 +4374,13 @@
       if (e.touches.length === 1) {
         const dy = e.touches[0].clientY - sheetStartY;
         const dx = Math.abs(e.touches[0].clientX - sheetStartX);
-        // 當觸控頂部把手、頂部標題或向下拖拉時攔截事件, 避免影響背景
-        if (e.target.closest('.sheet-drag-handle') || e.target.closest('.sheet-header') || (dy > 0 && dy > dx)) {
-          if (dy > 0) {
-            isDraggingSheet = true;
-            if (e.cancelable) e.preventDefault();
-            actionSheetCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
-            actionSheetCard.style.transition = 'none';
-          }
+        const isAtTop = actionSheetCard.scrollTop <= 0;
+        // 當觸控頂部把手、頂部標題或卡片在頂端時向下拖拉即可關閉卡片
+        if ((e.target.closest('.sheet-drag-handle') || e.target.closest('.sheet-header') || isAtTop) && dy > 0 && dy > dx) {
+          isDraggingSheet = true;
+          if (e.cancelable) e.preventDefault();
+          actionSheetCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+          actionSheetCard.style.transition = 'none';
         }
       }
     }, { passive: false });
@@ -4380,11 +4388,11 @@
     actionSheetCard.addEventListener('touchend', function (e) {
       if (isDraggingSheet) {
         isDraggingSheet = false;
-        actionSheetCard.style.transition = 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)';
+        actionSheetCard.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)';
         const currentTransform = actionSheetCard.style.transform;
         const match = currentTransform.match(/translateY\((\d+)px\)/);
         const dy = match ? parseInt(match[1], 10) : 0;
-        if (dy > 70) {
+        if (dy > 45) { // 輕輕往下一拉即可關閉
           actionSheetCard.style.transform = '';
           closeActionSheet();
         } else {
@@ -4421,7 +4429,7 @@
             dockTabToday.classList.add('active');
             dockTabInventory.classList.remove('active');
             if (headerSublabel) headerSublabel.textContent = '主頁';
-            if (headerMainTitle) headerMainTitle.textContent = '物品天數';
+            if (headerMainTitle) headerMainTitle.textContent = '期效管家';
           } else {
             dockTabToday.classList.remove('active');
             dockTabInventory.classList.add('active');

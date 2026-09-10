@@ -16,6 +16,7 @@ tests = [
     'scratch/test_session_requirements.py',
     'scratch/test_archive_feature.py',
     'scratch/test_oled_frames_version.py',
+    'scratch/test_rename_and_version.py',
     'scratch/find_parens.py'
 ]
 
