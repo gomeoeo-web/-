@@ -4748,7 +4748,7 @@ body.modal-open .view-panel {
     <!-- Top Header -->
     <header class="ios-header">
       <div class="header-brand-placeholder">
-        <span class="app-version-badge" id="appVersionBadge">v1.6.1</span>
+        <span class="app-version-badge" id="appVersionBadge">v1.6.3</span>
       </div>
 
       <div class="header-actions">
@@ -5108,8 +5108,7 @@ body.modal-open .view-panel {
                     <option value="30">到期 30 天前提醒</option>
                     <option value="60">到期 60 天前提醒</option>
                     <option value="90">到期 90 天前提醒</option>
-                    <option value="custom">🗓️ 自訂指定提醒日期與時間...</option>
-                    <option value="-1" style="display:none;">不提醒</option>
+                    <option value="custom">自訂指定提醒日期與時間...</option>
                   </select>
                   <span class="select-chevron">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -5128,7 +5127,7 @@ body.modal-open .view-panel {
             <!-- Custom Exact Date & Time Sub-card (自訂特定提醒日期與時間) -->
             <div id="customReminderDateTimeWrap" class="reminder-custom-box" style="display:none;">
               <div class="reminder-custom-header">
-                <span class="reminder-custom-title">🗓️ 指定提醒日期與時間</span>
+                <span class="reminder-custom-title">指定提醒日期與時間</span>
                 <span class="reminder-custom-badge">精確排程</span>
               </div>
               <div class="reminder-custom-grid">
@@ -5271,7 +5270,8 @@ body.modal-open .view-panel {
   <!-- Modal 3: Settings Modal (iOS Grouped Style) -->
   <div id="settingsModal" class="ios-modal-backdrop" style="display:none;">
     <div class="ios-modal-card ios-modal-sm">
-      <div class="ios-modal-header">
+      <div class="sheet-drag-handle" style="margin-top: 0.65rem; margin-bottom: 0.25rem;"></div>
+      <div class="ios-modal-header" style="padding-top: 0.35rem;">
         <h2>設定與資料管理</h2>
         <button id="btnCloseSettings" class="btn-modal-close">✕</button>
       </div>
@@ -6598,7 +6598,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.6.1';
+  const APP_VERSION = '1.6.3';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -9496,8 +9496,7 @@ var CapacitorBridgeBundle = (() => {
     { value: '30', label: '到期 30 天前提醒' },
     { value: '60', label: '到期 60 天前提醒' },
     { value: '90', label: '到期 90 天前提醒' },
-    { value: 'custom', label: '🗓️ 自訂指定提醒日期與時間...' },
-    { value: '-1', label: '不提醒' }
+    { value: 'custom', label: '自訂指定提醒日期與時間...' }
   ];
 
   function updateReminderToggleState(enabled) {
@@ -9944,7 +9943,7 @@ var CapacitorBridgeBundle = (() => {
     if (e.target === settingsModal) closeSettingsModal();
   });
 
-  // Settings Modal 滑動支援：標頭拖曳向下滑動極速關閉 ＆ 順暢滾動
+  // Settings Modal 滑動支援：全卡片支援上下流暢滑動與拖曳向下滑動極速關閉
   const settingsModalCard = settingsModal ? settingsModal.querySelector('.ios-modal-card') : null;
   const settingsScrollList = settingsModal ? settingsModal.querySelector('.ios-settings-list') : null;
 
@@ -9957,32 +9956,29 @@ var CapacitorBridgeBundle = (() => {
 
     settingsModalCard.addEventListener('touchstart', function (e) {
       if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
-        const isHeader = !!e.target.closest('.ios-modal-header');
-        if (isHeader) {
-          settingsTouchStartY = e.touches[0].clientY;
-          settingsTouchStartX = e.touches[0].clientX;
-          settingsTouchStartTime = Date.now();
-          isDraggingSettings = false;
-          currentSettingsDy = 0;
-        }
+        settingsTouchStartY = e.touches[0].clientY;
+        settingsTouchStartX = e.touches[0].clientX;
+        settingsTouchStartTime = Date.now();
+        isDraggingSettings = false;
+        currentSettingsDy = 0;
       }
     }, { passive: true });
 
     settingsModalCard.addEventListener('touchmove', function (e) {
       if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
-        const isHeader = !!e.target.closest('.ios-modal-header');
-        if (isHeader) {
-          const touchY = e.touches[0].clientY;
-          const dy = touchY - settingsTouchStartY;
-          const dx = Math.abs(e.touches[0].clientX - settingsTouchStartX);
+        const touchY = e.touches[0].clientY;
+        const dy = touchY - settingsTouchStartY;
+        const dx = Math.abs(e.touches[0].clientX - settingsTouchStartX);
+        const isNearTop = !settingsScrollList || settingsScrollList.scrollTop <= 2;
+        const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
 
-          if (dy > 6 && dy > dx * 0.8) {
-            isDraggingSettings = true;
-            currentSettingsDy = dy;
-            if (e.cancelable) e.preventDefault();
-            settingsModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
-            settingsModalCard.style.transition = 'none';
-          }
+        // 當處於頂部手把/標頭，或列表滾動至頂端向下滑動時，觸發拖曳跟手下滑關閉
+        if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+          isDraggingSettings = true;
+          currentSettingsDy = dy;
+          if (e.cancelable) e.preventDefault();
+          settingsModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+          settingsModalCard.style.transition = 'none';
         }
       }
     }, { passive: false });
@@ -9993,7 +9989,7 @@ var CapacitorBridgeBundle = (() => {
         const dt = Math.max(1, Date.now() - settingsTouchStartTime);
         const velocityY = currentSettingsDy / dt;
 
-        if (currentSettingsDy > 50 || (velocityY > 0.25 && currentSettingsDy > 20)) {
+        if (currentSettingsDy > 35 || (velocityY > 0.22 && currentSettingsDy > 15)) {
           settingsModalCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
           settingsModalCard.style.transform = 'translateY(100%)';
           setTimeout(() => {
@@ -10014,6 +10010,16 @@ var CapacitorBridgeBundle = (() => {
 
     settingsModalCard.addEventListener('touchend', handleSettingsTouchEnd, { passive: true });
     settingsModalCard.addEventListener('touchcancel', handleSettingsTouchEnd, { passive: true });
+
+    // 半透明遮罩層向下滑動快速關閉
+    settingsModal.addEventListener('touchmove', function (e) {
+      if (e.target === settingsModal && e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
+        const dy = e.touches[0].clientY - settingsTouchStartY;
+        if (dy > 25) {
+          closeSettingsModal();
+        }
+      }
+    }, { passive: true });
   }
 
   btnToggleThemeSetting.addEventListener('click', function () {
