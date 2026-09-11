@@ -2372,26 +2372,27 @@ input[type="time"]::-webkit-date-and-time-value {
    Settings Modal (Grouped List)
    ========================================================================== */
 #settingsModal .ios-modal-card {
-  max-height: 88vh;
-  height: min(650px, 88vh);
-  display: flex;
-  flex-direction: column;
+  max-height: 85vh !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .ios-settings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding: 1.25rem 1rem 5.5rem 1.25rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 1.25rem 1rem 24px 1.25rem !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
   -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior-y: contain;
   touch-action: pan-y !important;
-  flex: 1 1 auto;
-  min-height: 0;
-  box-sizing: border-box;
-  width: 100%;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.08);
   scrollbar-gutter: stable;
@@ -2428,27 +2429,36 @@ input[type="time"]::-webkit-date-and-time-value {
 .settings-group {
   background: var(--ios-surface-secondary);
   border-radius: var(--radius-subcard);
-  overflow: hidden;
   border: 1px solid var(--ios-border);
+  height: auto !important;
+  min-height: fit-content !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 0.85rem 0.5rem !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
 }
 
 .settings-row, .settings-row-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  padding: 0.95rem 1rem;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.85rem !important;
+  padding: 0.65rem 0.75rem !important;
   border-bottom: 1px solid var(--ios-border);
-  width: 100%;
-  background: transparent;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  cursor: pointer;
-  text-align: left;
-  color: inherit;
-  font-family: inherit;
-  box-sizing: border-box;
+  width: 100% !important;
+  background: transparent !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  color: inherit !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  min-height: fit-content !important;
 }
 .settings-row:last-child, .settings-row-btn:last-child {
   border-bottom: none;
@@ -2495,6 +2505,64 @@ input[type="time"]::-webkit-date-and-time-value {
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+/* 獨立美化：發送測試通知列與按鈕 */
+#rowTestNotification {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.85rem !important;
+  padding: 0.75rem 0.75rem !important;
+  height: auto !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+}
+
+#rowTestNotification .settings-info {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  padding-right: 0.5rem !important;
+}
+
+.btn-test-notification,
+#btnTestNotification {
+  flex-shrink: 0 !important;
+  padding: 0.45rem 1rem !important;
+  border-radius: var(--radius-pill) !important;
+  background: var(--ios-surface-elevated) !important;
+  border: 1px solid var(--ios-border-strong) !important;
+  color: var(--ios-text-primary) !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.35rem !important;
+  transition: all 0.18s ease !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn-test-notification:hover,
+#btnTestNotification:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-test-notification:active,
+#btnTestNotification:active {
+  transform: scale(0.96) !important;
+}
+
+[data-theme="light"] .btn-test-notification,
+[data-theme="light"] #btnTestNotification {
+  background: #f2f2f7 !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  color: #000000 !important;
 }
 
 .screen-fit-select-wrap {
@@ -4279,6 +4347,10 @@ body.modal-open .view-panel {
     border-radius: 20px;
     max-height: 90vh;
   }
+  #settingsModal .ios-modal-card {
+    max-height: 85vh !important;
+    height: auto !important;
+  }
   .ios-modal-header {
     padding: 1rem 1.15rem;
   }
@@ -4288,7 +4360,7 @@ body.modal-open .view-panel {
     overflow-x: hidden !important;
   }
   .ios-settings-list {
-    padding: 0.95rem 0.85rem 5rem 1rem;
+    padding: 0.95rem 0.85rem 24px 0.95rem !important;
   }
   .category-boxed-frame {
     padding: 0.95rem 0.85rem;
@@ -4793,7 +4865,7 @@ body.modal-open .view-panel {
     <!-- Top Header -->
     <header class="ios-header">
       <div class="header-brand-placeholder">
-        <span class="app-version-badge" id="appVersionBadge">v1.6.3</span>
+        <span class="app-version-badge" id="appVersionBadge">v1.6.5</span>
       </div>
 
       <div class="header-actions">
@@ -5356,7 +5428,7 @@ body.modal-open .view-panel {
               <span class="settings-title">發送測試通知</span>
               <span class="settings-desc">測試手機系統橫幅與聲音震動</span>
             </div>
-            <button type="button" id="btnTestNotification" class="btn-switch-theme" style="width: auto; padding: 6px 14px; font-size: 13px;">即時測試</button>
+            <button type="button" id="btnTestNotification" class="btn-test-notification">即時測試</button>
           </div>
 
           <div class="settings-row" id="rowScreenFit">
@@ -5510,7 +5582,8 @@ body.modal-open .view-panel {
   <!-- Modal 5: Custom Category Manager (自訂分類項目管理) -->
   <div id="customCategoryModal" class="ios-modal-backdrop" style="display:none;">
     <div class="ios-modal-card ios-modal-sm">
-      <div class="ios-modal-header">
+      <div class="sheet-drag-handle" style="margin-top: 0.65rem; margin-bottom: 0.25rem;"></div>
+      <div class="ios-modal-header" style="padding-top: 0.35rem;">
         <h2>自訂群組與分頁順序</h2>
         <button id="btnCloseCustomCategoryModal" class="btn-modal-close" aria-label="關閉">✕</button>
       </div>
@@ -6651,7 +6724,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.6.3';
+  const APP_VERSION = '1.6.5';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -11128,6 +11201,83 @@ var CapacitorBridgeBundle = (() => {
     customCategoryModal.addEventListener('click', function (e) {
       if (e.target === customCategoryModal) closeCustomCategoryModal();
     });
+
+    // 群組設定彈窗 (customCategoryModal) 下滑關閉支援：支援手把與頂部跟手下滑與快速關閉
+    const customCatModalCard = customCategoryModal.querySelector('.ios-modal-card');
+    const customCatModalScroll = customCategoryModal.querySelector('.ios-modal-scroll');
+
+    if (customCatModalCard) {
+      let catTouchStartY = 0;
+      let catTouchStartX = 0;
+      let catTouchStartTime = 0;
+      let isDraggingCatModal = false;
+      let currentCatDy = 0;
+
+      customCatModalCard.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 1 && !customCategoryModal.classList.contains('modal-closing')) {
+          catTouchStartY = e.touches[0].clientY;
+          catTouchStartX = e.touches[0].clientX;
+          catTouchStartTime = Date.now();
+          isDraggingCatModal = false;
+          currentCatDy = 0;
+        }
+      }, { passive: true });
+
+      customCatModalCard.addEventListener('touchmove', function (e) {
+        if (e.touches.length === 1 && !customCategoryModal.classList.contains('modal-closing')) {
+          const touchY = e.touches[0].clientY;
+          const dy = touchY - catTouchStartY;
+          const dx = Math.abs(e.touches[0].clientX - catTouchStartX);
+          const isNearTop = !customCatModalScroll || customCatModalScroll.scrollTop <= 2;
+          const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
+
+          if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+            isDraggingCatModal = true;
+            currentCatDy = dy;
+            if (e.cancelable) e.preventDefault();
+            customCatModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+            customCatModalCard.style.transition = 'none';
+          }
+        }
+      }, { passive: false });
+
+      function handleCatTouchEnd() {
+        if (isDraggingCatModal && !customCategoryModal.classList.contains('modal-closing')) {
+          isDraggingCatModal = false;
+          const dt = Math.max(1, Date.now() - catTouchStartTime);
+          const velocityY = currentCatDy / dt;
+
+          if (currentCatDy > 35 || (velocityY > 0.22 && currentCatDy > 15)) {
+            customCatModalCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
+            customCatModalCard.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+              closeCustomCategoryModal();
+              customCatModalCard.style.transform = '';
+              customCatModalCard.style.transition = '';
+            }, 180);
+          } else {
+            customCatModalCard.style.transition = 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)';
+            customCatModalCard.style.transform = 'translateY(0)';
+            setTimeout(() => {
+              customCatModalCard.style.transform = '';
+              customCatModalCard.style.transition = '';
+            }, 200);
+          }
+        }
+      }
+
+      customCatModalCard.addEventListener('touchend', handleCatTouchEnd, { passive: true });
+      customCatModalCard.addEventListener('touchcancel', handleCatTouchEnd, { passive: true });
+
+      customCategoryModal.addEventListener('touchmove', function (e) {
+        if (e.target === customCategoryModal && e.touches.length === 1 && !customCategoryModal.classList.contains('modal-closing')) {
+          const dy = e.touches[0].clientY - catTouchStartY;
+          if (dy > 25) {
+            closeCustomCategoryModal();
+          }
+        }
+      }, { passive: true });
+    }
   }
 
   if (emojiQuickPills) {
