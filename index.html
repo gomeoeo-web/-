@@ -437,28 +437,51 @@ body {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: #ffffff;
-  color: #000000;
-  border: none;
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border: none !important;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 99;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
   transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.2s ease, opacity 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .ios-fab-btn:active {
   transform: scale(0.92);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* 強制最高權重校準 (防止三星/Android 瀏覽器深色模式強制反轉或繼承成深灰色/黑色) */
+.fab-add-btn, #fabAddBtn, .floating-btn {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.fab-add-btn svg, .fab-add-btn i, .fab-add-btn span,
+#fabAddBtn svg, #fabAddBtn i, #fabAddBtn span,
+.floating-btn svg, .floating-btn i, .floating-btn span,
+.ios-fab-btn svg, .ios-fab-btn i, .ios-fab-btn span {
+  fill: #000000 !important;
+  stroke: #000000 !important;
+  color: #000000 !important;
+}
+
+[data-theme="light"] .fab-add-btn,
+[data-theme="light"] #fabAddBtn,
+[data-theme="light"] .floating-btn,
 [data-theme="light"] .ios-fab-btn {
-  background: #000000;
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -1329,18 +1352,22 @@ body {
 
 .card-metric-sub.status-expired,
 .card-metric-sub.expired {
-  color: #ff453a !important;
+  color: #FF453A !important;
   font-weight: 700;
 }
 
 .card-metric-sub.status-warning,
 .card-metric-sub.urgent {
-  color: #ff9500 !important;
+  color: #FF9F0A !important;
   font-weight: 700;
 }
 
 .card-metric-sub.status-normal {
-  color: var(--ios-text-secondary);
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .card-metric-sub.status-normal {
+  color: rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Minimalist Progress Bar */
@@ -1360,21 +1387,21 @@ body {
   transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-/* 已過期 - 強烈紅 */
+/* 已過期 - 警示紅 */
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #ff453a !important;
+  background-color: #FF453A !important;
 }
 
-/* 將到期 / 3天內到期 - 鮮明橘黃色 (對應將到期菜單顏色) */
+/* 即將到期 / 3天內到期 - 警告橘 */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #ff9500 !important;
+  background-color: #FF9F0A !important;
 }
 
-/* 正常狀態 - 柔和深灰/中性白 */
+/* 正常/安全狀態 - 中性微透白/深灰（絕對嚴禁套用紅色或橘色） */
 .progress-bar-fill.status-normal,
 .card-progress-fill.status-normal {
   background-color: rgba(255, 255, 255, 0.25) !important;
@@ -4069,13 +4096,13 @@ input[type="time"]::-webkit-date-and-time-value {
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #ff453a !important;
+  background-color: #FF453A !important;
 }
 
 [data-theme="light"] .progress-bar-fill.status-warning,
 [data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background-color: #ff9500 !important;
+  background-color: #FF9F0A !important;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5351,14 +5378,14 @@ body.modal-open .view-panel {
 [data-theme="amoled"] .progress-bar-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background-color: #ff453a !important;
+  background-color: #FF453A !important;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
 }
 
 [data-theme="amoled"] .progress-bar-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.urgent {
-  background-color: #ff9500 !important;
+  background-color: #FF9F0A !important;
   box-shadow: 0 0 8px rgba(255, 149, 0, 0.45);
 }
 
@@ -5821,6 +5848,21 @@ body.modal-open .view-panel {
   border-radius: var(--radius-subcard);
 }
 
+/* 自訂提醒日期與時間輸入框寬度與內距微調（防止 24 小時制文字在小螢幕被右側下拉箭頭擠壓截斷） */
+#nlpConfirmCustomTime,
+input[type="datetime-local"].nlp-confirm-input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 0 0.75rem !important;
+  font-size: 0.95rem !important;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  display: block;
+}
+
 [data-theme="light"] .nlp-custom-reminder-row {
   background: rgba(0, 0, 0, 0.03);
   border-color: rgba(0, 0, 0, 0.12);
@@ -6074,10 +6116,10 @@ body.modal-open .view-panel {
     </main>
 
     <!-- Floating Action Button (FAB 右下角懸浮新增按鈕) -->
-    <button type="button" id="fabAddBtn" class="ios-fab-btn" title="手動新增物品" aria-label="新增物品">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
+    <button type="button" id="fabAddBtn" class="ios-fab-btn fab-add-btn floating-btn" title="手動新增物品" aria-label="新增物品">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke: #000000 !important; color: #000000 !important;">
+        <line x1="12" y1="5" x2="12" y2="19" stroke="#000000" style="stroke: #000000 !important;"></line>
+        <line x1="5" y1="12" x2="19" y2="12" stroke="#000000" style="stroke: #000000 !important;"></line>
       </svg>
     </button>
 
@@ -9504,20 +9546,14 @@ var CapacitorBridgeBundle = (() => {
     let percent = Math.round((elapsedDays / totalDays) * 100);
     percent = Math.min(100, Math.max(0, percent));
 
+    // 統一絕對天數門檻規則：
+    // 已過期：remainingDays < 0
+    // 即將到期：remainingDays >= 0 且 remainingDays <= 3
+    // 正常/安全：remainingDays > 3
     let status = 'good';
-    const warnDays = item.warnDays !== undefined ? Number(item.warnDays) : 7;
-
     if (remainingDays < 0) {
       status = 'expired';
-    } else if (remainingDays <= 3) {
-      status = 'urgent';
-    } else if (item.reminderType === 'custom' && item.reminderDate) {
-      if (today >= item.reminderDate) {
-        status = 'urgent';
-      } else {
-        status = 'good';
-      }
-    } else if (warnDays >= 0 && remainingDays <= warnDays) {
+    } else if (remainingDays >= 0 && remainingDays <= 3) {
       status = 'urgent';
     } else {
       status = 'good';
@@ -9857,48 +9893,48 @@ var CapacitorBridgeBundle = (() => {
       iconContent = `<span>${escapeHtml(item.emoji || '🪑')}</span>`;
     }
 
-    // 狀態判定規則：
-    // 1. 已過期（diffDays < 0）：
+    // 統一絕對天數門檻規則：
+    // 1. 【已過期】diffDays < 0：
     //    * 狀態標記：'status-expired'
-    //    * 進度條顏色：紅色（#ff453a）
-    //    * 文字同步顯示紅色
-    // 2. 將到期 / 3天內到期（diffDays >= 0 且 diffDays <= 3 或符合提醒天數）：
+    //    * 文字顏色與進度條：警示紅（#FF453A）
+    // 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（三天內，包含三天整）：
     //    * 狀態標記：'status-warning'
-    //    * 進度條顏色：鮮明橘黃色（#ff9500），100% 對應將到期菜單顏色
-    //    * 文字同步顯示橘黃色
-    // 3. 安全／正常（diffDays > 3 且大於提醒天數）：
+    //    * 文字顏色與進度條：警告橘（#FF9F0A）
+    // 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天）：
     //    * 狀態標記：'status-normal'
-    //    * 進度條顏色：中性灰／深灰（rgba(255, 255, 255, 0.25)）
+    //    * 文字顏色：淺灰/次要文字色（rgba(255, 255, 255, 0.7)）
+    //    * 進度條顏色：中性微透白/深灰（rgba(255, 255, 255, 0.25)）
+    //    * 絕對嚴禁套用紅色或橘色！
     let subMetricText = '';
     let subMetricClass = '';
     let statusClass = 'status-normal';
     let progressColor = 'rgba(255, 255, 255, 0.25)';
-    let metricTextColor = '';
+    let metricTextColor = 'rgba(255, 255, 255, 0.7)';
 
     if (!m.hasEndDate) {
       subMetricText = '持續使用中 ⏳';
       subMetricClass = 'ongoing status-normal';
       statusClass = 'status-normal';
       progressColor = 'rgba(255, 255, 255, 0.25)';
-      metricTextColor = '';
+      metricTextColor = 'rgba(255, 255, 255, 0.7)';
     } else if (m.remainingDays < 0) {
       subMetricText = `已超過 ${Math.abs(m.remainingDays)} 天`;
       subMetricClass = 'expired status-expired';
       statusClass = 'status-expired';
-      progressColor = '#ff453a';
-      metricTextColor = '#ff453a';
-    } else if (m.remainingDays <= 3 || m.status === 'urgent') {
+      progressColor = '#FF453A';
+      metricTextColor = '#FF453A';
+    } else if (m.remainingDays >= 0 && m.remainingDays <= 3) {
       subMetricText = m.remainingDays === 0 ? '今天到期' : `還有 ${formatNumber(m.remainingDays)} 天`;
       subMetricClass = 'urgent status-warning';
       statusClass = 'status-warning';
-      progressColor = '#ff9500'; // 鮮明橘黃色，對應將到期菜單顏色
-      metricTextColor = '#ff9500';
+      progressColor = '#FF9F0A'; // 警告橘
+      metricTextColor = '#FF9F0A';
     } else {
       subMetricText = `還有 ${formatNumber(m.remainingDays)} 天`;
       subMetricClass = 'status-normal';
       statusClass = 'status-normal';
       progressColor = 'rgba(255, 255, 255, 0.25)';
-      metricTextColor = '';
+      metricTextColor = 'rgba(255, 255, 255, 0.7)';
     }
 
     // 進度條寬度與樣式
@@ -13895,17 +13931,52 @@ var CapacitorBridgeBundle = (() => {
 
   function extractTime(str) {
     if (!str) return null;
-    const digitalMatch = str.match(/(?:^|[^\d:])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/);
+    const s = String(str).trim();
+
+    // 檢查時段修飾詞 (包含 PM/AM, 下午, 晚上, 上午 等)
+    const isPM = /(?:下午|午後|傍晚|晚上|今晚|明晚|\bpm\b|\bpost\s*meridiem\b)/i.test(s);
+    const isAM = /(?:上午|早上|早晨|清晨|凌晨|半夜|\bam\b|\bante\s*meridiem\b)/i.test(s);
+    const isNoon = /中午/.test(s);
+
+    // 1. 24h/12h 數位時間 (如 15:00, 14:30, 09:00, 9:30, 3:00 PM, 下午 3:00)
+    // 正則確保十位數不被截斷，完整捕捉 1~2 位小時與 2 位分鐘
+    const digitalMatch = s.match(/(?:^|[^\d:])(\d{1,2}):([0-5]\d)(?!\d)(?:\s*(am|pm))?/i);
     if (digitalMatch) {
-      const h = String(parseInt(digitalMatch[1], 10)).padStart(2, '0');
-      const m = String(parseInt(digitalMatch[2], 10)).padStart(2, '0');
-      return `${h}:${m}`;
+      let h = parseInt(digitalMatch[1], 10);
+      const m = parseInt(digitalMatch[2], 10);
+      const inlineAmpm = digitalMatch[3] ? digitalMatch[3].toLowerCase() : null;
+
+      if (inlineAmpm === 'pm' || isPM) {
+        if (h < 12) h += 12;
+      } else if (inlineAmpm === 'am' || isAM) {
+        if (h === 12) h = 0;
+      } else if (isNoon) {
+        if (h < 11) h += 12;
+      }
+
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      }
     }
 
-    const periodMatch = str.match(/(上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)/);
-    const period = periodMatch ? periodMatch[1] : null;
+    // 2. 英文/數字 PM/AM 簡寫 (如 3pm, 3 pm, 11am)
+    const ampmMatch = s.match(/(?:^|[^\d])(\d{1,2})\s*(am|pm)(?!\w)/i);
+    if (ampmMatch) {
+      let h = parseInt(ampmMatch[1], 10);
+      const inlineAmpm = ampmMatch[2].toLowerCase();
+      if (inlineAmpm === 'pm') {
+        if (h < 12) h += 12;
+      } else if (inlineAmpm === 'am') {
+        if (h === 12) h = 0;
+      }
+      if (h >= 0 && h <= 23) {
+        return `${String(h).padStart(2, '0')}:00`;
+      }
+    }
 
-    const hourMatch = str.match(/(?:(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*)?(\d{1,2}|[一二兩三四五六七八九十]+)\s*(?:點|点|時|时)(?:\s*(?:半|(\d{1,2}|[一二兩三四五六七八九十]+)\s*分(?:鐘)?))?/);
+    // 3. 中文點/分 (例如：下午2點30分、明天上午9點、晚上8點半、14點、下午 3 點、15點)
+    // 完整捕捉 1~2 位數字或中文數字，避免十位數字被截斷
+    const hourMatch = s.match(/(?:(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*)?(\d{1,2}|[一二兩三四五六七八九十]+)\s*(?:點|点|時|时)(?:\s*(?:半|(\d{1,2}|[一二兩三四五六七八九十]+)\s*分(?:鐘)?))?/);
     if (hourMatch) {
       let h = parseChineseNum(hourMatch[1]);
       if (h !== null && !isNaN(h)) {
@@ -13917,11 +13988,11 @@ var CapacitorBridgeBundle = (() => {
           if (mVal !== null && !isNaN(mVal)) m = mVal;
         }
 
-        if (period === '下午' || period === '午後' || period === '傍晚' || period === '晚上' || period === '今晚' || period === '明晚') {
+        if (isPM) {
           if (h < 12) h += 12;
-        } else if (period === '上午' || period === '早上' || period === '早晨' || period === '清晨' || period === '凌晨' || period === '半夜') {
+        } else if (isAM) {
           if (h === 12) h = 0;
-        } else if (period === '中午') {
+        } else if (isNoon) {
           if (h < 11) h += 12;
         }
 
@@ -14056,7 +14127,7 @@ var CapacitorBridgeBundle = (() => {
       .replace(/\u3000/g, ' ');
 
     // 1. 移除時鐘與提醒修飾詞
-    clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}分))?)?\s*(?:提醒|通知)/g, ' ');
+    clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?)?\s*(?:提醒|通知)/g, ' ');
     clean = clean.replace(/(?:當天|當日|當天上午|當天下午|當天晚上)\s*(?:提醒|通知)?/g, ' ');
     clean = clean.replace(/不提醒|免提醒|不用提醒|提醒我?|通知我?|提醒|通知/g, ' ');
 
@@ -14073,9 +14144,10 @@ var CapacitorBridgeBundle = (() => {
       /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:個)?(?:週|周|星期|禮拜)(?:後|后)?/g,
       /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日)(?:\s*(?:後|后|之后|之內|到期|過期))?/g,
       /(?:延長|延後|推遲|再放|再存|多放)\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日)/g,
-      /(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
+      /(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
       /\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
-      /(?:^|[^\d:])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/g,
+      /\d{1,2}\s*(?:am|pm)/gi,
+      /(?:^|[^\d:])(\d{1,2}):([0-5]\d)(?!\d)(?:\s*(?:am|pm))?/gi,
       /上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨/g
     ];
     timeRegexes.forEach(rg => { clean = clean.replace(rg, ' '); });
@@ -14252,7 +14324,7 @@ function extractCleanName(rawText) {
 
       const expDate = parsedDate || targetItem.endDate || targetItem.expiryDate || formatDate(offsetDays(baseDate, 3));
       const targetWarn = remindDaysBefore !== null ? remindDaysBefore : (targetItem.warnDays !== undefined ? targetItem.warnDays : 3);
-      const targetTime = parsedTime || targetItem.reminderTime || '09:00';
+      const targetTime = parsedTime || targetItem.reminderTime || '15:00';
       const reminderDate = (targetWarn >= 0) ? formatDate(offsetDays(new Date(expDate + 'T00:00:00'), -targetWarn)) : null;
 
       return {
@@ -14306,7 +14378,7 @@ function extractCleanName(rawText) {
     let emoji = matched.emoji || '📌';
 
     const finalWarnDays = hasEndDate ? defaultWarnDays : -1;
-    const finalRemindTime = parsedTime || '09:00';
+    const finalRemindTime = parsedTime || '15:00';
     const calculatedReminderDate = (hasEndDate && finalDate && finalWarnDays >= 0)
       ? formatDate(offsetDays(new Date(finalDate + 'T00:00:00'), -finalWarnDays))
       : null;
@@ -14549,12 +14621,26 @@ function extractCleanName(rawText) {
       }
     }
 
-    // 提醒通知與自訂時間判定
+    // 提醒通知與自訂時間判定（嚴格兩位數補零與 15:00 預設）
     const targetRemindDate = parsed.reminderDate || parsed.expiryDate || getTodayString();
-    const targetRemindTime = parsed.remindTime || '09:00';
+    const rawTime = parsed.remindTime || '15:00';
+    let hours = 15;
+    let minutes = 0;
+    if (rawTime.includes(':')) {
+      const t = rawTime.split(':');
+      hours = parseInt(t[0], 10);
+      minutes = parseInt(t[1], 10);
+      if (isNaN(hours)) hours = 15;
+      if (isNaN(minutes)) minutes = 0;
+    }
+    const dParts = targetRemindDate.split('-');
+    const year = dParts[0] || String(new Date().getFullYear());
+    const month = dParts[1] || String(new Date().getMonth() + 1);
+    const day = dParts[2] || String(new Date().getDate());
+    const formattedTime = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
     if (customInput) {
-      customInput.value = `${targetRemindDate}T${targetRemindTime}`;
+      customInput.value = formattedTime;
     }
 
     if (remindSelect) {
@@ -14648,7 +14734,7 @@ function extractCleanName(rawText) {
     // 提醒時間處理（自訂時間 vs 預設天數 vs 僅記使用天數）
     let confirmedReminderType = 'preset';
     let confirmedReminderDate = null;
-    let confirmedReminderTime = '09:00';
+    let confirmedReminderTime = '15:00';
     let confirmedWarnDays = 3;
 
     if (isElapsedMode) {
@@ -14665,14 +14751,21 @@ function extractCleanName(rawText) {
       }
       const parts = customVal.split('T');
       confirmedReminderDate = parts[0];
-      confirmedReminderTime = parts[1] || '09:00';
+      if (parts[1]) {
+        const t = parts[1].split(':');
+        const h = String(parseInt(t[0], 10) || 0).padStart(2, '0');
+        const m = String(parseInt(t[1], 10) || 0).padStart(2, '0');
+        confirmedReminderTime = `${h}:${m}`;
+      } else {
+        confirmedReminderTime = '15:00';
+      }
       confirmedReminderType = 'custom';
       confirmedWarnDays = Math.max(0, diffDays(confirmedReminderDate, confirmedDate));
     } else {
       confirmedWarnDays = remindSelect ? parseInt(remindSelect.value, 10) : 3;
       confirmedReminderType = (confirmedWarnDays >= 0) ? 'preset' : 'none';
       confirmedReminderDate = (confirmedWarnDays >= 0) ? getOffsetDateString(confirmedDate, -confirmedWarnDays) : null;
-      confirmedReminderTime = currentNlpParsed.remindTime || '09:00';
+      confirmedReminderTime = currentNlpParsed.remindTime || '15:00';
     }
 
     const subCatSelect = document.getElementById('nlpConfirmSubCategory');
@@ -14943,7 +15036,11 @@ function extractCleanName(rawText) {
           if (customRow) customRow.style.display = 'block';
           if (customInput && !customInput.value) {
             const d = dateInput && dateInput.value ? dateInput.value : getTodayString();
-            customInput.value = `${d}T09:00`;
+            const dParts = d.split('-');
+            const year = dParts[0] || String(new Date().getFullYear());
+            const month = String(parseInt(dParts[1], 10) || (new Date().getMonth() + 1)).padStart(2, '0');
+            const day = String(parseInt(dParts[2], 10) || new Date().getDate()).padStart(2, '0');
+            customInput.value = `${year}-${month}-${day}T15:00`;
           }
         } else {
           if (customRow) customRow.style.display = 'none';

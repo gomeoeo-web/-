@@ -420,28 +420,51 @@ body {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: #ffffff;
-  color: #000000;
-  border: none;
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border: none !important;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 99;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
   transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.2s ease, opacity 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .ios-fab-btn:active {
   transform: scale(0.92);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* 強制最高權重校準 (防止三星/Android 瀏覽器深色模式強制反轉或繼承成深灰色/黑色) */
+.fab-add-btn, #fabAddBtn, .floating-btn {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.fab-add-btn svg, .fab-add-btn i, .fab-add-btn span,
+#fabAddBtn svg, #fabAddBtn i, #fabAddBtn span,
+.floating-btn svg, .floating-btn i, .floating-btn span,
+.ios-fab-btn svg, .ios-fab-btn i, .ios-fab-btn span {
+  fill: #000000 !important;
+  stroke: #000000 !important;
+  color: #000000 !important;
+}
+
+[data-theme="light"] .fab-add-btn,
+[data-theme="light"] #fabAddBtn,
+[data-theme="light"] .floating-btn,
 [data-theme="light"] .ios-fab-btn {
-  background: #000000;
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -1312,18 +1335,22 @@ body {
 
 .card-metric-sub.status-expired,
 .card-metric-sub.expired {
-  color: #ff453a !important;
+  color: #FF453A !important;
   font-weight: 700;
 }
 
 .card-metric-sub.status-warning,
 .card-metric-sub.urgent {
-  color: #ff9500 !important;
+  color: #FF9F0A !important;
   font-weight: 700;
 }
 
 .card-metric-sub.status-normal {
-  color: var(--ios-text-secondary);
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .card-metric-sub.status-normal {
+  color: rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Minimalist Progress Bar */
@@ -1343,21 +1370,21 @@ body {
   transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-/* 已過期 - 強烈紅 */
+/* 已過期 - 警示紅 */
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #ff453a !important;
+  background-color: #FF453A !important;
 }
 
-/* 將到期 / 3天內到期 - 鮮明橘黃色 (對應將到期菜單顏色) */
+/* 即將到期 / 3天內到期 - 警告橘 */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #ff9500 !important;
+  background-color: #FF9F0A !important;
 }
 
-/* 正常狀態 - 柔和深灰/中性白 */
+/* 正常/安全狀態 - 中性微透白/深灰（絕對嚴禁套用紅色或橘色） */
 .progress-bar-fill.status-normal,
 .card-progress-fill.status-normal {
   background-color: rgba(255, 255, 255, 0.25) !important;
@@ -4052,13 +4079,13 @@ input[type="time"]::-webkit-date-and-time-value {
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #ff453a !important;
+  background-color: #FF453A !important;
 }
 
 [data-theme="light"] .progress-bar-fill.status-warning,
 [data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background-color: #ff9500 !important;
+  background-color: #FF9F0A !important;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5334,14 +5361,14 @@ body.modal-open .view-panel {
 [data-theme="amoled"] .progress-bar-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background-color: #ff453a !important;
+  background-color: #FF453A !important;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
 }
 
 [data-theme="amoled"] .progress-bar-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.urgent {
-  background-color: #ff9500 !important;
+  background-color: #FF9F0A !important;
   box-shadow: 0 0 8px rgba(255, 149, 0, 0.45);
 }
 
@@ -5802,6 +5829,21 @@ body.modal-open .view-panel {
   background: rgba(255, 255, 255, 0.05);
   border: 1px dashed var(--ios-border-strong);
   border-radius: var(--radius-subcard);
+}
+
+/* 自訂提醒日期與時間輸入框寬度與內距微調（防止 24 小時制文字在小螢幕被右側下拉箭頭擠壓截斷） */
+#nlpConfirmCustomTime,
+input[type="datetime-local"].nlp-confirm-input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 0 0.75rem !important;
+  font-size: 0.95rem !important;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  display: block;
 }
 
 [data-theme="light"] .nlp-custom-reminder-row {

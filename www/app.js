@@ -375,23 +375,56 @@ async function initModel() {
 
 /**
  * 抽取具體時間（時:分，24小時制 HH:mm）
+ * 嚴格支援 12/24 小時制轉換（下午/晚上/PM 自動 +12），補零並防止十位數字截斷
  */
 function extractTime(str) {
   if (!str) return null;
-  // 24h 數位時間 (如 14:30, 09:00, 9:30, 18:00)
-  const digitalMatch = str.match(/(?:^|[^\d:])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/);
+  const s = String(str).trim();
+
+  // 檢查時段修飾詞 (包含 PM/AM, 下午, 晚上, 上午 等)
+  const isPM = /(?:下午|午後|傍晚|晚上|今晚|明晚|\bpm\b|\bpost\s*meridiem\b)/i.test(s);
+  const isAM = /(?:上午|早上|早晨|清晨|凌晨|半夜|\bam\b|\bante\s*meridiem\b)/i.test(s);
+  const isNoon = /中午/.test(s);
+
+  // 1. 24h/12h 數位時間 (如 15:00, 14:30, 09:00, 9:30, 3:00 PM, 下午 3:00)
+  // 正則確保十位數不被截斷，完整捕捉 1~2 位小時與 2 位分鐘
+  const digitalMatch = s.match(/(?:^|[^\d:])(\d{1,2}):([0-5]\d)(?!\d)(?:\s*(am|pm))?/i);
   if (digitalMatch) {
-    const h = String(parseInt(digitalMatch[1], 10)).padStart(2, '0');
-    const m = String(parseInt(digitalMatch[2], 10)).padStart(2, '0');
-    return `${h}:${m}`;
+    let h = parseInt(digitalMatch[1], 10);
+    const m = parseInt(digitalMatch[2], 10);
+    const inlineAmpm = digitalMatch[3] ? digitalMatch[3].toLowerCase() : null;
+
+    if (inlineAmpm === 'pm' || isPM) {
+      if (h < 12) h += 12;
+    } else if (inlineAmpm === 'am' || isAM) {
+      if (h === 12) h = 0;
+    } else if (isNoon) {
+      if (h < 11) h += 12;
+    }
+
+    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
   }
 
-  // 中文時段修飾詞
-  const periodMatch = str.match(/(上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)/);
-  const period = periodMatch ? periodMatch[1] : null;
+  // 2. 英文/數字 PM/AM 簡寫 (如 3pm, 3 pm, 11am)
+  const ampmMatch = s.match(/(?:^|[^\d])(\d{1,2})\s*(am|pm)(?!\w)/i);
+  if (ampmMatch) {
+    let h = parseInt(ampmMatch[1], 10);
+    const inlineAmpm = ampmMatch[2].toLowerCase();
+    if (inlineAmpm === 'pm') {
+      if (h < 12) h += 12;
+    } else if (inlineAmpm === 'am') {
+      if (h === 12) h = 0;
+    }
+    if (h >= 0 && h <= 23) {
+      return `${String(h).padStart(2, '0')}:00`;
+    }
+  }
 
-  // 中文點/分 (例如：下午2點30分、明天上午9點、晚上8點半、14點)
-  const hourMatch = str.match(/(?:(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*)?(\d{1,2}|[一二兩三四五六七八九十]+)\s*(?:點|点|時|时)(?:\s*(?:半|(\d{1,2}|[一二兩三四五六七八九十]+)\s*分(?:鐘)?))?/);
+  // 3. 中文點/分 (例如：下午2點30分、明天上午9點、晚上8點半、14點、下午 3 點、15點)
+  // 完整捕捉 1~2 位數字或中文數字，避免十位數字被截斷
+  const hourMatch = s.match(/(?:(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*)?(\d{1,2}|[一二兩三四五六七八九十]+)\s*(?:點|点|時|时)(?:\s*(?:半|(\d{1,2}|[一二兩三四五六七八九十]+)\s*分(?:鐘)?))?/);
   if (hourMatch) {
     let h = parseChineseNum(hourMatch[1]);
     if (h !== null && !isNaN(h)) {
@@ -403,11 +436,11 @@ function extractTime(str) {
         if (mVal !== null && !isNaN(mVal)) m = mVal;
       }
 
-      if (period === '下午' || period === '午後' || period === '傍晚' || period === '晚上' || period === '今晚' || period === '明晚') {
+      if (isPM) {
         if (h < 12) h += 12;
-      } else if (period === '上午' || period === '早上' || period === '早晨' || period === '清晨' || period === '凌晨' || period === '半夜') {
+      } else if (isAM) {
         if (h === 12) h = 0;
-      } else if (period === '中午') {
+      } else if (isNoon) {
         if (h < 11) h += 12;
       }
 
@@ -569,7 +602,7 @@ function simplifyItemName(rawText) {
     .replace(/\u3000/g, ' ');
 
   // 1. 移除時鐘與提醒修飾詞
-  clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}分))?)?\s*(?:提醒|通知)/g, ' ');
+  clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?)?\s*(?:提醒|通知)/g, ' ');
   clean = clean.replace(/(?:當天|當日|當天上午|當天下午|當天晚上)\s*(?:提醒|通知)?/g, ' ');
   clean = clean.replace(/不提醒|免提醒|不用提醒|提醒我?|通知我?|提醒|通知/g, ' ');
 
@@ -586,9 +619,10 @@ function simplifyItemName(rawText) {
     /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:個)?(?:週|周|星期|禮拜)(?:後|后)?/g,
     /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日)(?:\s*(?:後|后|之后|之內|到期|過期))?/g,
     /(?:延長|延後|推遲|再放|再存|多放)\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日)/g,
-    /(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
+    /(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
     /\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
-    /(?:^|[^\d:])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/g,
+    /\d{1,2}\s*(?:am|pm)/gi,
+    /(?:^|[^\d:])(\d{1,2}):([0-5]\d)(?!\d)(?:\s*(?:am|pm))?/gi,
     /上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨/g
   ];
   timeRegexes.forEach(rg => { clean = clean.replace(rg, ' '); });
@@ -769,7 +803,7 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
 
     const expDate = targetLast.endDate || targetLast.expiryDate || formatDate(offsetDays(baseDate, 7));
     const targetWarn = (targetLast.warnDays !== undefined) ? targetLast.warnDays : 3;
-    const targetTime = targetLast.reminderTime || '09:00';
+    const targetTime = targetLast.reminderTime || '15:00';
     const reminderDate = (targetWarn >= 0) ? formatDate(offsetDays(new Date(expDate + 'T00:00:00'), -targetWarn)) : null;
 
     return {
@@ -914,7 +948,7 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
   const emoji = matched.emoji || '📌';
 
   const finalWarnDays = hasEndDate ? (remindDaysBefore !== null ? remindDaysBefore : 3) : -1;
-  const finalRemindTime = parsedTime || '09:00';
+  const finalRemindTime = parsedTime || '15:00';
   const calculatedReminderDate = (hasEndDate && finalDate && finalWarnDays >= 0)
     ? formatDate(offsetDays(new Date(finalDate + 'T00:00:00'), -finalWarnDays))
     : null;
@@ -1066,7 +1100,7 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
   const emoji = matched.emoji || '📌';
 
   const finalWarnDays = hasEndDate ? defaultWarnDays : -1;
-  const finalRemindTime = parsedTime || '09:00';
+  const finalRemindTime = parsedTime || '15:00';
   const calculatedReminderDate = (hasEndDate && finalDate && finalWarnDays >= 0)
     ? formatDate(offsetDays(new Date(finalDate + 'T00:00:00'), -finalWarnDays))
     : null;
@@ -1183,7 +1217,7 @@ function updateItemByNlp(targetId, updates) {
     target.warnDays = updates.remindDaysBefore;
     target.reminderType = updates.reminderType || ((target.warnDays >= 0) ? 'preset' : 'none');
     target.reminderDate = updates.reminderDate || ((target.warnDays >= 0) ? formatDate(offsetDays(new Date(target.endDate + 'T00:00:00'), -target.warnDays)) : null);
-    target.reminderTime = updates.remindTime || target.reminderTime || '09:00';
+    target.reminderTime = updates.remindTime || target.reminderTime || '15:00';
   }
 
   if (updates.category) {
@@ -1211,23 +1245,26 @@ function updateItemByNlp(targetId, updates) {
 }
 
 // ==========================================
-// 7.5 卡片效期狀態與進度條判定模組 (v1.8.1)
+// 7.5 卡片效期狀態與進度條判定模組 (v1.8.2)
 // ==========================================
 /**
- * 依據剩餘天數與提醒天數判定卡片狀態、進度條顏色與類別標記
+ * 依據剩餘天數判定卡片狀態、進度條顏色與類別標記
  * 
- * 1. 狀態判定規則：
- *    - 已過期（diffDays < 0）：
- *      * 狀態標記：'status-expired'
- *      * 進度條顏色：紅色（#FF453A）
- *      * 文字（如「已超過 X 天」）同步顯示紅色
- *    - 將到期（diffDays >= 0 且 diffDays <= remindDaysBefore，或 <= 3 天）：
- *      * 狀態標記：'status-warning'
- *      * 進度條顏色：鮮橘色（#FF9F0A）
- *      * 文字（如「還有 X 天」）同步顯示橘色
- *    - 安全／正常（diffDays > remindDaysBefore）：
- *      * 狀態標記：'status-normal'
- *      * 進度條顏色：中性灰／深灰（#3A3A3C 或 rgba(255, 255, 255, 0.25)）
+ * 統一絕對天數門檻規則：
+ * 1. 【已過期】diffDays < 0：
+ *    - 狀態標記：'status-expired'
+ *    - 進度條與文字顏色：警示紅（#FF453A）
+ *    - 綁定 Class：status-expired
+ * 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（三天內，包含三天整）：
+ *    - 狀態標記：'status-warning'
+ *    - 進度條與文字顏色：警告橘（#FF9F0A）
+ *    - 綁定 Class：status-warning
+ * 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天）：
+ *    - 狀態標記：'status-normal'
+ *    - 進度條顏色：中性微透白/深灰（rgba(255, 255, 255, 0.2)）
+ *    - 文字顏色：淺灰/次要文字色（rgba(255, 255, 255, 0.7)）
+ *    - 綁定 Class：status-normal
+ *    - 絕對嚴禁套用紅色或橘色！
  * 
  * @param {Object} item 物品物件
  * @param {string} [todayStr] 今日日期 (YYYY-MM-DD)
@@ -1257,8 +1294,8 @@ function getItemStatusConfig(item, todayStr) {
   if (!hasEndDate || !item) {
     return {
       statusMark: 'status-normal',
-      color: 'rgba(255, 255, 255, 0.25)',
-      textColor: '',
+      color: 'rgba(255, 255, 255, 0.2)',
+      textColor: 'rgba(255, 255, 255, 0.7)',
       text: '持續使用中 ⏳',
       subMetricClass: 'ongoing status-normal',
       progressClass: 'progress-bar-fill status-normal',
@@ -1271,7 +1308,6 @@ function getItemStatusConfig(item, todayStr) {
   const dEnd = parseDateSafe(item.endDate);
   const diffTime = dEnd.getTime() - dToday.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-  const remindDaysBefore = item.warnDays !== undefined ? Number(item.warnDays) : 7;
 
   // 計算百分比
   let percent = 100;
@@ -1282,12 +1318,12 @@ function getItemStatusConfig(item, todayStr) {
     percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
   }
 
-  // 1. 已過期（diffDays < 0）
+  // 1. 【已過期】diffDays < 0
   if (diffDays < 0) {
     return {
       statusMark: 'status-expired',
-      color: '#ff453a',
-      textColor: '#ff453a',
+      color: '#FF453A',
+      textColor: '#FF453A',
       text: `已超過 ${Math.abs(diffDays)} 天`,
       subMetricClass: 'expired status-expired',
       progressClass: 'progress-bar-fill status-expired expired',
@@ -1296,13 +1332,12 @@ function getItemStatusConfig(item, todayStr) {
     };
   }
 
-  // 2. 將到期 / 3天內到期（diffDays >= 0 且 diffDays <= 3 或符合提醒天數）
-  const isCustomUrgent = item.reminderType === 'custom' && item.reminderDate && today >= item.reminderDate;
-  if (diffDays <= 3 || diffDays <= remindDaysBefore || isCustomUrgent) {
+  // 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（三天內，包含三天整）
+  if (diffDays >= 0 && diffDays <= 3) {
     return {
       statusMark: 'status-warning',
-      color: '#ff9500', // 鮮明橘黃色，100% 對應將到期菜單顏色
-      textColor: '#ff9500',
+      color: '#FF9F0A',
+      textColor: '#FF9F0A',
       text: diffDays === 0 ? '今天到期' : `還有 ${diffDays.toLocaleString()} 天`,
       subMetricClass: 'urgent status-warning',
       progressClass: 'progress-bar-fill status-warning urgent',
@@ -1311,11 +1346,11 @@ function getItemStatusConfig(item, todayStr) {
     };
   }
 
-  // 3. 安全／正常（diffDays > 3 且大於提醒天數）
+  // 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天，絕對嚴禁套用紅色或橘色）
   return {
     statusMark: 'status-normal',
-    color: 'rgba(255, 255, 255, 0.25)',
-    textColor: '',
+    color: 'rgba(255, 255, 255, 0.2)',
+    textColor: 'rgba(255, 255, 255, 0.7)',
     text: `還有 ${diffDays.toLocaleString()} 天`,
     subMetricClass: 'status-normal',
     progressClass: 'progress-bar-fill status-normal',
