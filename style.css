@@ -1310,14 +1310,20 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.card-metric-sub.status-warning,
 .card-metric-sub.urgent {
-  color: var(--ios-orange);
+  color: #FF9F0A !important;
   font-weight: 700;
 }
 
+.card-metric-sub.status-expired,
 .card-metric-sub.expired {
-  color: var(--ios-red);
-  font-weight: 600;
+  color: #FF453A !important;
+  font-weight: 700;
+}
+
+.card-metric-sub.status-normal {
+  color: var(--ios-text-secondary);
 }
 
 /* Minimalist Progress Bar */
@@ -1330,19 +1336,31 @@ body {
   margin-top: auto;
 }
 
+.progress-bar-fill,
 .card-progress-fill {
   height: 100%;
-  background: #ffffff;
-  border-radius: 2px;
-  transition: width 0.3s ease;
+  border-radius: 4px;
+  transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-.card-progress-fill.urgent {
-  background: var(--ios-orange);
-}
-
+/* 已過期 - 強烈紅 */
+.progress-bar-fill.status-expired,
+.card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background: var(--ios-red);
+  background-color: #FF453A !important;
+}
+
+/* 將到期 - 警告橘 */
+.progress-bar-fill.status-warning,
+.card-progress-fill.status-warning,
+.card-progress-fill.urgent {
+  background-color: #FF9F0A !important;
+}
+
+/* 正常狀態 - 柔和深灰/中性白 */
+.progress-bar-fill.status-normal,
+.card-progress-fill.status-normal {
+  background-color: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Card Group Actions (物品分類頁面專屬：移除此群組按鈕) */
@@ -4026,16 +4044,21 @@ input[type="time"]::-webkit-date-and-time-value {
   background: #e5e5ea;
 }
 
-[data-theme="light"] .card-progress-fill {
-  background: #000000;
+[data-theme="light"] .progress-bar-fill.status-normal,
+[data-theme="light"] .card-progress-fill.status-normal {
+  background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
+[data-theme="light"] .progress-bar-fill.status-warning,
+[data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background: var(--ios-orange);
+  background-color: #FF9F0A !important;
 }
 
+[data-theme="light"] .progress-bar-fill.status-expired,
+[data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background: var(--ios-red);
+  background-color: #FF453A !important;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5308,13 +5331,17 @@ body.modal-open .view-panel {
   font-weight: 700;
 }
 
+[data-theme="amoled"] .progress-bar-fill.status-warning,
+[data-theme="amoled"] .card-progress-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.urgent {
-  background: #ff9f0a;
+  background-color: #FF9F0A !important;
   box-shadow: 0 0 8px rgba(255, 159, 10, 0.4);
 }
 
+[data-theme="amoled"] .progress-bar-fill.status-expired,
+[data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background: #ff453a;
+  background-color: #FF453A !important;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
 }
 

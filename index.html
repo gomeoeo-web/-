@@ -1327,14 +1327,20 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.card-metric-sub.status-warning,
 .card-metric-sub.urgent {
-  color: var(--ios-orange);
+  color: #FF9F0A !important;
   font-weight: 700;
 }
 
+.card-metric-sub.status-expired,
 .card-metric-sub.expired {
-  color: var(--ios-red);
-  font-weight: 600;
+  color: #FF453A !important;
+  font-weight: 700;
+}
+
+.card-metric-sub.status-normal {
+  color: var(--ios-text-secondary);
 }
 
 /* Minimalist Progress Bar */
@@ -1347,19 +1353,31 @@ body {
   margin-top: auto;
 }
 
+.progress-bar-fill,
 .card-progress-fill {
   height: 100%;
-  background: #ffffff;
-  border-radius: 2px;
-  transition: width 0.3s ease;
+  border-radius: 4px;
+  transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-.card-progress-fill.urgent {
-  background: var(--ios-orange);
-}
-
+/* 已過期 - 強烈紅 */
+.progress-bar-fill.status-expired,
+.card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background: var(--ios-red);
+  background-color: #FF453A !important;
+}
+
+/* 將到期 - 警告橘 */
+.progress-bar-fill.status-warning,
+.card-progress-fill.status-warning,
+.card-progress-fill.urgent {
+  background-color: #FF9F0A !important;
+}
+
+/* 正常狀態 - 柔和深灰/中性白 */
+.progress-bar-fill.status-normal,
+.card-progress-fill.status-normal {
+  background-color: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Card Group Actions (物品分類頁面專屬：移除此群組按鈕) */
@@ -4043,16 +4061,21 @@ input[type="time"]::-webkit-date-and-time-value {
   background: #e5e5ea;
 }
 
-[data-theme="light"] .card-progress-fill {
-  background: #000000;
+[data-theme="light"] .progress-bar-fill.status-normal,
+[data-theme="light"] .card-progress-fill.status-normal {
+  background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
+[data-theme="light"] .progress-bar-fill.status-warning,
+[data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background: var(--ios-orange);
+  background-color: #FF9F0A !important;
 }
 
+[data-theme="light"] .progress-bar-fill.status-expired,
+[data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background: var(--ios-red);
+  background-color: #FF453A !important;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5325,13 +5348,17 @@ body.modal-open .view-panel {
   font-weight: 700;
 }
 
+[data-theme="amoled"] .progress-bar-fill.status-warning,
+[data-theme="amoled"] .card-progress-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.urgent {
-  background: #ff9f0a;
+  background-color: #FF9F0A !important;
   box-shadow: 0 0 8px rgba(255, 159, 10, 0.4);
 }
 
+[data-theme="amoled"] .progress-bar-fill.status-expired,
+[data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background: #ff453a;
+  background-color: #FF453A !important;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
 }
 
@@ -6520,7 +6547,7 @@ body.modal-open .view-panel {
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.7.9</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.1</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -7952,7 +7979,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.7.9';
+  const APP_VERSION = '1.8.1';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -9812,21 +9839,43 @@ var CapacitorBridgeBundle = (() => {
       iconContent = `<span>${escapeHtml(item.emoji || '🪑')}</span>`;
     }
 
-    // 次要字串判斷 (有到期日 vs 僅記錄天數)
+    // 狀態判定規則：
+    // 1. 已過期（diffDays < 0）：
+    //    * 狀態標記：'status-expired'
+    //    * 進度條顏色：紅色（#FF453A）
+    //    * 文字同步顯示紅色
+    // 2. 將到期（diffDays >= 0 且 diffDays <= remindDaysBefore，或 <= 3 天）：
+    //    * 狀態標記：'status-warning'
+    //    * 進度條顏色：鮮橘色（#FF9F0A）
+    //    * 文字同步顯示橘色
+    // 3. 安全／正常（diffDays > remindDaysBefore）：
+    //    * 狀態標記：'status-normal'
+    //    * 進度條顏色：中性灰／深灰（#3A3A3C 或 rgba(255, 255, 255, 0.25)）
     let subMetricText = '';
     let subMetricClass = '';
+    let statusClass = 'status-normal';
+    let progressColor = 'rgba(255, 255, 255, 0.25)';
+
     if (!m.hasEndDate) {
       subMetricText = '持續使用中 ⏳';
-      subMetricClass = 'ongoing';
-    } else if (m.remainingDays < 0) {
+      subMetricClass = 'ongoing status-normal';
+      statusClass = 'status-normal';
+      progressColor = 'rgba(255, 255, 255, 0.25)';
+    } else if (m.remainingDays < 0 || m.status === 'expired') {
       subMetricText = `已超過 ${Math.abs(m.remainingDays)} 天`;
-      subMetricClass = 'expired';
-    } else if (m.remainingDays === 0) {
-      subMetricText = '今天到期';
-      subMetricClass = 'urgent';
+      subMetricClass = 'expired status-expired';
+      statusClass = 'status-expired';
+      progressColor = '#FF453A';
+    } else if (m.status === 'urgent') {
+      subMetricText = m.remainingDays === 0 ? '今天到期' : `還有 ${formatNumber(m.remainingDays)} 天`;
+      subMetricClass = 'urgent status-warning';
+      statusClass = 'status-warning';
+      progressColor = '#FF9F0A';
     } else {
       subMetricText = `還有 ${formatNumber(m.remainingDays)} 天`;
-      if (m.status === 'urgent') subMetricClass = 'urgent';
+      subMetricClass = 'status-normal';
+      statusClass = 'status-normal';
+      progressColor = 'rgba(255, 255, 255, 0.25)';
     }
 
     // 進度條寬度與樣式
@@ -9837,14 +9886,12 @@ var CapacitorBridgeBundle = (() => {
       progressFillStyle = `width: ${m.percent}%;`;
     }
 
-    // 物品進度條三天內到期與將到期顯示顏色與將到期菜單的數字顏色相同 (var(--ios-orange))，已過期物品進度條與已過期菜單數字顏色相同 (var(--ios-red))
-    let progressFillClass = '';
-    if (m.hasEndDate) {
-      if (m.status === 'expired') {
-        progressFillClass = 'expired';
-      } else if (m.status === 'urgent') {
-        progressFillClass = 'urgent';
-      }
+    // 物品進度條類別（結合 progress-bar-fill 與專屬狀態 class）
+    let progressFillClass = `progress-bar-fill ${statusClass}`;
+    if (statusClass === 'status-expired') {
+      progressFillClass += ' expired';
+    } else if (statusClass === 'status-warning') {
+      progressFillClass += ' urgent';
     }
 
     card.innerHTML = `
@@ -9873,7 +9920,7 @@ var CapacitorBridgeBundle = (() => {
 
       <!-- Progress Bar at bottom of card -->
       <div class="card-progress-bar">
-        <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle}"></div>
+        <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle} background-color: ${progressColor} !important;"></div>
       </div>
     `;
 
@@ -13777,7 +13824,7 @@ var CapacitorBridgeBundle = (() => {
    * 本機自然語言解析器 (純 JavaScript 演算法 / 100% 離線運行)
    */
   // ==========================================================================
-  // Section 8.5: On-Device Smart Natural Language Parser & Confirmation Modal v1.7.9
+  // Section 8.5: On-Device Smart Natural Language Parser & Confirmation Modal v1.8.1
   // 特性：100% 離線運行、主體保留（如「交通會議」）、精準時分推算、自訂提醒彈窗
   // ==========================================================================
 
@@ -14516,9 +14563,15 @@ function extractCleanName(rawText) {
 
   function closeNlpConfirmModal() {
     const modal = document.getElementById('nlpConfirmModal');
-    if (modal) modal.style.display = 'none';
-    unlockBodyScroll();
-    currentNlpParsed = null;
+    if (modal) {
+      closeModalWithAnimation(modal, () => {
+        unlockBodyScroll();
+        currentNlpParsed = null;
+      });
+    } else {
+      unlockBodyScroll();
+      currentNlpParsed = null;
+    }
   }
 
   function handleNlpConfirmApply() {
@@ -14863,6 +14916,85 @@ function extractCleanName(rawText) {
           if (customRow) customRow.style.display = 'none';
         }
       });
+    }
+
+    // NLP Confirm Modal（確認新增物品菜單）下滑關閉支援：全卡片支援跟手拖曳向下滑動極速關閉
+    const nlpConfirmCard = modal ? modal.querySelector('.ios-modal-card') : null;
+    const nlpConfirmScroll = modal ? modal.querySelector('.ios-modal-scroll') : null;
+
+    if (nlpConfirmCard) {
+      let nlpTouchStartY = 0;
+      let nlpTouchStartX = 0;
+      let nlpTouchStartTime = 0;
+      let isDraggingNlpModal = false;
+      let currentNlpDy = 0;
+
+      nlpConfirmCard.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 1 && !modal.classList.contains('modal-closing')) {
+          nlpTouchStartY = e.touches[0].clientY;
+          nlpTouchStartX = e.touches[0].clientX;
+          nlpTouchStartTime = Date.now();
+          isDraggingNlpModal = false;
+          currentNlpDy = 0;
+        }
+      }, { passive: true });
+
+      nlpConfirmCard.addEventListener('touchmove', function (e) {
+        if (e.touches.length === 1 && !modal.classList.contains('modal-closing')) {
+          const touchY = e.touches[0].clientY;
+          const dy = touchY - nlpTouchStartY;
+          const dx = Math.abs(e.touches[0].clientX - nlpTouchStartX);
+          const isNearTop = !nlpConfirmScroll || nlpConfirmScroll.scrollTop <= 2;
+          const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
+
+          // 當處於頂部手把/標頭，或內容滾動至頂端向下滑動時，觸發拖曳跟手下滑關閉
+          if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+            isDraggingNlpModal = true;
+            currentNlpDy = dy;
+            if (e.cancelable) e.preventDefault();
+            nlpConfirmCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+            nlpConfirmCard.style.transition = 'none';
+          }
+        }
+      }, { passive: false });
+
+      function handleNlpTouchEnd() {
+        if (isDraggingNlpModal && !modal.classList.contains('modal-closing')) {
+          isDraggingNlpModal = false;
+          const dt = Math.max(1, Date.now() - nlpTouchStartTime);
+          const velocityY = currentNlpDy / dt;
+
+          if (currentNlpDy > 35 || (velocityY > 0.22 && currentNlpDy > 15)) {
+            nlpConfirmCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
+            nlpConfirmCard.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+              closeNlpConfirmModal();
+              nlpConfirmCard.style.transform = '';
+              nlpConfirmCard.style.transition = '';
+            }, 180);
+          } else {
+            nlpConfirmCard.style.transition = 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)';
+            nlpConfirmCard.style.transform = 'translateY(0)';
+            setTimeout(() => {
+              nlpConfirmCard.style.transform = '';
+              nlpConfirmCard.style.transition = '';
+            }, 200);
+          }
+        }
+      }
+
+      nlpConfirmCard.addEventListener('touchend', handleNlpTouchEnd, { passive: true });
+      nlpConfirmCard.addEventListener('touchcancel', handleNlpTouchEnd, { passive: true });
+
+      // 半透明遮罩層向下滑動快速關閉
+      modal.addEventListener('touchmove', function (e) {
+        if (e.target === modal && e.touches.length === 1 && !modal.classList.contains('modal-closing')) {
+          const dy = e.touches[0].clientY - nlpTouchStartY;
+          if (dy > 25) {
+            closeNlpConfirmModal();
+          }
+        }
+      }, { passive: true });
     }
   }
 

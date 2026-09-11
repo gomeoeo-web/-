@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.7.9
+ * Smart Quick Add & On-Device NER Parser v1.8.1
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -1211,6 +1211,103 @@ function updateItemByNlp(targetId, updates) {
 }
 
 // ==========================================
+// 7.5 卡片效期狀態與進度條判定模組 (v1.8.1)
+// ==========================================
+/**
+ * 依據剩餘天數與提醒天數判定卡片狀態、進度條顏色與類別標記
+ * 
+ * 1. 狀態判定規則：
+ *    - 已過期（diffDays < 0）：
+ *      * 狀態標記：'status-expired'
+ *      * 進度條顏色：紅色（#FF453A）
+ *      * 文字（如「已超過 X 天」）同步顯示紅色
+ *    - 將到期（diffDays >= 0 且 diffDays <= remindDaysBefore，或 <= 3 天）：
+ *      * 狀態標記：'status-warning'
+ *      * 進度條顏色：鮮橘色（#FF9F0A）
+ *      * 文字（如「還有 X 天」）同步顯示橘色
+ *    - 安全／正常（diffDays > remindDaysBefore）：
+ *      * 狀態標記：'status-normal'
+ *      * 進度條顏色：中性灰／深灰（#3A3A3C 或 rgba(255, 255, 255, 0.25)）
+ * 
+ * @param {Object} item 物品物件
+ * @param {string} [todayStr] 今日日期 (YYYY-MM-DD)
+ * @returns {Object} 狀態配置資訊
+ */
+function getItemStatusConfig(item, todayStr) {
+  const today = todayStr || formatDate(new Date());
+  const hasEndDate = item && item.hasEndDate !== false && !!item.endDate;
+
+  if (!hasEndDate || !item) {
+    return {
+      statusMark: 'status-normal',
+      color: 'rgba(255, 255, 255, 0.25)',
+      textColor: '',
+      text: '持續使用中 ⏳',
+      subMetricClass: 'ongoing status-normal',
+      progressClass: 'progress-bar-fill status-normal',
+      diffDays: null,
+      percent: 100
+    };
+  }
+
+  const dToday = new Date(today);
+  const dEnd = new Date(item.endDate);
+  const diffTime = dEnd.getTime() - dToday.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  const remindDaysBefore = item.warnDays !== undefined ? Number(item.warnDays) : 7;
+
+  // 計算百分比
+  let percent = 100;
+  if (item.startDate) {
+    const dStart = new Date(item.startDate);
+    const elapsed = Math.max(0, Math.round((dToday.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24)));
+    const total = Math.max(1, Math.round((dEnd.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24)));
+    percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+  }
+
+  // 1. 已過期（diffDays < 0）
+  if (diffDays < 0) {
+    return {
+      statusMark: 'status-expired',
+      color: '#FF453A',
+      textColor: '#FF453A',
+      text: `已超過 ${Math.abs(diffDays)} 天`,
+      subMetricClass: 'expired status-expired',
+      progressClass: 'progress-bar-fill status-expired expired',
+      diffDays,
+      percent
+    };
+  }
+
+  // 2. 將到期（diffDays >= 0 且 diffDays <= remindDaysBefore，或 <= 3 天）
+  const isCustomUrgent = item.reminderType === 'custom' && item.reminderDate && today >= item.reminderDate;
+  if (diffDays <= remindDaysBefore || diffDays <= 3 || isCustomUrgent) {
+    return {
+      statusMark: 'status-warning',
+      color: '#FF9F0A',
+      textColor: '#FF9F0A',
+      text: diffDays === 0 ? '今天到期' : `還有 ${diffDays.toLocaleString()} 天`,
+      subMetricClass: 'urgent status-warning',
+      progressClass: 'progress-bar-fill status-warning urgent',
+      diffDays,
+      percent
+    };
+  }
+
+  // 3. 安全／正常（diffDays > remindDaysBefore）
+  return {
+    statusMark: 'status-normal',
+    color: 'rgba(255, 255, 255, 0.25)',
+    textColor: '',
+    text: `還有 ${diffDays.toLocaleString()} 天`,
+    subMetricClass: 'status-normal',
+    progressClass: 'progress-bar-fill status-normal',
+    diffDays,
+    percent
+  };
+}
+
+// ==========================================
 // 8. 全域掛載與自啟動
 // ==========================================
 if (typeof window !== 'undefined') {
@@ -1228,6 +1325,7 @@ if (typeof window !== 'undefined') {
   window.simplifyItemName = simplifyItemName;
   window.addItem = addItem;
   window.updateItemByNlp = updateItemByNlp;
+  window.getItemStatusConfig = getItemStatusConfig;
   window.getLastCreatedItem = () => lastCreatedItem;
   window.setLastCreatedItem = (item) => { lastCreatedItem = item; };
 
@@ -1256,6 +1354,7 @@ if (typeof module !== 'undefined' && module.exports) {
     simplifyItemName,
     addItem,
     updateItemByNlp,
+    getItemStatusConfig,
     getLastCreatedItem: () => lastCreatedItem,
     setLastCreatedItem: (item) => { lastCreatedItem = item; }
   };
