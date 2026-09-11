@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=1.8.4">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -457,12 +458,22 @@ body {
 }
 
 /* 強制最高權重校準 (防止三星/Android 瀏覽器深色模式強制反轉或繼承成深灰色/黑色) */
-.fab-add-btn, #fabAddBtn, .floating-btn {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
+.fab-add-btn, #fabAddBtn, .floating-btn, .ios-fab-btn,
+.tab-btn.active, .filter-pill.active, [data-filter="all"].active, .home-filter-btn[data-filter="all"].active {
+  background: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-image: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-color: rgba(255, 255, 255, 0.99) !important;
   color: #000000 !important;
   border: none !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.fab-add-btn, #fabAddBtn, .floating-btn, .ios-fab-btn,
+.tab-btn.active, .filter-pill.active,
+.home-filter-btn[data-filter="all"].active .filter-btn-text,
+[data-filter="all"].active .filter-btn-text {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 .fab-add-btn svg, .fab-add-btn i, .fab-add-btn span,
@@ -472,15 +483,22 @@ body {
   fill: #000000 !important;
   stroke: #000000 !important;
   color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 [data-theme="light"] .fab-add-btn,
 [data-theme="light"] #fabAddBtn,
 [data-theme="light"] .floating-btn,
-[data-theme="light"] .ios-fab-btn {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
+[data-theme="light"] .ios-fab-btn,
+[data-theme="light"] .tab-btn.active,
+[data-theme="light"] .filter-pill.active,
+[data-theme="light"] [data-filter="all"].active,
+[data-theme="light"] .home-filter-btn[data-filter="all"].active {
+  background: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-image: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-color: rgba(255, 255, 255, 0.99) !important;
   color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
@@ -1008,37 +1026,63 @@ body {
 .pill-counter {
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 0.1rem 0.45rem;
+  padding: 0.1rem 0.48rem;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.14);
-  color: inherit;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 主頁全部按鈕中之數字徽章（黑底白字高對比顯色，雙層漸層防止深色模式反轉與壓暗） */
 .home-filter-btn.active .filter-btn-badge,
+.home-filter-btn[data-filter="all"].active .filter-btn-badge,
+.home-filter-btn.active #pillCountAll,
+.home-filter-btn[data-filter="all"].active #pillCountAll,
+#pillAll.active #pillCountAll,
+#pillAll.active .filter-btn-badge,
 .pill-segment.active .pill-counter {
-  background: #000000;
-  color: #ffffff;
+  background: #000000 !important;
+  background-image: linear-gradient(#000000, #000000) !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
 }
 
+/* 將到期數字徽章 */
 .filter-btn-badge.urgent {
-  background: rgba(255, 149, 0, 0.2);
-  color: var(--ios-orange);
+  background: rgba(255, 149, 0, 0.2) !important;
+  color: var(--ios-orange) !important;
+  -webkit-text-fill-color: var(--ios-orange) !important;
 }
 
 .home-filter-btn.active .filter-btn-badge.urgent {
-  background: #ff9500;
-  color: #000000;
+  background: #ff9500 !important;
+  background-image: linear-gradient(#ff9500, #ff9500) !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  border: none !important;
 }
 
+/* 已過期數字徽章 */
 .filter-btn-badge.expired {
-  background: rgba(255, 69, 58, 0.2);
-  color: var(--ios-red);
+  background: rgba(255, 69, 58, 0.2) !important;
+  color: var(--ios-red) !important;
+  -webkit-text-fill-color: var(--ios-red) !important;
 }
 
 .home-filter-btn.active .filter-btn-badge.expired {
-  background: #ff453a;
-  color: #ffffff;
+  background: #ff453a !important;
+  background-image: linear-gradient(#ff453a, #ff453a) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: none !important;
 }
 
 /* ==========================================================================
@@ -4067,9 +4111,20 @@ input[type="time"]::-webkit-date-and-time-value {
 }
 
 [data-theme="light"] .home-filter-btn.active .filter-btn-badge,
+[data-theme="light"] .home-filter-btn[data-filter="all"].active .filter-btn-badge,
+[data-theme="light"] #pillAll.active #pillCountAll,
 [data-theme="light"] .pill-segment.active .pill-counter {
-  background: #ffffff;
-  color: #000000;
+  background: #000000 !important;
+  background-image: linear-gradient(#000000, #000000) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+[data-theme="light"] .home-filter-btn:not(.active) .filter-btn-badge,
+[data-theme="light"] .pill-segment:not(.active) .pill-counter {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 /* 4. Home Item Cards */
@@ -5334,10 +5389,14 @@ body.modal-open .view-panel {
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
+[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge,
+[data-theme="amoled"] .home-filter-btn[data-filter="all"].active .filter-btn-badge,
+[data-theme="amoled"] #pillAll.active #pillCountAll {
+  background: #000000 !important;
+  background-image: linear-gradient(#000000, #000000) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* OLED純黑模式：主頁將到期與已過期顏色修復與鮮明對比 */
@@ -5839,38 +5898,70 @@ body.modal-open .view-panel {
   word-break: break-word;
 }
 
-/* 自訂提醒時間列 (Custom Reminder Row) */
+/* 自訂提醒時間列 (Custom Reminder Row) - 簡化為單一俐落容器，去除多餘重複外框 */
 .nlp-custom-reminder-row {
   margin-top: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed var(--ios-border-strong);
-  border-radius: var(--radius-subcard);
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
-/* 自訂提醒日期與時間輸入框寬度與內距微調（防止 24 小時制文字在小螢幕被右側下拉箭頭擠壓截斷） */
+[data-theme="light"] .nlp-custom-reminder-row,
+[data-theme="amoled"] .nlp-custom-reminder-row {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* 原生 date 與 datetime-local 的 WebKit 預設樣式重設與垂直置中排版 */
+input[type="date"],
+input[type="datetime-local"],
+.date-picker-input,
+.custom-time-input,
 #nlpConfirmCustomTime,
 input[type="datetime-local"].nlp-confirm-input {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   width: 100% !important;
+  min-height: 46px !important;
+  padding: 10px 16px !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 12px !important;
+  color: #FFFFFF !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
   box-sizing: border-box !important;
-  min-height: 44px !important;
-  height: 44px !important;
-  padding: 0 0.75rem !important;
-  font-size: 0.95rem !important;
+  outline: none !important;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   max-width: 100%;
-  display: block;
 }
 
-[data-theme="light"] .nlp-custom-reminder-row {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.12);
+/* 清除 iOS WebKit 內部偽元素的預設外距與位移 */
+input[type="date"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value {
+  text-align: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-[data-theme="amoled"] .nlp-custom-reminder-row {
-  background: #121216;
-  border-color: rgba(255, 255, 255, 0.14);
+input[type="date"]::-webkit-inner-spin-button,
+input[type="datetime-local"]::-webkit-inner-spin-button {
+  display: none !important;
+}
+
+[data-theme="light"] input[type="date"],
+[data-theme="light"] input[type="datetime-local"],
+[data-theme="light"] .date-picker-input,
+[data-theme="light"] .custom-time-input,
+[data-theme="light"] #nlpConfirmCustomTime {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #000000 !important;
 }
 
 .nlp-confirm-actions {
@@ -6589,7 +6680,7 @@ input[type="datetime-local"].nlp-confirm-input {
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.1</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.4</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -6744,7 +6835,7 @@ input[type="datetime-local"].nlp-confirm-input {
             <label class="nlp-confirm-label" for="nlpConfirmDays" style="margin-bottom: 0; font-size: 0.8rem; color: var(--ios-text-secondary); font-weight: 500;">或自訂到期天數</label>
           </div>
           <div class="nlp-date-days-row" style="display: flex; gap: 8px; align-items: center;">
-            <input type="date" id="nlpConfirmDate" class="nlp-confirm-input" style="flex: 1.4; min-width: 0;">
+            <input type="date" id="nlpConfirmDate" class="nlp-confirm-input date-picker-input" style="flex: 1.4; min-width: 0;">
             <div class="nlp-days-input-wrap" style="position: relative; flex: 1; min-width: 0; display: flex; align-items: center;">
               <input type="number" id="nlpConfirmDays" class="nlp-confirm-input" min="1" max="9999" placeholder="天數" style="padding-right: 1.85rem;">
               <span style="position: absolute; right: 0.65rem; color: var(--ios-text-secondary); font-size: 0.84rem; pointer-events: none; font-weight: 600;">天</span>
@@ -6761,6 +6852,16 @@ input[type="datetime-local"].nlp-confirm-input {
             <button type="button" class="nlp-day-pill" data-days="365">1年</button>
           </div>
           <div id="nlpConfirmDateHint" class="nlp-confirm-hint">還有 7 天到期</div>
+        </div>
+
+        <!-- Field 3.5: Elapsed Mode Start Date (謹記使用天數自訂開始日期) -->
+        <div class="nlp-confirm-field" id="nlpElapsedStartDateWrap" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
+            <label class="nlp-confirm-label" for="nlpConfirmStartDate" style="margin-bottom: 0;">開始使用日期</label>
+            <span style="font-size: 0.8rem; color: var(--ios-text-secondary); font-weight: 500;">自訂天數起算點</span>
+          </div>
+          <input type="date" id="nlpConfirmStartDate" class="nlp-confirm-input date-picker-input">
+          <div id="nlpConfirmStartDateHint" class="nlp-confirm-hint">已使用 0 天</div>
         </div>
 
         <!-- Field 4: Reminder -->
@@ -6786,7 +6887,7 @@ input[type="datetime-local"].nlp-confirm-input {
         <!-- Field 5: Custom Reminder Datetime Row (when custom is selected) -->
         <div id="nlpCustomReminderRow" class="nlp-custom-reminder-row" style="display: none;">
           <label class="nlp-confirm-label" for="nlpConfirmCustomTime">自訂提醒日期與時間</label>
-          <input type="datetime-local" id="nlpConfirmCustomTime" class="nlp-confirm-input" step="60">
+          <input type="datetime-local" id="nlpConfirmCustomTime" class="nlp-confirm-input custom-time-input" step="60">
         </div>
 
         <!-- Elapsed Mode Hint (謹記使用天數提示) -->
@@ -8021,7 +8122,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.8.1';
+  const APP_VERSION = '1.8.4';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -13893,7 +13994,7 @@ var CapacitorBridgeBundle = (() => {
    * 本機自然語言解析器 (純 JavaScript 演算法 / 100% 離線運行)
    */
   // ==========================================================================
-  // Section 8.5: On-Device Smart Natural Language Parser & Confirmation Modal v1.8.1
+  // Section 8.5: On-Device Smart Natural Language Parser & Confirmation Modal v1.8.4
   // 特性：100% 離線運行、主體保留（如「交通會議」）、精準時分推算、自訂提醒彈窗
   // ==========================================================================
 
@@ -14411,27 +14512,55 @@ function extractCleanName(rawText) {
   let currentNlpParsed = null;
   let currentNlpTrackingMode = 'expiry';
 
+  function updateNlpStartDateHint(startDateStr) {
+    const hintEl = document.getElementById('nlpConfirmStartDateHint');
+    if (!hintEl) return;
+    if (!startDateStr) {
+      hintEl.textContent = '請選擇開始使用日期';
+      return;
+    }
+    const today = getTodayString();
+    const diff = diffDays(startDateStr, today);
+    if (diff >= 0) {
+      hintEl.textContent = `已使用 ${diff} 天（${startDateStr} 起算）`;
+      hintEl.style.color = 'var(--ios-text-secondary)';
+    } else {
+      hintEl.textContent = `將於 ${Math.abs(diff)} 天後開始（${startDateStr}）`;
+      hintEl.style.color = 'var(--ios-orange)';
+    }
+  }
+
   function setNlpTrackingMode(mode) {
     currentNlpTrackingMode = mode;
     const btnExpiry = document.getElementById('btnNlpTrackExpiry');
     const btnElapsed = document.getElementById('btnNlpTrackElapsed');
     const dateWrap = document.getElementById('nlpConfirmDateWrap');
+    const elapsedStartDateWrap = document.getElementById('nlpElapsedStartDateWrap');
     const reminderWrap = document.getElementById('nlpConfirmReminderWrap');
     const customRow = document.getElementById('nlpCustomReminderRow');
     const elapsedHint = document.getElementById('nlpElapsedModeHintWrap');
     const dateInput = document.getElementById('nlpConfirmDate');
+    const startDateInput = document.getElementById('nlpConfirmStartDate');
 
     if (mode === 'elapsed') {
       if (btnElapsed) btnElapsed.classList.add('active');
       if (btnExpiry) btnExpiry.classList.remove('active');
       if (dateWrap) dateWrap.style.display = 'none';
+      if (elapsedStartDateWrap) elapsedStartDateWrap.style.display = 'block';
       if (reminderWrap) reminderWrap.style.display = 'none';
       if (customRow) customRow.style.display = 'none';
       if (elapsedHint) elapsedHint.style.display = 'flex';
+      if (startDateInput && !startDateInput.value) {
+        startDateInput.value = (currentNlpParsed && currentNlpParsed.startDate) ? currentNlpParsed.startDate : getTodayString();
+      }
+      if (startDateInput) {
+        updateNlpStartDateHint(startDateInput.value);
+      }
     } else {
       if (btnExpiry) btnExpiry.classList.add('active');
       if (btnElapsed) btnElapsed.classList.remove('active');
       if (dateWrap) dateWrap.style.display = 'block';
+      if (elapsedStartDateWrap) elapsedStartDateWrap.style.display = 'none';
       if (reminderWrap) reminderWrap.style.display = 'block';
       if (elapsedHint) elapsedHint.style.display = 'none';
       const remindSelect = document.getElementById('nlpConfirmReminder');
@@ -14621,6 +14750,13 @@ function extractCleanName(rawText) {
       }
     }
 
+    // 謹記使用天數之開始日期初始化
+    const startDateInput = document.getElementById('nlpConfirmStartDate');
+    if (startDateInput) {
+      startDateInput.value = parsed.startDate || getTodayString();
+      updateNlpStartDateHint(startDateInput.value);
+    }
+
     // 提醒通知與自訂時間判定（嚴格兩位數補零與 15:00 預設）
     const targetRemindDate = parsed.reminderDate || parsed.expiryDate || getTodayString();
     const rawTime = parsed.remindTime || '15:00';
@@ -14715,6 +14851,11 @@ function extractCleanName(rawText) {
     }
 
     const isElapsedMode = (currentNlpTrackingMode === 'elapsed');
+    const startDateInput = document.getElementById('nlpConfirmStartDate');
+    const confirmedStartDate = (isElapsedMode && startDateInput && startDateInput.value)
+      ? startDateInput.value
+      : ((currentNlpParsed && currentNlpParsed.startDate) ? currentNlpParsed.startDate : getTodayString());
+
     const confirmedCat = catSelect ? catSelect.value : (currentNlpParsed.category || 'other');
     const daysInput = document.getElementById('nlpConfirmDays');
     let confirmedDate = dateInput ? dateInput.value : currentNlpParsed.expiryDate;
@@ -14822,6 +14963,7 @@ function extractCleanName(rawText) {
       }
 
       if (isElapsedMode) {
+        target.startDate = confirmedStartDate;
         target.hasEndDate = false;
         target.endDate = null;
         target.warnDays = -1;
@@ -14851,7 +14993,7 @@ function extractCleanName(rawText) {
       }
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
-      showToast(isElapsedMode ? `已更新「${target.name}」（謹記使用天數）` : `已更新「${target.name}」`);
+      showToast(isElapsedMode ? `已更新「${target.name}」（謹記使用天數，${target.startDate} 起算）` : `已更新「${target.name}」`);
     } else {
       const newItem = addItem({
         name: confirmedName,
@@ -14859,6 +15001,7 @@ function extractCleanName(rawText) {
         subCategory: subCat,
         emoji: emoji,
         image: (currentNlpParsed && currentNlpParsed.image) || null,
+        startDate: confirmedStartDate,
         hasEndDate: !isElapsedMode,
         endDate: isElapsedMode ? null : confirmedDate,
         reminderType: confirmedReminderType,
@@ -14874,7 +15017,7 @@ function extractCleanName(rawText) {
       }
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
-      showToast(isElapsedMode ? `✨ 已加入「${newItem.name}」（謹記使用天數）` : `✨ 已加入「${newItem.name}」（${newItem.endDate} 到期）`);
+      showToast(isElapsedMode ? `✨ 已加入「${newItem.name}」（謹記使用天數，${newItem.startDate} 起算）` : `✨ 已加入「${newItem.name}」（${newItem.endDate} 到期）`);
     }
   }
 
@@ -14909,6 +15052,7 @@ function extractCleanName(rawText) {
     const cancelBtn = document.getElementById('btnCancelNlpConfirm');
     const applyBtn = document.getElementById('btnApplyNlpConfirm');
     const dateInput = document.getElementById('nlpConfirmDate');
+    const startDateInput = document.getElementById('nlpConfirmStartDate');
     const remindSelect = document.getElementById('nlpConfirmReminder');
     const customRow = document.getElementById('nlpCustomReminderRow');
     const customInput = document.getElementById('nlpConfirmCustomTime');
@@ -14916,6 +15060,14 @@ function extractCleanName(rawText) {
     const btnModeCreate = document.getElementById('btnNlpModeCreate');
     const btnTrackExpiry = document.getElementById('btnNlpTrackExpiry');
     const btnTrackElapsed = document.getElementById('btnNlpTrackElapsed');
+
+    if (startDateInput) {
+      const syncStartDate = function () {
+        updateNlpStartDateHint(startDateInput.value);
+      };
+      startDateInput.addEventListener('input', syncStartDate);
+      startDateInput.addEventListener('change', syncStartDate);
+    }
 
     if (btnTrackExpiry) {
       btnTrackExpiry.addEventListener('click', function () {
@@ -15663,6 +15815,6 @@ function extractCleanName(rawText) {
     }
   </script>
   <!-- 本地自然語言實體抽取與速記控制器 -->
-  <script src="app.js"></script>
+  <script src="app.js?v=1.8.4"></script>
 </body>
 </html>

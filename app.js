@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.8.1
+ * Smart Quick Add & On-Device NER Parser v1.8.4
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -941,6 +941,30 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
     }
   }
 
+  // 抽取開始日期 (針對謹記使用天數或自訂開始日)
+  let parsedStartDate = null;
+  const startRelMatch = text.match(/(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日|個月|月|年)前(?:\s*(?:開始|買|領養|收編|啟用|拆封))?/);
+  if (startRelMatch) {
+    const rawNum = parseChineseNum(startRelMatch[1]);
+    if (rawNum !== null && !isNaN(rawNum)) {
+      if (startRelMatch[0].includes('年')) {
+        const d = new Date(baseDate.getTime());
+        d.setFullYear(d.getFullYear() - Math.floor(rawNum));
+        parsedStartDate = formatDate(d);
+      } else if (startRelMatch[0].includes('月')) {
+        const d = new Date(baseDate.getTime());
+        d.setMonth(d.getMonth() - Math.floor(rawNum));
+        parsedStartDate = formatDate(d);
+      } else {
+        parsedStartDate = formatDate(offsetDays(baseDate, -Math.round(rawNum)));
+      }
+    }
+  } else if (/昨天|昨兒個/.test(text)) {
+    parsedStartDate = formatDate(offsetDays(baseDate, -1));
+  } else if (/前天/.test(text)) {
+    parsedStartDate = formatDate(offsetDays(baseDate, -2));
+  }
+
   // G. 智慧分類與細項項目自動對應 (若無對應則自動選 other 其他)
   const matched = matchCategoryAndSubCategory(text + ' ' + refinedName, 'other');
   const category = matched.category || 'other';
@@ -960,6 +984,7 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
     category: category,
     subCategory: subCategory,
     emoji: emoji,
+    startDate: parsedStartDate || formatDate(baseDate),
     hasEndDate: hasEndDate,
     mode: hasEndDate ? 'expiry' : 'elapsed',
     expiryDate: finalDate,
@@ -1091,6 +1116,30 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
     }
   }
 
+  // 抽取開始日期 (針對謹記使用天數或自訂開始日)
+  let parsedStartDate = null;
+  const startRelMatch = text.match(/(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日|個月|月|年)前(?:\s*(?:開始|買|領養|收編|啟用|拆封))?/);
+  if (startRelMatch) {
+    const rawNum = parseChineseNum(startRelMatch[1]);
+    if (rawNum !== null && !isNaN(rawNum)) {
+      if (startRelMatch[0].includes('年')) {
+        const d = new Date(baseDate.getTime());
+        d.setFullYear(d.getFullYear() - Math.floor(rawNum));
+        parsedStartDate = formatDate(d);
+      } else if (startRelMatch[0].includes('月')) {
+        const d = new Date(baseDate.getTime());
+        d.setMonth(d.getMonth() - Math.floor(rawNum));
+        parsedStartDate = formatDate(d);
+      } else {
+        parsedStartDate = formatDate(offsetDays(baseDate, -Math.round(rawNum)));
+      }
+    }
+  } else if (/昨天|昨兒個/.test(text)) {
+    parsedStartDate = formatDate(offsetDays(baseDate, -1));
+  } else if (/前天/.test(text)) {
+    parsedStartDate = formatDate(offsetDays(baseDate, -2));
+  }
+
   const cleanName = extractCleanName(text);
 
   // 分類與細項項目自動對應（若無對應則預設選 other 其他）
@@ -1112,6 +1161,7 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
     category: category,
     subCategory: subCategory,
     emoji: emoji,
+    startDate: parsedStartDate || formatDate(baseDate),
     hasEndDate: hasEndDate,
     mode: hasEndDate ? 'expiry' : 'elapsed',
     expiryDate: finalDate,
@@ -1294,7 +1344,7 @@ function getItemStatusConfig(item, todayStr) {
   if (!hasEndDate || !item) {
     return {
       statusMark: 'status-normal',
-      color: 'rgba(255, 255, 255, 0.2)',
+      color: 'rgba(255, 255, 255, 0.25)',
       textColor: 'rgba(255, 255, 255, 0.7)',
       text: '持續使用中 ⏳',
       subMetricClass: 'ongoing status-normal',
@@ -1349,7 +1399,7 @@ function getItemStatusConfig(item, todayStr) {
   // 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天，絕對嚴禁套用紅色或橘色）
   return {
     statusMark: 'status-normal',
-    color: 'rgba(255, 255, 255, 0.2)',
+    color: 'rgba(255, 255, 255, 0.25)',
     textColor: 'rgba(255, 255, 255, 0.7)',
     text: `還有 ${diffDays.toLocaleString()} 天`,
     subMetricClass: 'status-normal',

@@ -440,12 +440,22 @@ body {
 }
 
 /* 強制最高權重校準 (防止三星/Android 瀏覽器深色模式強制反轉或繼承成深灰色/黑色) */
-.fab-add-btn, #fabAddBtn, .floating-btn {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
+.fab-add-btn, #fabAddBtn, .floating-btn, .ios-fab-btn,
+.tab-btn.active, .filter-pill.active, [data-filter="all"].active, .home-filter-btn[data-filter="all"].active {
+  background: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-image: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-color: rgba(255, 255, 255, 0.99) !important;
   color: #000000 !important;
   border: none !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.fab-add-btn, #fabAddBtn, .floating-btn, .ios-fab-btn,
+.tab-btn.active, .filter-pill.active,
+.home-filter-btn[data-filter="all"].active .filter-btn-text,
+[data-filter="all"].active .filter-btn-text {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 .fab-add-btn svg, .fab-add-btn i, .fab-add-btn span,
@@ -455,15 +465,22 @@ body {
   fill: #000000 !important;
   stroke: #000000 !important;
   color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 [data-theme="light"] .fab-add-btn,
 [data-theme="light"] #fabAddBtn,
 [data-theme="light"] .floating-btn,
-[data-theme="light"] .ios-fab-btn {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
+[data-theme="light"] .ios-fab-btn,
+[data-theme="light"] .tab-btn.active,
+[data-theme="light"] .filter-pill.active,
+[data-theme="light"] [data-filter="all"].active,
+[data-theme="light"] .home-filter-btn[data-filter="all"].active {
+  background: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-image: linear-gradient(#FFFFFF, #FFFFFF) !important;
+  background-color: rgba(255, 255, 255, 0.99) !important;
   color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
@@ -991,37 +1008,63 @@ body {
 .pill-counter {
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 0.1rem 0.45rem;
+  padding: 0.1rem 0.48rem;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.14);
-  color: inherit;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 主頁全部按鈕中之數字徽章（黑底白字高對比顯色，雙層漸層防止深色模式反轉與壓暗） */
 .home-filter-btn.active .filter-btn-badge,
+.home-filter-btn[data-filter="all"].active .filter-btn-badge,
+.home-filter-btn.active #pillCountAll,
+.home-filter-btn[data-filter="all"].active #pillCountAll,
+#pillAll.active #pillCountAll,
+#pillAll.active .filter-btn-badge,
 .pill-segment.active .pill-counter {
-  background: #000000;
-  color: #ffffff;
+  background: #000000 !important;
+  background-image: linear-gradient(#000000, #000000) !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
 }
 
+/* 將到期數字徽章 */
 .filter-btn-badge.urgent {
-  background: rgba(255, 149, 0, 0.2);
-  color: var(--ios-orange);
+  background: rgba(255, 149, 0, 0.2) !important;
+  color: var(--ios-orange) !important;
+  -webkit-text-fill-color: var(--ios-orange) !important;
 }
 
 .home-filter-btn.active .filter-btn-badge.urgent {
-  background: #ff9500;
-  color: #000000;
+  background: #ff9500 !important;
+  background-image: linear-gradient(#ff9500, #ff9500) !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  border: none !important;
 }
 
+/* 已過期數字徽章 */
 .filter-btn-badge.expired {
-  background: rgba(255, 69, 58, 0.2);
-  color: var(--ios-red);
+  background: rgba(255, 69, 58, 0.2) !important;
+  color: var(--ios-red) !important;
+  -webkit-text-fill-color: var(--ios-red) !important;
 }
 
 .home-filter-btn.active .filter-btn-badge.expired {
-  background: #ff453a;
-  color: #ffffff;
+  background: #ff453a !important;
+  background-image: linear-gradient(#ff453a, #ff453a) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: none !important;
 }
 
 /* ==========================================================================
@@ -4050,9 +4093,20 @@ input[type="time"]::-webkit-date-and-time-value {
 }
 
 [data-theme="light"] .home-filter-btn.active .filter-btn-badge,
+[data-theme="light"] .home-filter-btn[data-filter="all"].active .filter-btn-badge,
+[data-theme="light"] #pillAll.active #pillCountAll,
 [data-theme="light"] .pill-segment.active .pill-counter {
-  background: #ffffff;
-  color: #000000;
+  background: #000000 !important;
+  background-image: linear-gradient(#000000, #000000) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+[data-theme="light"] .home-filter-btn:not(.active) .filter-btn-badge,
+[data-theme="light"] .pill-segment:not(.active) .pill-counter {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 /* 4. Home Item Cards */
@@ -5317,10 +5371,14 @@ body.modal-open .view-panel {
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
+[data-theme="amoled"] .home-filter-btn.active .filter-btn-badge,
+[data-theme="amoled"] .home-filter-btn[data-filter="all"].active .filter-btn-badge,
+[data-theme="amoled"] #pillAll.active #pillCountAll {
+  background: #000000 !important;
+  background-image: linear-gradient(#000000, #000000) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* OLED純黑模式：主頁將到期與已過期顏色修復與鮮明對比 */
@@ -5822,38 +5880,70 @@ body.modal-open .view-panel {
   word-break: break-word;
 }
 
-/* 自訂提醒時間列 (Custom Reminder Row) */
+/* 自訂提醒時間列 (Custom Reminder Row) - 簡化為單一俐落容器，去除多餘重複外框 */
 .nlp-custom-reminder-row {
   margin-top: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed var(--ios-border-strong);
-  border-radius: var(--radius-subcard);
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
 }
 
-/* 自訂提醒日期與時間輸入框寬度與內距微調（防止 24 小時制文字在小螢幕被右側下拉箭頭擠壓截斷） */
+[data-theme="light"] .nlp-custom-reminder-row,
+[data-theme="amoled"] .nlp-custom-reminder-row {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* 原生 date 與 datetime-local 的 WebKit 預設樣式重設與垂直置中排版 */
+input[type="date"],
+input[type="datetime-local"],
+.date-picker-input,
+.custom-time-input,
 #nlpConfirmCustomTime,
 input[type="datetime-local"].nlp-confirm-input {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   width: 100% !important;
+  min-height: 46px !important;
+  padding: 10px 16px !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 12px !important;
+  color: #FFFFFF !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
   box-sizing: border-box !important;
-  min-height: 44px !important;
-  height: 44px !important;
-  padding: 0 0.75rem !important;
-  font-size: 0.95rem !important;
+  outline: none !important;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   max-width: 100%;
-  display: block;
 }
 
-[data-theme="light"] .nlp-custom-reminder-row {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.12);
+/* 清除 iOS WebKit 內部偽元素的預設外距與位移 */
+input[type="date"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value {
+  text-align: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-[data-theme="amoled"] .nlp-custom-reminder-row {
-  background: #121216;
-  border-color: rgba(255, 255, 255, 0.14);
+input[type="date"]::-webkit-inner-spin-button,
+input[type="datetime-local"]::-webkit-inner-spin-button {
+  display: none !important;
+}
+
+[data-theme="light"] input[type="date"],
+[data-theme="light"] input[type="datetime-local"],
+[data-theme="light"] .date-picker-input,
+[data-theme="light"] .custom-time-input,
+[data-theme="light"] #nlpConfirmCustomTime {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #000000 !important;
 }
 
 .nlp-confirm-actions {
