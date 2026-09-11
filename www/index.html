@@ -1327,15 +1327,15 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.card-metric-sub.status-warning,
-.card-metric-sub.urgent {
-  color: #FF9F0A !important;
+.card-metric-sub.status-expired,
+.card-metric-sub.expired {
+  color: #ff453a !important;
   font-weight: 700;
 }
 
-.card-metric-sub.status-expired,
-.card-metric-sub.expired {
-  color: #FF453A !important;
+.card-metric-sub.status-warning,
+.card-metric-sub.urgent {
+  color: #ff9500 !important;
   font-weight: 700;
 }
 
@@ -1364,14 +1364,14 @@ body {
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #ff453a !important;
 }
 
-/* 將到期 - 警告橘 */
+/* 將到期 / 3天內到期 - 鮮明橘黃色 (對應將到期菜單顏色) */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #ff9500 !important;
 }
 
 /* 正常狀態 - 柔和深灰/中性白 */
@@ -4066,16 +4066,16 @@ input[type="time"]::-webkit-date-and-time-value {
   background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
-[data-theme="light"] .progress-bar-fill.status-warning,
-[data-theme="light"] .card-progress-fill.status-warning,
-[data-theme="light"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
-}
-
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #ff453a !important;
+}
+
+[data-theme="light"] .progress-bar-fill.status-warning,
+[data-theme="light"] .card-progress-fill.status-warning,
+[data-theme="light"] .card-progress-fill.urgent {
+  background-color: #ff9500 !important;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5348,18 +5348,18 @@ body.modal-open .view-panel {
   font-weight: 700;
 }
 
-[data-theme="amoled"] .progress-bar-fill.status-warning,
-[data-theme="amoled"] .card-progress-fill.status-warning,
-[data-theme="amoled"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
-  box-shadow: 0 0 8px rgba(255, 159, 10, 0.4);
-}
-
 [data-theme="amoled"] .progress-bar-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #ff453a !important;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
+}
+
+[data-theme="amoled"] .progress-bar-fill.status-warning,
+[data-theme="amoled"] .card-progress-fill.status-warning,
+[data-theme="amoled"] .card-progress-fill.urgent {
+  background-color: #ff9500 !important;
+  box-shadow: 0 0 8px rgba(255, 149, 0, 0.45);
 }
 
 [data-theme="amoled"] .notice-num.expired {
@@ -8580,9 +8580,26 @@ var CapacitorBridgeBundle = (() => {
     return `${y}-${m}-${d}`;
   }
 
+  function parseDateSafe(dateStr) {
+    if (!dateStr) return new Date();
+    if (dateStr instanceof Date) return dateStr;
+    const s = String(dateStr).trim().split('T')[0].split(' ')[0].replace(/\//g, '-');
+    const parts = s.split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        return new Date(y, m, d, 0, 0, 0, 0);
+      }
+    }
+    const dt = new Date(dateStr);
+    return isNaN(dt.getTime()) ? new Date() : dt;
+  }
+
   function getOffsetDateString(baseDateStr, offsetDays) {
-    const d = new Date(baseDateStr + 'T00:00:00');
-    d.setDate(d.getDate() + offsetDays);
+    const d = parseDateSafe(baseDateStr);
+    d.setDate(d.getDate() + Number(offsetDays || 0));
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -8590,8 +8607,9 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function diffDays(date1Str, date2Str) {
-    const d1 = new Date(date1Str + 'T00:00:00');
-    const d2 = new Date(date2Str + 'T00:00:00');
+    if (!date1Str || !date2Str) return 0;
+    const d1 = parseDateSafe(date1Str);
+    const d2 = parseDateSafe(date2Str);
     const diffTime = d2.getTime() - d1.getTime();
     return Math.round(diffTime / (1000 * 60 * 60 * 24));
   }
@@ -9842,40 +9860,45 @@ var CapacitorBridgeBundle = (() => {
     // 狀態判定規則：
     // 1. 已過期（diffDays < 0）：
     //    * 狀態標記：'status-expired'
-    //    * 進度條顏色：紅色（#FF453A）
+    //    * 進度條顏色：紅色（#ff453a）
     //    * 文字同步顯示紅色
-    // 2. 將到期（diffDays >= 0 且 diffDays <= remindDaysBefore，或 <= 3 天）：
+    // 2. 將到期 / 3天內到期（diffDays >= 0 且 diffDays <= 3 或符合提醒天數）：
     //    * 狀態標記：'status-warning'
-    //    * 進度條顏色：鮮橘色（#FF9F0A）
-    //    * 文字同步顯示橘色
-    // 3. 安全／正常（diffDays > remindDaysBefore）：
+    //    * 進度條顏色：鮮明橘黃色（#ff9500），100% 對應將到期菜單顏色
+    //    * 文字同步顯示橘黃色
+    // 3. 安全／正常（diffDays > 3 且大於提醒天數）：
     //    * 狀態標記：'status-normal'
-    //    * 進度條顏色：中性灰／深灰（#3A3A3C 或 rgba(255, 255, 255, 0.25)）
+    //    * 進度條顏色：中性灰／深灰（rgba(255, 255, 255, 0.25)）
     let subMetricText = '';
     let subMetricClass = '';
     let statusClass = 'status-normal';
     let progressColor = 'rgba(255, 255, 255, 0.25)';
+    let metricTextColor = '';
 
     if (!m.hasEndDate) {
       subMetricText = '持續使用中 ⏳';
       subMetricClass = 'ongoing status-normal';
       statusClass = 'status-normal';
       progressColor = 'rgba(255, 255, 255, 0.25)';
-    } else if (m.remainingDays < 0 || m.status === 'expired') {
+      metricTextColor = '';
+    } else if (m.remainingDays < 0) {
       subMetricText = `已超過 ${Math.abs(m.remainingDays)} 天`;
       subMetricClass = 'expired status-expired';
       statusClass = 'status-expired';
-      progressColor = '#FF453A';
-    } else if (m.status === 'urgent') {
+      progressColor = '#ff453a';
+      metricTextColor = '#ff453a';
+    } else if (m.remainingDays <= 3 || m.status === 'urgent') {
       subMetricText = m.remainingDays === 0 ? '今天到期' : `還有 ${formatNumber(m.remainingDays)} 天`;
       subMetricClass = 'urgent status-warning';
       statusClass = 'status-warning';
-      progressColor = '#FF9F0A';
+      progressColor = '#ff9500'; // 鮮明橘黃色，對應將到期菜單顏色
+      metricTextColor = '#ff9500';
     } else {
       subMetricText = `還有 ${formatNumber(m.remainingDays)} 天`;
       subMetricClass = 'status-normal';
       statusClass = 'status-normal';
       progressColor = 'rgba(255, 255, 255, 0.25)';
+      metricTextColor = '';
     }
 
     // 進度條寬度與樣式
@@ -9920,9 +9943,19 @@ var CapacitorBridgeBundle = (() => {
 
       <!-- Progress Bar at bottom of card -->
       <div class="card-progress-bar">
-        <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle} background-color: ${progressColor} !important;"></div>
+        <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle} background-color: ${progressColor};"></div>
       </div>
     `;
+
+    // 確保在任何裝置（包含 Android WebView）上顏色精確生效且優先級最高
+    const progressFillEl = card.querySelector('.card-progress-fill');
+    if (progressFillEl && progressColor) {
+      progressFillEl.style.setProperty('background-color', progressColor, 'important');
+    }
+    const metricSubEl = card.querySelector('.card-metric-sub');
+    if (metricSubEl && metricTextColor) {
+      metricSubEl.style.setProperty('color', metricTextColor, 'important');
+    }
 
     let cardTouchStartX = 0;
     let cardTouchStartY = 0;

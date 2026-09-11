@@ -1310,15 +1310,15 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.card-metric-sub.status-warning,
-.card-metric-sub.urgent {
-  color: #FF9F0A !important;
+.card-metric-sub.status-expired,
+.card-metric-sub.expired {
+  color: #ff453a !important;
   font-weight: 700;
 }
 
-.card-metric-sub.status-expired,
-.card-metric-sub.expired {
-  color: #FF453A !important;
+.card-metric-sub.status-warning,
+.card-metric-sub.urgent {
+  color: #ff9500 !important;
   font-weight: 700;
 }
 
@@ -1347,14 +1347,14 @@ body {
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #ff453a !important;
 }
 
-/* 將到期 - 警告橘 */
+/* 將到期 / 3天內到期 - 鮮明橘黃色 (對應將到期菜單顏色) */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #ff9500 !important;
 }
 
 /* 正常狀態 - 柔和深灰/中性白 */
@@ -4049,16 +4049,16 @@ input[type="time"]::-webkit-date-and-time-value {
   background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
-[data-theme="light"] .progress-bar-fill.status-warning,
-[data-theme="light"] .card-progress-fill.status-warning,
-[data-theme="light"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
-}
-
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #ff453a !important;
+}
+
+[data-theme="light"] .progress-bar-fill.status-warning,
+[data-theme="light"] .card-progress-fill.status-warning,
+[data-theme="light"] .card-progress-fill.urgent {
+  background-color: #ff9500 !important;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5331,18 +5331,18 @@ body.modal-open .view-panel {
   font-weight: 700;
 }
 
-[data-theme="amoled"] .progress-bar-fill.status-warning,
-[data-theme="amoled"] .card-progress-fill.status-warning,
-[data-theme="amoled"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
-  box-shadow: 0 0 8px rgba(255, 159, 10, 0.4);
-}
-
 [data-theme="amoled"] .progress-bar-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #ff453a !important;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
+}
+
+[data-theme="amoled"] .progress-bar-fill.status-warning,
+[data-theme="amoled"] .card-progress-fill.status-warning,
+[data-theme="amoled"] .card-progress-fill.urgent {
+  background-color: #ff9500 !important;
+  box-shadow: 0 0 8px rgba(255, 149, 0, 0.45);
 }
 
 [data-theme="amoled"] .notice-num.expired {

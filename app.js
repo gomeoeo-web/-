@@ -1233,6 +1233,23 @@ function updateItemByNlp(targetId, updates) {
  * @param {string} [todayStr] 今日日期 (YYYY-MM-DD)
  * @returns {Object} 狀態配置資訊
  */
+function parseDateSafe(dateStr) {
+  if (!dateStr) return new Date();
+  if (dateStr instanceof Date) return dateStr;
+  const s = String(dateStr).trim().split('T')[0].split(' ')[0].replace(/\//g, '-');
+  const parts = s.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d, 0, 0, 0, 0);
+    }
+  }
+  const dt = new Date(dateStr);
+  return isNaN(dt.getTime()) ? new Date() : dt;
+}
+
 function getItemStatusConfig(item, todayStr) {
   const today = todayStr || formatDate(new Date());
   const hasEndDate = item && item.hasEndDate !== false && !!item.endDate;
@@ -1250,8 +1267,8 @@ function getItemStatusConfig(item, todayStr) {
     };
   }
 
-  const dToday = new Date(today);
-  const dEnd = new Date(item.endDate);
+  const dToday = parseDateSafe(today);
+  const dEnd = parseDateSafe(item.endDate);
   const diffTime = dEnd.getTime() - dToday.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
   const remindDaysBefore = item.warnDays !== undefined ? Number(item.warnDays) : 7;
@@ -1259,7 +1276,7 @@ function getItemStatusConfig(item, todayStr) {
   // 計算百分比
   let percent = 100;
   if (item.startDate) {
-    const dStart = new Date(item.startDate);
+    const dStart = parseDateSafe(item.startDate);
     const elapsed = Math.max(0, Math.round((dToday.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24)));
     const total = Math.max(1, Math.round((dEnd.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24)));
     percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
@@ -1269,8 +1286,8 @@ function getItemStatusConfig(item, todayStr) {
   if (diffDays < 0) {
     return {
       statusMark: 'status-expired',
-      color: '#FF453A',
-      textColor: '#FF453A',
+      color: '#ff453a',
+      textColor: '#ff453a',
       text: `已超過 ${Math.abs(diffDays)} 天`,
       subMetricClass: 'expired status-expired',
       progressClass: 'progress-bar-fill status-expired expired',
@@ -1279,13 +1296,13 @@ function getItemStatusConfig(item, todayStr) {
     };
   }
 
-  // 2. 將到期（diffDays >= 0 且 diffDays <= remindDaysBefore，或 <= 3 天）
+  // 2. 將到期 / 3天內到期（diffDays >= 0 且 diffDays <= 3 或符合提醒天數）
   const isCustomUrgent = item.reminderType === 'custom' && item.reminderDate && today >= item.reminderDate;
-  if (diffDays <= remindDaysBefore || diffDays <= 3 || isCustomUrgent) {
+  if (diffDays <= 3 || diffDays <= remindDaysBefore || isCustomUrgent) {
     return {
       statusMark: 'status-warning',
-      color: '#FF9F0A',
-      textColor: '#FF9F0A',
+      color: '#ff9500', // 鮮明橘黃色，100% 對應將到期菜單顏色
+      textColor: '#ff9500',
       text: diffDays === 0 ? '今天到期' : `還有 ${diffDays.toLocaleString()} 天`,
       subMetricClass: 'urgent status-warning',
       progressClass: 'progress-bar-fill status-warning urgent',
@@ -1294,7 +1311,7 @@ function getItemStatusConfig(item, todayStr) {
     };
   }
 
-  // 3. 安全／正常（diffDays > remindDaysBefore）
+  // 3. 安全／正常（diffDays > 3 且大於提醒天數）
   return {
     statusMark: 'status-normal',
     color: 'rgba(255, 255, 255, 0.25)',
