@@ -2371,11 +2371,18 @@ input[type="time"]::-webkit-date-and-time-value {
 /* ==========================================================================
    Settings Modal (Grouped List)
    ========================================================================== */
+#settingsModal .ios-modal-card {
+  max-height: 88vh;
+  height: min(650px, 88vh);
+  display: flex;
+  flex-direction: column;
+}
+
 .ios-settings-list {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: 1.25rem 1.25rem 3.5rem 1.25rem;
+  padding: 1.25rem 1rem 5.5rem 1.25rem;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch !important;
@@ -2385,6 +2392,37 @@ input[type="time"]::-webkit-date-and-time-value {
   min-height: 0;
   box-sizing: border-box;
   width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.08);
+  scrollbar-gutter: stable;
+}
+
+.ios-settings-list::-webkit-scrollbar {
+  width: 7px;
+  display: block;
+}
+.ios-settings-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+  margin: 6px 0;
+}
+.ios-settings-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+.ios-settings-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="light"] .ios-settings-list {
+  scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.05);
+}
+[data-theme="light"] .ios-settings-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+[data-theme="light"] .ios-settings-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .settings-group {
@@ -2399,7 +2437,7 @@ input[type="time"]::-webkit-date-and-time-value {
   align-items: center;
   justify-content: space-between;
   gap: 0.85rem;
-  padding: 0.9rem 1rem;
+  padding: 0.95rem 1rem;
   border-bottom: 1px solid var(--ios-border);
   width: 100%;
   background: transparent;
@@ -2423,21 +2461,25 @@ input[type="time"]::-webkit-date-and-time-value {
 .settings-info {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  overflow: visible;
+  padding-right: 0.25rem;
 }
 .settings-title {
   font-size: 0.92rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
   word-break: break-word;
+  white-space: normal;
 }
 .settings-desc {
   font-size: 0.78rem;
   color: var(--ios-text-secondary);
-  margin-top: 0.15rem;
-  line-height: 1.35;
+  margin-top: 0.2rem;
+  line-height: 1.4;
   word-break: break-word;
+  white-space: normal;
 }
 .text-danger {
   color: var(--ios-red) !important;
@@ -2460,6 +2502,7 @@ input[type="time"]::-webkit-date-and-time-value {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
+  max-width: 140px;
 }
 
 .screen-fit-select {
@@ -2477,6 +2520,8 @@ input[type="time"]::-webkit-date-and-time-value {
   font-family: inherit;
   transition: all 0.15s ease;
   flex-shrink: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
 }
 .screen-fit-select:focus {
   border-color: #0a84ff;
@@ -4243,7 +4288,7 @@ body.modal-open .view-panel {
     overflow-x: hidden !important;
   }
   .ios-settings-list {
-    padding: 0.95rem 1rem 3.5rem 1rem;
+    padding: 0.95rem 0.85rem 5rem 1rem;
   }
   .category-boxed-frame {
     padding: 0.95rem 0.85rem;
@@ -4947,8 +4992,15 @@ body.modal-open .view-panel {
   <!-- Modal 1: Add / Edit Item (iOS Centered Sheet) -->
   <div id="itemModal" class="ios-modal-backdrop" style="display:none;">
     <div class="ios-modal-card">
-      <div class="ios-modal-header">
-        <h2 id="modalTitle">新增物品</h2>
+      <div class="sheet-drag-handle" style="margin-top: 0.65rem; margin-bottom: 0.25rem;"></div>
+      <div class="ios-modal-header" style="padding-top: 0.35rem;">
+        <div style="display: flex; align-items: center; gap: 0.55rem; min-width: 0;">
+          <h2 id="modalTitle">新增物品</h2>
+          <span id="autoSaveBadge" class="auto-save-pill" style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; color: var(--ios-green); background: var(--ios-green-bg); padding: 0.18rem 0.6rem; border-radius: var(--radius-pill); font-weight: 600; flex-shrink: 0;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            即時儲存
+          </span>
+        </div>
         <button id="btnCloseModal" class="btn-modal-close" aria-label="關閉">✕</button>
       </div>
 
@@ -5176,10 +5228,8 @@ body.modal-open .view-panel {
             <input type="text" id="itemNotes" placeholder="例如：下次 5,000 公里換油、自動扣款信用卡...">
           </div>
 
-          <div class="ios-modal-buttons">
-            <button type="button" id="btnCancelModal" class="btn-ios-secondary">取消</button>
-            <button type="submit" id="btnSaveItem" class="btn-ios-primary">儲存</button>
-          </div>
+          <!-- Auto-saved in real-time, no buttons required -->
+          <div style="height: 1.25rem; flex-shrink: 0;"></div>
         </form>
       </div>
     </div>
@@ -5377,6 +5427,9 @@ body.modal-open .view-panel {
             </div>
           </button>
         </div>
+
+        <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
+        <div class="settings-bottom-spacer" style="height: 2.5rem; flex-shrink: 0;"></div>
       </div>
     </div>
   </div>
@@ -8816,7 +8869,6 @@ var CapacitorBridgeBundle = (() => {
   const itemModal = document.getElementById('itemModal');
   const modalTitle = document.getElementById('modalTitle');
   const btnCloseModal = document.getElementById('btnCloseModal');
-  const btnCancelModal = document.getElementById('btnCancelModal');
   const itemForm = document.getElementById('itemForm');
   const itemIdInput = document.getElementById('itemId');
   const itemNameInput = document.getElementById('itemName');
@@ -8886,6 +8938,7 @@ var CapacitorBridgeBundle = (() => {
       previewElapsedBar.style.display = 'flex';
     }
     updateModalPreview();
+    if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
   }
 
   btnModeExpiry.addEventListener('click', () => setModalMode('expiry'));
@@ -8950,6 +9003,7 @@ var CapacitorBridgeBundle = (() => {
     compressImageFile(file, function (dataUrl) {
       currentUploadedImage = dataUrl;
       updateAvatarPreview();
+      if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
       showToast('相片已成功加入！可使用「✨ 智慧去背」去除背景');
     });
     itemImageInput.value = '';
@@ -8959,6 +9013,7 @@ var CapacitorBridgeBundle = (() => {
   btnRemoveImage.addEventListener('click', function () {
     currentUploadedImage = null;
     updateAvatarPreview();
+    if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
     showToast('已移除自訂相片，切換為圖標');
   });
 
@@ -8966,6 +9021,7 @@ var CapacitorBridgeBundle = (() => {
   itemEmojiInput.addEventListener('input', function () {
     isManualEmojiSet = true;
     updateAvatarPreview();
+    if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
   });
 
   // ==========================================
@@ -9312,6 +9368,7 @@ var CapacitorBridgeBundle = (() => {
       const transparentPngUrl = bgRemovalCanvas.toDataURL('image/png');
       currentUploadedImage = transparentPngUrl;
       updateAvatarPreview();
+      if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
       closeBgRemovalStudio();
       showToast('✅ 去背成功！已套用為透明背景縮圖');
     });
@@ -9688,79 +9745,20 @@ var CapacitorBridgeBundle = (() => {
     lockBodyScroll();
   }
 
-  function closeModal() {
-    closeModalWithAnimation(itemModal);
-  }
+  // 即時自動儲存表單改動（無需點擊儲存按鈕）
+  function autoSaveCurrentItem() {
+    let name = itemNameInput.value.trim();
+    let id = itemIdInput.value.trim();
 
-  // 雙向換算：從週期天數同步到期日
-  function syncFromDuration() {
-    if (currentModalMode === 'elapsed') return;
-    const startStr = itemStartDateInput.value || getTodayString();
-    const duration = parseInt(itemDurationInput.value, 10) || 1;
-    const endStr = getOffsetDateString(startStr, duration);
-    if (itemEndDateInput) itemEndDateInput.value = endStr;
-    updateModalPreview();
-  }
-
-  // 雙向換算：從自訂到期日同步週期天數
-  function syncFromEndDate() {
-    if (currentModalMode === 'elapsed') return;
-    const startStr = itemStartDateInput.value || getTodayString();
-    const endStr = itemEndDateInput ? itemEndDateInput.value : '';
-    if (!endStr) return;
-    const days = diffDays(startStr, endStr);
-    if (days >= 0) {
-      itemDurationInput.value = days === 0 ? 1 : days;
-    } else {
-      itemDurationInput.value = 1;
-    }
-    updateModalPreview();
-  }
-
-  function updateModalPreview() {
-    if (currentModalMode === 'elapsed') return;
-
-    const startStr = itemStartDateInput.value || getTodayString();
-    let endStr = itemEndDateInput ? itemEndDateInput.value : '';
-    const duration = parseInt(itemDurationInput.value, 10) || 1;
-
-    if (!endStr) {
-      endStr = getOffsetDateString(startStr, duration);
-      if (itemEndDateInput) itemEndDateInput.value = endStr;
+    // 若在新增模式且尚未輸入任何名稱，不生成空白廢棄物品
+    if (!id && !name) {
+      return;
     }
 
-    const today = getTodayString();
-    const remain = diffDays(today, endStr);
-
-    previewEndDateText.textContent = endStr;
-    if (remain < 0) {
-      previewDaysText.textContent = `已過期 ${Math.abs(remain)} 天`;
-      previewDaysText.style.color = 'var(--ios-red)';
-    } else {
-      previewDaysText.textContent = `剩餘 ${remain} 天 • 週期 ${duration} 天`;
-      previewDaysText.style.color = 'var(--ios-green)';
+    if (!name) {
+      name = '未命名物品';
     }
-  }
 
-  itemStartDateInput.addEventListener('change', function () {
-    if (itemEndDateInput && itemEndDateInput.value) {
-      syncFromEndDate();
-    } else {
-      syncFromDuration();
-    }
-  });
-  if (itemEndDateInput) {
-    itemEndDateInput.addEventListener('change', syncFromEndDate);
-  }
-  itemDurationInput.addEventListener('input', syncFromDuration);
-
-  // 表單儲存
-  itemForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const name = itemNameInput.value.trim();
-    if (!name) return;
-
-    const id = itemIdInput.value.trim();
     const category = itemCategorySelect ? itemCategorySelect.value : 'warranty';
     let subCategory = itemSubCategoryInput.value.trim();
     if (!subCategory && itemSubCategorySelect && itemSubCategorySelect.value && itemSubCategorySelect.value !== '__custom__') {
@@ -9832,10 +9830,12 @@ var CapacitorBridgeBundle = (() => {
         item.notes = notes;
         scheduleItemNotification(item);
       }
-      showToast('已更新物品資訊');
     } else {
+      const newId = 'item_' + Date.now();
+      itemIdInput.value = newId;
+      modalTitle.textContent = '編輯物品資訊';
       const newItem = {
-        id: 'item_' + Date.now(),
+        id: newId,
         name,
         category,
         subCategory,
@@ -9857,19 +9857,195 @@ var CapacitorBridgeBundle = (() => {
       };
       items.unshift(newItem);
       scheduleItemNotification(newItem);
-      showToast('已新增物品！');
     }
 
     saveItems();
-    closeModal();
     renderApp();
+  }
+
+  function closeModal() {
+    const id = itemIdInput.value.trim();
+    const name = itemNameInput.value.trim();
+    if (id && !name) {
+      const item = items.find(it => it.id === id);
+      if (item) {
+        if (!item.location && !item.brand && !item.notes) {
+          items = items.filter(it => it.id !== id);
+          if (typeof cancelItemNotification === 'function') cancelItemNotification(id);
+          saveItems();
+          renderApp();
+        } else {
+          item.name = '未命名物品';
+          saveItems();
+          renderApp();
+        }
+      }
+    } else {
+      autoSaveCurrentItem();
+    }
+    closeModalWithAnimation(itemModal);
+  }
+
+  // 雙向換算：從週期天數同步到期日
+  function syncFromDuration() {
+    if (currentModalMode === 'elapsed') return;
+    const startStr = itemStartDateInput.value || getTodayString();
+    const duration = parseInt(itemDurationInput.value, 10) || 1;
+    const endStr = getOffsetDateString(startStr, duration);
+    if (itemEndDateInput) itemEndDateInput.value = endStr;
+    updateModalPreview();
+    autoSaveCurrentItem();
+  }
+
+  // 雙向換算：從自訂到期日同步週期天數
+  function syncFromEndDate() {
+    if (currentModalMode === 'elapsed') return;
+    const startStr = itemStartDateInput.value || getTodayString();
+    const endStr = itemEndDateInput ? itemEndDateInput.value : '';
+    if (!endStr) return;
+    const days = diffDays(startStr, endStr);
+    if (days >= 0) {
+      itemDurationInput.value = days === 0 ? 1 : days;
+    } else {
+      itemDurationInput.value = 1;
+    }
+    updateModalPreview();
+    autoSaveCurrentItem();
+  }
+
+  function updateModalPreview() {
+    if (currentModalMode === 'elapsed') return;
+
+    const startStr = itemStartDateInput.value || getTodayString();
+    let endStr = itemEndDateInput ? itemEndDateInput.value : '';
+    const duration = parseInt(itemDurationInput.value, 10) || 1;
+
+    if (!endStr) {
+      endStr = getOffsetDateString(startStr, duration);
+      if (itemEndDateInput) itemEndDateInput.value = endStr;
+    }
+
+    const today = getTodayString();
+    const remain = diffDays(today, endStr);
+
+    previewEndDateText.textContent = endStr;
+    if (remain < 0) {
+      previewDaysText.textContent = `已過期 ${Math.abs(remain)} 天`;
+      previewDaysText.style.color = 'var(--ios-red)';
+    } else {
+      previewDaysText.textContent = `剩餘 ${remain} 天 • 週期 ${duration} 天`;
+      previewDaysText.style.color = 'var(--ios-green)';
+    }
+  }
+
+  itemStartDateInput.addEventListener('change', function () {
+    if (itemEndDateInput && itemEndDateInput.value) {
+      syncFromEndDate();
+    } else {
+      syncFromDuration();
+    }
+    autoSaveCurrentItem();
+  });
+  if (itemEndDateInput) {
+    itemEndDateInput.addEventListener('change', function () {
+      syncFromEndDate();
+      autoSaveCurrentItem();
+    });
+  }
+  itemDurationInput.addEventListener('input', syncFromDuration);
+
+  // 表單各欄位即時自動儲存 (無需儲存按鈕，即刻記憶改動)
+  itemForm.addEventListener('input', autoSaveCurrentItem);
+  itemForm.addEventListener('change', autoSaveCurrentItem);
+  itemForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    autoSaveCurrentItem();
+    closeModal();
   });
 
   btnCloseModal.addEventListener('click', closeModal);
-  btnCancelModal.addEventListener('click', closeModal);
   itemModal.addEventListener('click', function (e) {
     if (e.target === itemModal) closeModal();
   });
+
+  // Item Modal 下滑關閉支援：全卡片支援跟手拖曳向下滑動極速關閉
+  const itemModalCard = itemModal ? itemModal.querySelector('.ios-modal-card') : null;
+  const itemModalScroll = itemModal ? itemModal.querySelector('.ios-modal-scroll') : null;
+
+  if (itemModalCard) {
+    let itemTouchStartY = 0;
+    let itemTouchStartX = 0;
+    let itemTouchStartTime = 0;
+    let isDraggingItemModal = false;
+    let currentItemDy = 0;
+
+    itemModalCard.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1 && !itemModal.classList.contains('modal-closing')) {
+        itemTouchStartY = e.touches[0].clientY;
+        itemTouchStartX = e.touches[0].clientX;
+        itemTouchStartTime = Date.now();
+        isDraggingItemModal = false;
+        currentItemDy = 0;
+      }
+    }, { passive: true });
+
+    itemModalCard.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 1 && !itemModal.classList.contains('modal-closing')) {
+        const touchY = e.touches[0].clientY;
+        const dy = touchY - itemTouchStartY;
+        const dx = Math.abs(e.touches[0].clientX - itemTouchStartX);
+        const isNearTop = !itemModalScroll || itemModalScroll.scrollTop <= 2;
+        const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
+
+        // 當處於頂部手把/標頭，或內容滾動至頂端向下滑動時，觸發拖曳跟手下滑關閉
+        if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+          isDraggingItemModal = true;
+          currentItemDy = dy;
+          if (e.cancelable) e.preventDefault();
+          itemModalCard.style.transform = `translateY(${Math.max(0, dy)}px)`;
+          itemModalCard.style.transition = 'none';
+        }
+      }
+    }, { passive: false });
+
+    function handleItemTouchEnd() {
+      if (isDraggingItemModal && !itemModal.classList.contains('modal-closing')) {
+        isDraggingItemModal = false;
+        const dt = Math.max(1, Date.now() - itemTouchStartTime);
+        const velocityY = currentItemDy / dt;
+
+        if (currentItemDy > 35 || (velocityY > 0.22 && currentItemDy > 15)) {
+          itemModalCard.style.transition = 'transform 0.18s cubic-bezier(0.32, 0.72, 0, 1)';
+          itemModalCard.style.transform = 'translateY(100%)';
+          setTimeout(() => {
+            closeModal();
+            itemModalCard.style.transform = '';
+            itemModalCard.style.transition = '';
+          }, 180);
+        } else {
+          itemModalCard.style.transition = 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)';
+          itemModalCard.style.transform = 'translateY(0)';
+          setTimeout(() => {
+            itemModalCard.style.transform = '';
+            itemModalCard.style.transition = '';
+          }, 200);
+        }
+      }
+    }
+
+    itemModalCard.addEventListener('touchend', handleItemTouchEnd, { passive: true });
+    itemModalCard.addEventListener('touchcancel', handleItemTouchEnd, { passive: true });
+
+    // 半透明遮罩層向下滑動快速關閉
+    itemModal.addEventListener('touchmove', function (e) {
+      if (e.target === itemModal && e.touches.length === 1 && !itemModal.classList.contains('modal-closing')) {
+        const dy = e.touches[0].clientY - itemTouchStartY;
+        if (dy > 25) {
+          closeModal();
+        }
+      }
+    }, { passive: true });
+  }
 
   // ==========================================
   // 7. 設定 Modal (Settings)
