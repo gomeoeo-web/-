@@ -293,47 +293,28 @@ function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
 }
 
 // ==========================================
-// 2. UI 狀態指示器 (輸入框 Placeholder 與 Badge)
+// 2. UI 狀態指示器 (輸入框 Placeholder)
 // ==========================================
 function updateNerStatus(status) {
   modelStatus = status;
   if (typeof document === 'undefined') return;
 
   const input = document.getElementById('smartQuickAddInput');
-  const badge = document.getElementById('nerModelBadge');
 
   if (status === 'loading') {
     if (input) {
-      input.placeholder = '初次載入微型實體模型中 (支援正則備援，可直接輸入)...';
-      input.title = 'AI 實體識別模型下載載入中，您可直接按 Enter 送出，系統會自動使用正則解析。';
-    }
-    if (badge) {
-      badge.style.display = 'inline-flex';
-      badge.className = 'ner-model-badge ner-loading';
-      badge.innerHTML = '<span class="ner-dot pulse"></span> NER 模型載入中';
-      badge.title = '正在自 HuggingFace CDN 下載微型中文實體模型 (Xenova/bert-tiny-chinese-ner)';
+      input.placeholder = '智慧輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
+      input.title = '智慧輸入：支援自然語言與日期分析';
     }
   } else if (status === 'ready') {
     if (input) {
-      input.placeholder = '✨ 智慧實體輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
-      input.title = '已就緒：本地微型實體模型 (RoBERTa-Tiny / BERT-Tiny) 支援自然語言抽取';
-    }
-    if (badge) {
-      badge.style.display = 'inline-flex';
-      badge.className = 'ner-model-badge ner-ready';
-      badge.innerHTML = '<span class="ner-dot ready"></span> AI 模型就緒';
-      badge.title = 'RoBERTa/BERT-Tiny 本地中文實體辨識模型已就緒';
+      input.placeholder = '✨ 智慧輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
+      input.title = '智慧輸入：本地微型實體模型支援';
     }
   } else if (status === 'fallback') {
     if (input) {
       input.placeholder = '智慧輸入（如：交通會議 下週三下午2點提醒、鮮奶5天後到期）';
-      input.title = '離線或備援模式：使用高精準本機正則解析器';
-    }
-    if (badge) {
-      badge.style.display = 'inline-flex';
-      badge.className = 'ner-model-badge ner-fallback';
-      badge.innerHTML = '<span class="ner-dot fallback"></span> 正則備援模式';
-      badge.title = '已啟用純本地正則表達式解析備援';
+      input.title = '智慧輸入';
     }
   }
 }
@@ -1109,7 +1090,7 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
 }
 
 /**
- * 非同步智慧解析封裝：自動在 NER 模型與正則備援之間流暢降級
+ * 非同步智慧解析封裝：自動在 NER 模型與本機解析之間流暢轉換
  */
 async function parseNaturalInputAsync(rawInput, baseDate = new Date(), existingItems = [], lastCreated = null) {
   if (nerPipeline) {

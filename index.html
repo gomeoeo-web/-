@@ -288,63 +288,9 @@ body {
    Header Smart Quick Add / Update Input (頂部自然語言速記與修改輸入框)
    ========================================================================== */
 
-.ner-model-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
-  padding: 1px 7px;
-  border-radius: var(--radius-pill);
-  position: absolute;
-  top: -12px;
-  left: 16px;
-  z-index: 10;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  pointer-events: none;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: all var(--transition-ios);
-}
-.ner-model-badge.ner-loading {
-  background: rgba(255, 149, 0, 0.18);
-  color: #ff9f0a;
-  border: 1px solid rgba(255, 149, 0, 0.35);
-}
-.ner-model-badge.ner-ready {
-  background: rgba(52, 199, 89, 0.18);
-  color: #30d158;
-  border: 1px solid rgba(52, 199, 89, 0.35);
-}
-.ner-model-badge.ner-fallback {
-  background: rgba(142, 142, 147, 0.18);
-  color: #8e8e93;
-  border: 1px solid rgba(142, 142, 147, 0.35);
-}
-.ner-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-}
-.ner-dot.pulse {
-  background: #ff9f0a;
-  animation: nerPulse 1.2s infinite ease-in-out;
-}
-.ner-dot.ready {
-  background: #30d158;
-}
-.ner-dot.fallback {
-  background: #8e8e93;
-}
-@keyframes nerPulse {
-  0% { transform: scale(0.8); opacity: 0.4; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.8); opacity: 0.4; }
-}
-
 .header-smart-input-form {
   flex: 1;
+  width: 100%;
   margin: 0 12px 0 0;
   min-width: 0;
   display: flex;
@@ -359,7 +305,7 @@ body {
   background: var(--ios-surface-elevated);
   border: 1.5px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-pill);
-  padding: 0 42px 0 20px;
+  padding: 0 46px 0 20px;
   box-sizing: border-box;
   color: var(--ios-text-primary);
   font-family: inherit;
@@ -368,7 +314,11 @@ body {
   outline: none;
   line-height: 50px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: border-color var(--transition-ios), box-shadow var(--transition-ios), background-color var(--transition-ios);
+  transition: border-color var(--transition-ios), box-shadow var(--transition-ios), background-color var(--transition-ios), padding var(--transition-ios);
+}
+
+.header-smart-input.has-clear {
+  padding-right: 78px;
 }
 
 .header-smart-input:focus {
@@ -383,11 +333,44 @@ body {
   font-weight: 400;
 }
 
-.header-smart-clear {
+/* Smart Input Embedded Camera Button (智慧輸入鏡頭按鈕) */
+.header-smart-camera {
   position: absolute;
   right: 12px;
-  width: 24px;
-  height: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ios-text-secondary);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.18s ease, color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-smart-camera:hover {
+  color: var(--ios-text-primary);
+}
+
+.header-smart-camera:active {
+  transform: translateY(-50%) scale(0.88);
+  opacity: 0.6;
+}
+
+.header-smart-clear {
+  position: absolute;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
   color: var(--ios-text-primary);
@@ -395,10 +378,11 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  z-index: 2;
   transition: all var(--transition-ios);
 }
 
@@ -429,10 +413,301 @@ body {
   color: #3a3a3c;
 }
 
+[data-theme="light"] .header-smart-camera {
+  color: #8e8e93;
+}
+
+[data-theme="light"] .header-smart-camera:hover {
+  color: #1c1c1e;
+}
+
 [data-theme="amoled"] .header-smart-input {
   background: #141417;
   border-color: rgba(255, 255, 255, 0.16);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* ==========================================================================
+   Floating Action Button (FAB 右下角懸浮新增按鈕)
+   ========================================================================== */
+.ios-fab-btn {
+  position: fixed;
+  bottom: max(24px, calc(16px + env(safe-area-inset-bottom, 0px)));
+  right: max(20px, env(safe-area-inset-right, 0px));
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-fab-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .ios-fab-btn {
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   Camera Scan & Offline Recognition Modal (相機取景與本地離線辨識視窗)
+   ========================================================================== */
+.camera-scan-card {
+  max-width: 480px;
+  width: 95%;
+  height: 85vh;
+  max-height: 720px;
+  background: #000000;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.camera-modal-header {
+  padding: 16px 20px 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.camera-header-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-title-text {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.camera-subtitle-text {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2px;
+}
+
+.camera-btn-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.camera-btn-close:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.camera-viewport-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-viewport-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-viewfinder-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.camera-viewfinder-frame {
+  width: 75%;
+  aspect-ratio: 4 / 3;
+  max-width: 320px;
+  position: relative;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  border-radius: 18px;
+}
+
+.viewfinder-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: #34c759;
+  border-style: solid;
+}
+
+.viewfinder-corner.top-left {
+  top: 0;
+  left: 0;
+  border-width: 3.5px 0 0 3.5px;
+  border-top-left-radius: 12px;
+}
+
+.viewfinder-corner.top-right {
+  top: 0;
+  right: 0;
+  border-width: 3.5px 3.5px 0 0;
+  border-top-right-radius: 12px;
+}
+
+.viewfinder-corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 3.5px 3.5px;
+  border-bottom-left-radius: 12px;
+}
+
+.viewfinder-corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-width: 0 3.5px 3.5px 0;
+  border-bottom-right-radius: 12px;
+}
+
+.camera-scan-laser {
+  position: absolute;
+  top: 0;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #34c759, #30d158, transparent);
+  box-shadow: 0 0 10px #34c759;
+  border-radius: 2px;
+  animation: scanLaserMove 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@keyframes scanLaserMove {
+  0% { top: 8%; opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { top: 92%; opacity: 0.3; }
+}
+
+.camera-viewfinder-hint {
+  margin-top: 18px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.camera-flash-overlay {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out;
+}
+
+.camera-flash-overlay.flash {
+  opacity: 0.85;
+}
+
+.camera-bottom-controls {
+  padding: 20px 32px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 10;
+}
+
+.camera-control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  min-width: 60px;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camera-control-btn:active {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
+.camera-control-btn .control-label {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+}
+
+.camera-shutter-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  background: transparent;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camera-shutter-btn:active {
+  transform: scale(0.92);
+}
+
+.camera-shutter-btn .shutter-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.camera-shutter-btn:active .shutter-inner {
+  transform: scale(0.94);
+  background: #dddddd;
 }
 
 .sync-dot.offline {
@@ -5601,7 +5876,6 @@ body.modal-open .view-panel {
     <header class="ios-header">
       <!-- Header Natural Language Input Form (純文字簡潔外觀，無前綴圖示，Enter送出) -->
       <form class="header-smart-input-form" id="smartQuickAddForm" onsubmit="return false;">
-        <div id="nerModelBadge" class="ner-model-badge" title="AI 模型狀態" style="display:none;"></div>
         <input
           type="text"
           id="smartQuickAddInput"
@@ -5612,22 +5886,20 @@ body.modal-open .view-panel {
           title="智慧輸入"
         />
         <button type="button" id="smartQuickAddClear" class="header-smart-clear" style="display:none;" aria-label="清除智慧輸入內容">✕</button>
+        <button type="button" id="btnCameraScan" class="header-smart-camera" aria-label="拍照/相簿辨識" title="拍照或選取照片離線辨識">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+        </button>
       </form>
 
       <div class="header-actions">
-        <!-- Settings Gear Button -->
+        <!-- Settings Gear Button 固定於頂部最右上方 -->
         <button id="btnOpenSettings" class="btn-circle-dark" title="設定與備份" aria-label="設定">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-        </button>
-
-        <!-- White Add Button -->
-        <button id="btnOpenAddModal" class="btn-circle-white" title="新增物品" aria-label="新增">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </button>
       </div>
@@ -5773,6 +6045,14 @@ body.modal-open .view-panel {
         </div>
       </div>
     </main>
+
+    <!-- Floating Action Button (FAB 右下角懸浮新增按鈕) -->
+    <button type="button" id="fabAddBtn" class="ios-fab-btn" title="手動新增物品" aria-label="新增物品">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
 
     <!-- Bottom Floating Island Dock (Navigation Bar) -->
     <nav class="floating-island-dock" role="navigation" aria-label="底部導航">
@@ -6249,7 +6529,77 @@ body.modal-open .view-panel {
     </div>
   </div>
 
-    <!-- Modal: NLP Confirmation Modal (自然語言解析確認彈窗) -->
+  <!-- Modal: Camera & Photo Local Scanner (相機取景與本地離線辨識彈窗) -->
+  <div id="cameraScanModal" class="ios-modal-backdrop" style="display: none;">
+    <div class="ios-modal-card camera-scan-card">
+      <!-- Camera Top Navigation Bar -->
+      <div class="camera-modal-header">
+        <div class="camera-header-title">
+          <span class="camera-title-text">📷 掃描辨識</span>
+          <span class="camera-subtitle-text">本機離線條碼與效期辨識</span>
+        </div>
+        <button type="button" id="btnCloseCameraModal" class="camera-btn-close" aria-label="關閉相機">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Camera Viewport & Viewfinder -->
+      <div class="camera-viewport-wrap">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <div class="camera-viewfinder-overlay">
+          <div class="camera-viewfinder-frame">
+            <div class="viewfinder-corner top-left"></div>
+            <div class="viewfinder-corner top-right"></div>
+            <div class="viewfinder-corner bottom-left"></div>
+            <div class="viewfinder-corner bottom-right"></div>
+            <div class="camera-scan-laser"></div>
+          </div>
+          <p class="camera-viewfinder-hint">對準商品包裝、條碼或有效期限</p>
+        </div>
+        <!-- Flash animation overlay on shutter -->
+        <div id="cameraFlashOverlay" class="camera-flash-overlay"></div>
+      </div>
+
+      <!-- Camera Bottom Controls Bar -->
+      <div class="camera-bottom-controls">
+        <!-- Album Picker Button -->
+        <button type="button" id="btnCameraAlbum" class="camera-control-btn" title="從相簿選擇照片" aria-label="相簿">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span class="control-label">相簿</span>
+        </button>
+
+        <!-- Shutter Button -->
+        <button type="button" id="btnCameraShutter" class="camera-shutter-btn" title="拍照辨識" aria-label="拍照">
+          <div class="shutter-inner"></div>
+        </button>
+
+        <!-- Flip Camera Button -->
+        <button type="button" id="btnCameraFlip" class="camera-control-btn" title="切換鏡頭" aria-label="切換鏡頭">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="4 8 8 4 12 8"></polyline>
+            <line x1="8" y1="4" x2="8" y2="16"></line>
+            <polyline points="20 16 16 20 12 16"></polyline>
+            <line x1="16" y1="20" x2="16" y2="8"></line>
+          </svg>
+          <span class="control-label">翻轉</span>
+        </button>
+      </div>
+
+      <!-- Hidden canvas and file input -->
+      <canvas id="cameraCanvas" style="display: none;"></canvas>
+      <input type="file" id="cameraFileInput" accept="image/*" style="display: none;">
+    </div>
+  </div>
+
+  <!-- Modal: NLP Confirmation Modal (自然語言解析確認彈窗) -->
   <div id="nlpConfirmModal" class="ios-modal-backdrop" style="display: none;">
     <div class="ios-modal-card ios-modal-sm nlp-confirm-card">
       <div class="sheet-drag-handle" style="margin-top: 0.65rem; margin-bottom: 0.25rem;"></div>
@@ -6271,6 +6621,14 @@ body.modal-open .view-panel {
           <div class="nlp-action-mode-selector" id="nlpActionModeSelector">
             <button type="button" id="btnNlpModeUpdate" class="nlp-mode-pill active">修改既有物品</button>
             <button type="button" id="btnNlpModeCreate" class="nlp-mode-pill">新增為新物品</button>
+          </div>
+        </div>
+
+        <!-- Photo Thumbnail Preview (拍照或選取相片縮圖) -->
+        <div id="nlpConfirmImageWrap" class="nlp-confirm-image-wrap" style="display: none; margin-bottom: 0.85rem; text-align: center;">
+          <div style="position: relative; display: inline-block;">
+            <img id="nlpConfirmImagePreview" src="" alt="物品相片縮圖" style="width: 84px; height: 84px; object-fit: cover; border-radius: 16px; border: 1.5px solid var(--ios-border-strong); box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+            <button type="button" id="btnRemoveNlpImage" title="移除相片" aria-label="移除相片" style="position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: #ff453a; color: #ffffff; border: 2px solid var(--ios-surface, #222); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1;">✕</button>
           </div>
         </div>
 
@@ -13292,7 +13650,10 @@ var CapacitorBridgeBundle = (() => {
     inventorySearch.focus();
   });
 
-  document.getElementById('btnOpenAddModal').addEventListener('click', openAddModal);
+  const btnOpenAdd = document.getElementById('btnOpenAddModal');
+  if (btnOpenAdd) btnOpenAdd.addEventListener('click', openAddModal);
+  const fabAddBtn = document.getElementById('fabAddBtn');
+  if (fabAddBtn) fabAddBtn.addEventListener('click', openAddModal);
 
   const toastContainer = document.getElementById('toastContainer');
   function showToast(message) {
@@ -14127,6 +14488,27 @@ function extractCleanName(rawText) {
       }
     }
 
+    // 縮圖照片預覽設定
+    const imgWrap = document.getElementById('nlpConfirmImageWrap');
+    const imgPreview = document.getElementById('nlpConfirmImagePreview');
+    const btnRemoveImg = document.getElementById('btnRemoveNlpImage');
+    if (imgWrap && imgPreview) {
+      if (parsed.image) {
+        imgPreview.src = parsed.image;
+        imgWrap.style.display = 'block';
+      } else {
+        imgWrap.style.display = 'none';
+        imgPreview.src = '';
+      }
+      if (btnRemoveImg) {
+        btnRemoveImg.onclick = function () {
+          if (currentNlpParsed) currentNlpParsed.image = null;
+          imgWrap.style.display = 'none';
+          imgPreview.src = '';
+        };
+      }
+    }
+
     modal.style.display = 'flex';
     lockBodyScroll();
     if (nameInput) nameInput.focus();
@@ -14256,6 +14638,9 @@ function extractCleanName(rawText) {
       target.category = confirmedCat;
       target.subCategory = subCat;
       target.emoji = emoji;
+      if (currentNlpParsed.image) {
+        target.image = currentNlpParsed.image;
+      }
 
       if (isElapsedMode) {
         target.hasEndDate = false;
@@ -14281,7 +14666,10 @@ function extractCleanName(rawText) {
       }
       renderApp();
 
-      if (quickAddInput) quickAddInput.value = '';
+      if (quickAddInput) {
+        quickAddInput.value = '';
+        quickAddInput.classList.remove('has-clear');
+      }
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
       showToast(isElapsedMode ? `已更新「${target.name}」（謹記使用天數）` : `已更新「${target.name}」`);
@@ -14291,6 +14679,7 @@ function extractCleanName(rawText) {
         category: confirmedCat,
         subCategory: subCat,
         emoji: emoji,
+        image: (currentNlpParsed && currentNlpParsed.image) || null,
         hasEndDate: !isElapsedMode,
         endDate: isElapsedMode ? null : confirmedDate,
         reminderType: confirmedReminderType,
@@ -14300,7 +14689,10 @@ function extractCleanName(rawText) {
       });
 
       lastCreatedItem = newItem;
-      if (quickAddInput) quickAddInput.value = '';
+      if (quickAddInput) {
+        quickAddInput.value = '';
+        quickAddInput.classList.remove('has-clear');
+      }
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
       showToast(isElapsedMode ? `✨ 已加入「${newItem.name}」（謹記使用天數）` : `✨ 已加入「${newItem.name}」（${newItem.endDate} 到期）`);
@@ -14482,8 +14874,14 @@ function extractCleanName(rawText) {
     if (!input) return;
 
     input.addEventListener('input', function () {
+      const hasText = this.value.trim().length > 0;
       if (clearBtn) {
-        clearBtn.style.display = this.value.trim().length > 0 ? 'flex' : 'none';
+        clearBtn.style.display = hasText ? 'flex' : 'none';
+      }
+      if (hasText) {
+        input.classList.add('has-clear');
+      } else {
+        input.classList.remove('has-clear');
       }
     });
 
@@ -14491,6 +14889,7 @@ function extractCleanName(rawText) {
       clearBtn.addEventListener('click', function () {
         input.value = '';
         clearBtn.style.display = 'none';
+        input.classList.remove('has-clear');
         input.focus();
       });
     }
@@ -14503,17 +14902,17 @@ function extractCleanName(rawText) {
         return;
       }
 
-      // 1. 優先使用 RoBERTa-Tiny / BERT-Tiny 本地命名實體抽取 (parseWithLocalNER)
+      // 1. 優先使用本地命名實體抽取 (parseWithLocalNER)
       let parsed = null;
       if (typeof window.parseWithLocalNER === 'function') {
         try {
           parsed = await window.parseWithLocalNER(rawText, new Date(), items, lastCreatedItem);
         } catch (err) {
-          console.warn('[NLP] parseWithLocalNER 執行異常，降級使用正則解析器：', err);
+          console.warn('[NLP] parseWithLocalNER 執行異常，使用本地解析器：', err);
         }
       }
 
-      // 2. 錯誤降級處理：若模型尚未下載完成、離線或解析失敗，自動使用本地正則備援
+      // 2. 本機解析處理
       if (!parsed || !parsed.success) {
         const fallbackFn = window.parseNaturalInput || parseNaturalInput;
         parsed = fallbackFn(rawText, new Date(), items, lastCreatedItem);
@@ -14537,6 +14936,248 @@ function extractCleanName(rawText) {
         handleQuickAddSubmit(e);
       }
     });
+  }
+
+  // ==========================================
+  // Camera & Photo Local Offline Scanner (相機取景與本地離線辨識)
+  // ==========================================
+  let cameraStream = null;
+  let currentCameraFacing = 'environment';
+
+  function initCameraScanner() {
+    const btnCameraScan = document.getElementById('btnCameraScan');
+    const btnClose = document.getElementById('btnCloseCameraModal');
+    const btnShutter = document.getElementById('btnCameraShutter');
+    const btnAlbum = document.getElementById('btnCameraAlbum');
+    const btnFlip = document.getElementById('btnCameraFlip');
+    const fileInput = document.getElementById('cameraFileInput');
+
+    if (btnCameraScan) {
+      btnCameraScan.addEventListener('click', openCameraScanModal);
+    }
+    if (btnClose) {
+      btnClose.addEventListener('click', closeCameraScanModal);
+    }
+    if (btnFlip) {
+      btnFlip.addEventListener('click', flipCamera);
+    }
+    if (btnAlbum && fileInput) {
+      btnAlbum.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', handleAlbumFileSelect);
+    }
+    if (btnShutter) {
+      btnShutter.addEventListener('click', handleCameraShutter);
+    }
+  }
+
+  async function openCameraScanModal() {
+    const modal = document.getElementById('cameraScanModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    lockBodyScroll();
+    await startCameraStream(currentCameraFacing);
+  }
+
+  function closeCameraScanModal() {
+    stopCameraStream();
+    const modal = document.getElementById('cameraScanModal');
+    if (modal) modal.style.display = 'none';
+    unlockBodyScroll();
+  }
+
+  async function startCameraStream(facingMode = 'environment') {
+    stopCameraStream();
+    currentCameraFacing = facingMode;
+    const video = document.getElementById('cameraVideo');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showToast('此環境不支援即時鏡頭取景，可由相簿選取照片辨識');
+      return;
+    }
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+      if (video) {
+        video.srcObject = cameraStream;
+        await video.play().catch(e => console.warn('Camera video play caught:', e));
+      }
+    } catch (err) {
+      console.warn('getUserMedia error:', err);
+      showToast('無法存取相機，請確認已授權相機權限或使用相簿上傳');
+    }
+  }
+
+  function stopCameraStream() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => {
+        try { track.stop(); } catch(e){}
+      });
+      cameraStream = null;
+    }
+    const video = document.getElementById('cameraVideo');
+    if (video) {
+      video.srcObject = null;
+    }
+  }
+
+  function flipCamera() {
+    const nextFacing = (currentCameraFacing === 'environment') ? 'user' : 'environment';
+    startCameraStream(nextFacing);
+  }
+
+  function handleCameraShutter() {
+    const video = document.getElementById('cameraVideo');
+    const flashOverlay = document.getElementById('cameraFlashOverlay');
+    if (flashOverlay) {
+      flashOverlay.classList.add('flash');
+      setTimeout(() => flashOverlay.classList.remove('flash'), 160);
+    }
+    if (!video || !video.videoWidth) {
+      const fileInput = document.getElementById('cameraFileInput');
+      if (fileInput) fileInput.click();
+      return;
+    }
+    processCapturedImage(video);
+  }
+
+  function handleAlbumFileSelect(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const img = new Image();
+      img.onload = function() {
+        processCapturedImage(img);
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
+  async function processCapturedImage(source) {
+    const canvas = document.getElementById('cameraCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let sw = source.videoWidth || source.naturalWidth || source.width || 800;
+    let sh = source.videoHeight || source.naturalHeight || source.height || 600;
+
+    const maxDim = 1080;
+    let dw = sw;
+    let dh = sh;
+    if (dw > maxDim || dh > maxDim) {
+      if (dw > dh) {
+        dh = Math.round((dh * maxDim) / dw);
+        dw = maxDim;
+      } else {
+        dw = Math.round((dw * maxDim) / dh);
+        dh = maxDim;
+      }
+    }
+    canvas.width = dw;
+    canvas.height = dh;
+    ctx.drawImage(source, 0, 0, dw, dh);
+
+    const photoDataUrl = canvas.toDataURL('image/jpeg', 0.84);
+
+    let detectedBarcode = null;
+    let detectedText = '';
+    let detectedDate = null;
+
+    // 1. 本地原生 BarcodeDetector (Chrome / Android WebView)
+    if (typeof window.BarcodeDetector === 'function') {
+      try {
+        const barcodeDetector = new window.BarcodeDetector({
+          formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'data_matrix']
+        });
+        const barcodes = await barcodeDetector.detect(canvas);
+        if (barcodes && barcodes.length > 0) {
+          detectedBarcode = barcodes[0].rawValue;
+        }
+      } catch (bcErr) {
+        console.warn('BarcodeDetector error:', bcErr);
+      }
+    }
+
+    // 2. 本地原生 TextDetector (若 Android WebView 支援)
+    if (typeof window.TextDetector === 'function') {
+      try {
+        const textDetector = new window.TextDetector();
+        const detectedTexts = await textDetector.detect(canvas);
+        if (detectedTexts && detectedTexts.length > 0) {
+          detectedText = detectedTexts.map(t => t.rawValue).join(' ');
+        }
+      } catch (tdErr) {
+        console.warn('TextDetector error:', tdErr);
+      }
+    }
+
+    // 3. 特徵分析：抽取有效期限格式 (如 2026/09/20, 2026-09-20, EXP: 2026.09.20, 有效日期等)
+    const combined = (detectedText + ' ' + (detectedBarcode || '')).trim();
+    const dateRegex = /(?:EXP|有效|到期|保存)?\s*[:.]?\s*(202\d[-/.年]\d{1,2}[-/.月]\d{1,2}日?)/i;
+    const dateMatch = combined.match(dateRegex);
+    if (dateMatch) {
+      detectedDate = dateMatch[1].replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '-').replace(/\//g, '-');
+    }
+
+    let smartInputString = '';
+    if (detectedBarcode) {
+      const matchItem = items.find(i => (i.notes && i.notes.includes(detectedBarcode)) || i.name.includes(detectedBarcode));
+      if (matchItem) {
+        smartInputString = `${matchItem.name} ${detectedDate ? detectedDate + '到期' : '7天後到期'}`;
+      } else {
+        smartInputString = `物品 ${detectedBarcode} ${detectedDate ? detectedDate + '到期' : '7天後到期'}`;
+      }
+    } else if (detectedDate) {
+      smartInputString = `拍攝物品 ${detectedDate}到期`;
+    } else {
+      smartInputString = `拍攝物品 7天後到期`;
+    }
+
+    const input = document.getElementById('smartQuickAddInput');
+    const clearBtn = document.getElementById('smartQuickAddClear');
+    if (input) {
+      input.value = smartInputString;
+      input.classList.add('has-clear');
+      if (clearBtn) clearBtn.style.display = 'flex';
+    }
+
+    closeCameraScanModal();
+
+    let parsed = null;
+    if (typeof window.parseWithLocalNER === 'function') {
+      try {
+        parsed = await window.parseWithLocalNER(smartInputString, new Date(), items, lastCreatedItem);
+      } catch(e) {}
+    }
+    if (!parsed || !parsed.success) {
+      const fallbackFn = window.parseNaturalInput || parseNaturalInput;
+      parsed = fallbackFn(smartInputString, new Date(), items, lastCreatedItem);
+    }
+    if (!parsed) {
+      parsed = {
+        success: true,
+        name: detectedBarcode ? `物品 ${detectedBarcode}` : '拍攝物品',
+        category: 'other',
+        subCategory: '',
+        expiryDate: detectedDate || getOffsetDateString(getTodayString(), 7),
+        hasEndDate: true,
+        remindDaysBefore: 3
+      };
+    }
+
+    // 自動附加相片作為物品縮圖
+    parsed.image = photoDataUrl;
+    if (detectedBarcode && !parsed.notes) {
+      parsed.notes = `條碼: ${detectedBarcode}`;
+    }
+
+    openNlpConfirmModal(parsed);
   }
 
   window.addItem = addItem;
@@ -14591,6 +15232,7 @@ function extractCleanName(rawText) {
   renderApp();
   initSmartQuickAdd();
   initNlpConfirmModal();
+  initCameraScanner();
 
   // 初始化 Capacitor 系統通知頻道與排程檢查
   ensureNotificationChannel();
