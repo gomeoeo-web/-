@@ -287,6 +287,62 @@ body {
 /* ==========================================================================
    Header Smart Quick Add / Update Input (頂部自然語言速記與修改輸入框)
    ========================================================================== */
+
+.ner-model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  z-index: 10;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all var(--transition-ios);
+}
+.ner-model-badge.ner-loading {
+  background: rgba(255, 149, 0, 0.18);
+  color: #ff9f0a;
+  border: 1px solid rgba(255, 149, 0, 0.35);
+}
+.ner-model-badge.ner-ready {
+  background: rgba(52, 199, 89, 0.18);
+  color: #30d158;
+  border: 1px solid rgba(52, 199, 89, 0.35);
+}
+.ner-model-badge.ner-fallback {
+  background: rgba(142, 142, 147, 0.18);
+  color: #8e8e93;
+  border: 1px solid rgba(142, 142, 147, 0.35);
+}
+.ner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.ner-dot.pulse {
+  background: #ff9f0a;
+  animation: nerPulse 1.2s infinite ease-in-out;
+}
+.ner-dot.ready {
+  background: #30d158;
+}
+.ner-dot.fallback {
+  background: #8e8e93;
+}
+@keyframes nerPulse {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.4; }
+}
+
 .header-smart-input-form {
   flex: 1;
   margin: 0 12px 0 0;
@@ -866,23 +922,26 @@ body {
 .items-compact-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.85rem;
+  gap: 0.75rem;
   width: 100%;
+  padding: 0 0.4rem;
+  box-sizing: border-box;
   touch-action: pan-x pan-y;
 }
 
 @media (min-width: 640px) {
   .items-compact-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.15rem;
+    gap: 1rem;
+    padding: 0 0.55rem;
   }
 }
 
-/* The Exact Compact Card */
+/* The Exact Compact Card (微幅縮窄左右寬度) */
 .ios-item-card {
   background: var(--ios-surface);
   border-radius: var(--radius-card);
-  padding: 1.05rem 1.05rem;
+  padding: 0.92rem 0.82rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -890,7 +949,7 @@ body {
   position: relative;
   transition: transform var(--transition-ios), background var(--transition-ios);
   border: 1px solid transparent;
-  min-height: 190px;
+  min-height: 172px;
   min-width: 0;
   box-sizing: border-box;
   touch-action: pan-x pan-y;
@@ -917,20 +976,20 @@ body {
 }
 
 .card-icon-box {
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
   border-radius: var(--radius-subcard);
   background: #2a2a2d;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.85rem;
+  font-size: 1.65rem;
   flex-shrink: 0;
   overflow: hidden;
 }
 
 .card-category-tag {
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--ios-text-secondary);
   letter-spacing: -0.01em;
@@ -943,35 +1002,35 @@ body {
   margin-top: 2px;
 }
 
-/* Card Title (加大字體) */
+/* Card Title (適度精巧字體) */
 .card-item-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--ios-text-primary);
-  margin-top: 0.65rem;
-  line-height: 1.28;
+  margin-top: 0.5rem;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: -0.015em;
 }
 
-/* Main Metric Row: "已使用 12 天" (加大字體) */
+/* Main Metric Row: "已使用 12 天" */
 .card-metric-main {
-  margin-top: 0.65rem;
+  margin-top: 0.5rem;
   display: flex;
   align-items: baseline;
   gap: 0.25rem;
 }
 
 .metric-pretext {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--ios-text-secondary);
   font-weight: 600;
 }
 
 .metric-highlight-number {
-  font-size: 2.15rem;
+  font-size: 1.95rem;
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -979,18 +1038,18 @@ body {
 }
 
 .metric-unit {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--ios-text-secondary);
   font-weight: 600;
 }
 
-/* Secondary Metric: "還有 1,085 天" (加大字體) */
+/* Secondary Metric: "還有 1,085 天" */
 .card-metric-sub {
-  font-size: 0.94rem;
+  font-size: 0.88rem;
   color: var(--ios-text-secondary);
   font-weight: 600;
-  margin-top: 0.35rem;
-  margin-bottom: 0.65rem;
+  margin-top: 0.28rem;
+  margin-bottom: 0.5rem;
 }
 
 .card-metric-sub.urgent {
@@ -5245,23 +5304,115 @@ body.modal-open .view-panel {
   color: #ff9500;
 }
 
-.nlp-update-notice {
+.nlp-update-notice,
+.nlp-update-notice-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  background: rgba(255, 149, 0, 0.09);
+  border: 1px solid rgba(255, 149, 0, 0.28);
+  border-radius: var(--radius-card, 16px);
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+.nlp-update-notice-banner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 149, 0, 0.12);
-  border: 1px solid rgba(255, 149, 0, 0.28);
-  border-radius: var(--radius-subcard);
-  padding: 0.65rem 0.85rem;
-  margin-bottom: 0.95rem;
+  gap: 0.45rem;
   color: #ff9500;
   font-size: 0.84rem;
   font-weight: 600;
   line-height: 1.4;
 }
 
+.nlp-action-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.nlp-mode-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.5rem;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a1a1a6;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+  user-select: none;
+}
+
+.nlp-mode-pill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nlp-mode-pill.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="light"] .nlp-action-mode-selector {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .nlp-mode-pill {
+  color: #636366;
+}
+
+[data-theme="light"] .nlp-mode-pill:hover {
+  color: #000000;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .nlp-mode-pill.active {
+  background: #000000 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-color: #000000 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
 .nlp-confirm-field {
   margin-bottom: 0.95rem;
+}
+
+.nlp-elapsed-hint-box {
+  background: rgba(10, 132, 255, 0.12);
+  border: 1px solid rgba(10, 132, 255, 0.28);
+  color: #0a84ff;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.85rem;
+}
+
+[data-theme="light"] .nlp-elapsed-hint-box {
+  background: rgba(0, 122, 255, 0.08);
+  border-color: rgba(0, 122, 255, 0.22);
+  color: #007aff;
 }
 
 .nlp-confirm-label {
@@ -5404,6 +5555,44 @@ body.modal-open .view-panel {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+/* NLP Confirm Modal Quick Day Pills (快捷天數膠囊) */
+.nlp-day-pill {
+  border: 1px solid var(--ios-border-strong);
+  background: var(--ios-surface-elevated);
+  color: var(--ios-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.22rem 0.6rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all var(--transition-ios);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.nlp-day-pill:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--ios-text-primary);
+}
+
+.nlp-day-pill:active {
+  transform: scale(0.94);
+  background: var(--ios-blue);
+  color: #ffffff;
+  border-color: var(--ios-blue);
+}
+
+[data-theme="light"] .nlp-day-pill {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #3a3a3c;
+}
+
+[data-theme="light"] .nlp-day-pill:hover {
+  background: #d1d1d6;
+  color: #000000;
+}
+
   </style>
 </head>
 <body>
@@ -5412,6 +5601,7 @@ body.modal-open .view-panel {
     <header class="ios-header">
       <!-- Header Natural Language Input Form (純文字簡潔外觀，無前綴圖示，Enter送出) -->
       <form class="header-smart-input-form" id="smartQuickAddForm" onsubmit="return false;">
+        <div id="nerModelBadge" class="ner-model-badge" title="AI 模型狀態" style="display:none;"></div>
         <input
           type="text"
           id="smartQuickAddInput"
@@ -5627,6 +5817,42 @@ body.modal-open .view-panel {
           <input type="hidden" id="itemId">
           <input type="hidden" id="itemSubCategory" value="">
 
+          <!-- Name (物品名稱為最上層) -->
+          <div class="ios-form-row">
+            <div class="ios-field">
+              <label for="itemName">物品名稱</label>
+              <input type="text" id="itemName" placeholder="例如：汽車機油、Netflix 訂閱、眼藥水..." required>
+            </div>
+          </div>
+
+          <!-- Image & Icon Picker Section (圖片欄移至物品名稱下方) -->
+          <div class="ios-avatar-picker-section">
+            <div class="avatar-preview-box" id="avatarPreviewBox">
+              <span id="previewEmojiChar">🪑</span>
+              <img id="previewImageEl" src="" alt="縮圖預覽" style="display:none;">
+            </div>
+
+            <div class="avatar-controls">
+              <span class="avatar-hint" id="avatarHintText">輸入名稱自動配圖，或自行上傳相片</span>
+              <div class="avatar-buttons-row">
+                <label for="itemImageInput" class="btn-ios-upload">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  <span>上傳相片</span>
+                  <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
+                </label>
+                <button type="button" id="btnOpenBgRemoval" class="btn-ios-bg-remove" style="display:none;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9l4-6z"></path><path d="M11 3v6l-4 3"></path></svg>
+                  <span>✨ 智慧去背</span>
+                </button>
+                <button type="button" id="btnRemoveImage" class="btn-ios-remove-photo" style="display:none;">✕ 移除照片</button>
+                <div class="emoji-direct-input-wrap">
+                  <label for="itemEmoji" class="sr-only">自訂 Emoji</label>
+                  <input type="text" id="itemEmoji" class="emoji-input-box" value="🪑" maxlength="4" title="手動自訂 Emoji">
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Category Selection: Cascading Two-Level Dropdown -->
           <div class="category-boxed-frame">
             <div class="category-box-header">
@@ -5671,42 +5897,6 @@ body.modal-open .view-panel {
             <!-- Optional custom subcategory input field when user selects '自訂細項...' -->
             <div id="customSubCatRow" class="custom-subcat-row" style="display:none; margin-top: 0.65rem;">
               <input type="text" id="customSubCategoryInput" class="ios-input-custom-sub" placeholder="輸入自訂細項名稱，例如：露營裝備、濾心、雨傘...">
-            </div>
-          </div>
-
-          <!-- Image & Icon Picker Section -->
-          <div class="ios-avatar-picker-section">
-            <div class="avatar-preview-box" id="avatarPreviewBox">
-              <span id="previewEmojiChar">🪑</span>
-              <img id="previewImageEl" src="" alt="縮圖預覽" style="display:none;">
-            </div>
-
-            <div class="avatar-controls">
-              <span class="avatar-hint" id="avatarHintText">輸入名稱自動配圖，或自行上傳相片</span>
-              <div class="avatar-buttons-row">
-                <label for="itemImageInput" class="btn-ios-upload">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                  <span>上傳相片</span>
-                  <input type="file" id="itemImageInput" accept="image/*" style="display:none;">
-                </label>
-                <button type="button" id="btnOpenBgRemoval" class="btn-ios-bg-remove" style="display:none;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9l4-6z"></path><path d="M11 3v6l-4 3"></path></svg>
-                  <span>✨ 智慧去背</span>
-                </button>
-                <button type="button" id="btnRemoveImage" class="btn-ios-remove-photo" style="display:none;">✕ 移除照片</button>
-                <div class="emoji-direct-input-wrap">
-                  <label for="itemEmoji" class="sr-only">自訂 Emoji</label>
-                  <input type="text" id="itemEmoji" class="emoji-input-box" value="🪑" maxlength="4" title="手動自訂 Emoji">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Name -->
-          <div class="ios-form-row">
-            <div class="ios-field">
-              <label for="itemName">物品名稱</label>
-              <input type="text" id="itemName" placeholder="例如：汽車機油、Netflix 訂閱、眼藥水..." required>
             </div>
           </div>
 
@@ -6050,7 +6240,7 @@ body.modal-open .view-panel {
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.7.4</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.7.9</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -6072,15 +6262,21 @@ body.modal-open .view-panel {
       </div>
 
       <div class="ios-modal-scroll" style="padding: 0.75rem 1.25rem 1.5rem 1.25rem;">
-        <!-- Target Info Notice (if update) -->
-        <div id="nlpConfirmUpdateNotice" class="nlp-update-notice" style="display: none;">
-          <span>🔄</span>
-          <span id="nlpConfirmUpdateText">將更新現有物品</span>
+        <!-- Target Info Notice & Mode Selector (if update) -->
+        <div id="nlpConfirmUpdateNotice" class="nlp-update-notice-wrap" style="display: none;">
+          <div class="nlp-update-notice-banner">
+            <span>🔄</span>
+            <span id="nlpConfirmUpdateText">將更新現有物品</span>
+          </div>
+          <div class="nlp-action-mode-selector" id="nlpActionModeSelector">
+            <button type="button" id="btnNlpModeUpdate" class="nlp-mode-pill active">修改既有物品</button>
+            <button type="button" id="btnNlpModeCreate" class="nlp-mode-pill">新增為新物品</button>
+          </div>
         </div>
 
         <!-- Field 1: Name -->
         <div class="nlp-confirm-field">
-          <label class="nlp-confirm-label" for="nlpConfirmName">物品名稱（保留完整主體）</label>
+          <label class="nlp-confirm-label" for="nlpConfirmName">物品名稱</label>
           <input type="text" id="nlpConfirmName" class="nlp-confirm-input" maxlength="30" placeholder="例如：交通會議、全脂鮮奶">
         </div>
 
@@ -6094,15 +6290,54 @@ body.modal-open .view-panel {
           </div>
         </div>
 
-        <!-- Field 3: Expiry Date -->
+        <!-- Field 2.5: SubCategory (細項項目) -->
         <div class="nlp-confirm-field">
-          <label class="nlp-confirm-label" for="nlpConfirmDate">到期日期</label>
-          <input type="date" id="nlpConfirmDate" class="nlp-confirm-input">
+          <label class="nlp-confirm-label" for="nlpConfirmSubCategory">細項項目</label>
+          <div class="nlp-select-wrap">
+            <select id="nlpConfirmSubCategory" class="nlp-confirm-select">
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+          <input type="text" id="nlpConfirmCustomSubCategory" class="nlp-confirm-input" placeholder="請輸入自訂細項名稱..." style="display: none; margin-top: 8px;" maxlength="20">
+        </div>
+
+        <!-- Field 2.8: Tracking Mode Selector (追蹤模式：設定到期日 vs 謹記使用天數) -->
+        <div class="nlp-confirm-field">
+          <label class="nlp-confirm-label">追蹤方式</label>
+          <div class="nlp-action-mode-selector" id="nlpTrackingModeSelector">
+            <button type="button" id="btnNlpTrackExpiry" class="nlp-mode-pill active">設定到期日</button>
+            <button type="button" id="btnNlpTrackElapsed" class="nlp-mode-pill">謹記使用天數</button>
+          </div>
+        </div>
+
+        <!-- Field 3: Expiry Date & Custom Expiration Days (到期日期與自訂天數) -->
+        <div class="nlp-confirm-field" id="nlpConfirmDateWrap">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
+            <label class="nlp-confirm-label" for="nlpConfirmDate" style="margin-bottom: 0;">到期日期</label>
+            <label class="nlp-confirm-label" for="nlpConfirmDays" style="margin-bottom: 0; font-size: 0.8rem; color: var(--ios-text-secondary); font-weight: 500;">或自訂到期天數</label>
+          </div>
+          <div class="nlp-date-days-row" style="display: flex; gap: 8px; align-items: center;">
+            <input type="date" id="nlpConfirmDate" class="nlp-confirm-input" style="flex: 1.4; min-width: 0;">
+            <div class="nlp-days-input-wrap" style="position: relative; flex: 1; min-width: 0; display: flex; align-items: center;">
+              <input type="number" id="nlpConfirmDays" class="nlp-confirm-input" min="1" max="9999" placeholder="天數" style="padding-right: 1.85rem;">
+              <span style="position: absolute; right: 0.65rem; color: var(--ios-text-secondary); font-size: 0.84rem; pointer-events: none; font-weight: 600;">天</span>
+            </div>
+          </div>
+          <!-- Quick Day Presets (快捷天數膠囊) -->
+          <div class="nlp-quick-days-pills" style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+            <button type="button" class="nlp-day-pill" data-days="3">3天</button>
+            <button type="button" class="nlp-day-pill" data-days="7">7天</button>
+            <button type="button" class="nlp-day-pill" data-days="14">14天</button>
+            <button type="button" class="nlp-day-pill" data-days="30">30天</button>
+            <button type="button" class="nlp-day-pill" data-days="90">90天</button>
+            <button type="button" class="nlp-day-pill" data-days="180">半年</button>
+            <button type="button" class="nlp-day-pill" data-days="365">1年</button>
+          </div>
           <div id="nlpConfirmDateHint" class="nlp-confirm-hint">還有 7 天到期</div>
         </div>
 
         <!-- Field 4: Reminder -->
-        <div class="nlp-confirm-field">
+        <div class="nlp-confirm-field" id="nlpConfirmReminderWrap">
           <label class="nlp-confirm-label" for="nlpConfirmReminder">提醒通知</label>
           <div class="nlp-select-wrap">
             <select id="nlpConfirmReminder" class="nlp-confirm-select">
@@ -6115,7 +6350,7 @@ body.modal-open .view-panel {
               <option value="7">提早 7 天（1週前 09:00）</option>
               <option value="14">提早 14 天（2週前 09:00）</option>
               <option value="30">提早 30 天（1個月前 09:00）</option>
-              <option value="custom">⏰ 自訂提醒時間...</option>
+              <option value="custom">自訂提醒時間...</option>
             </select>
             <span class="select-arrow">▾</span>
           </div>
@@ -6125,7 +6360,11 @@ body.modal-open .view-panel {
         <div id="nlpCustomReminderRow" class="nlp-custom-reminder-row" style="display: none;">
           <label class="nlp-confirm-label" for="nlpConfirmCustomTime">自訂提醒日期與時間</label>
           <input type="datetime-local" id="nlpConfirmCustomTime" class="nlp-confirm-input" step="60">
-          <div id="nlpCustomReminderHint" class="nlp-confirm-hint">⏰ 將於此時間發送本機提醒通知</div>
+        </div>
+
+        <!-- Elapsed Mode Hint (謹記使用天數提示) -->
+        <div id="nlpElapsedModeHintWrap" class="nlp-elapsed-hint-box" style="display: none;">
+          <span>♾️ 僅記錄使用天數，不設定到期日與提醒通知</span>
         </div>
 
         <!-- Action Buttons -->
@@ -7355,7 +7594,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.7.4';
+  const APP_VERSION = '1.7.9';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -7405,77 +7644,232 @@ var CapacitorBridgeBundle = (() => {
   `);
 
   const SMART_KEYWORD_MAP = [
-    // 車輛
-    { keywords: ['機油', '机油', '齒輪油', '變速箱油', '機油芯'], emoji: '🚗', cat: 'vehicle', subCat: '機油' },
-    { keywords: ['輪胎', '胎壓', '補胎'], emoji: '🛞', cat: 'vehicle', subCat: '輪胎' },
-    { keywords: ['電瓶', '電池', '汽車電瓶'], emoji: '🔋', cat: 'vehicle', subCat: '電瓶' },
-    { keywords: ['雨刷', '雨刷片', '雨刷精'], emoji: '🌧️', cat: 'vehicle', subCat: '雨刷' },
-    { keywords: ['煞車', '剎車', '煞車皮', '剎車皮', '煞車油'], emoji: '🛑', cat: 'vehicle', subCat: '煞車' },
-    { keywords: ['車', '機車', '汽車', 'gogoro', '重機', '檔車'], emoji: '🚗', cat: 'vehicle', subCat: '車輛' },
-    
-    // 訂閱
-    { keywords: ['netflix', 'disney', 'youtube', '影音', '串流'], emoji: '🎬', cat: 'subscription', subCat: '影音' },
-    { keywords: ['spotify', 'kkbox', 'apple music', '音樂'], emoji: '🎵', cat: 'subscription', subCat: '音樂' },
-    { keywords: ['icloud', 'google one', '雲端', 'dropbox', 'onedrive'], emoji: '☁️', cat: 'subscription', subCat: '雲端' },
-    { keywords: ['chatgpt', 'openai', 'adobe', '軟體', 'midjourney', 'copilot'], emoji: '💻', cat: 'subscription', subCat: '軟體' },
-    { keywords: ['健身房', '會籍', '健身', '瑜珈'], emoji: '💪', cat: 'subscription', subCat: '健身' },
-    { keywords: ['訂閱', '會員', '月費', '年費', '房租', '電信', '寬頻', '電話費', '第四台'], emoji: '📅', cat: 'subscription', subCat: '電信' },
-    
-    // 藥品
-    { keywords: ['眼藥水', '人工淚液'], emoji: '💊', cat: 'medicine', subCat: '眼藥水' },
-    { keywords: ['維他命', '維生素', 'b群', '維他命c'], emoji: '💊', cat: 'medicine', subCat: '維他命' },
-    { keywords: ['魚油', '葉黃素', '益生菌', '保健品', '膠原蛋白'], emoji: '🐟', cat: 'medicine', subCat: '魚油' },
-    { keywords: ['藥膏', '皮膚膏', '抗生素', '曼秀雷敦'], emoji: '🩹', cat: 'medicine', subCat: '藥膏' },
-    { keywords: ['止痛藥', '感冒藥', '胃藥', '成藥', '膠囊', '錠', '藥'], emoji: '🩺', cat: 'medicine', subCat: '成藥' },
-    { keywords: ['隱形眼鏡', '保養液', '洗眼液', '隱眼'], emoji: '👁️', cat: 'medicine', subCat: '保養液' },
-    
-    // 清潔
-    { keywords: ['菜瓜布', '海綿', '科技海綿'], emoji: '🧼', cat: 'cleaning', subCat: '菜瓜布' },
-    { keywords: ['洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
-    { keywords: ['洗碗精', '洗潔精'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
-    { keywords: ['抹布', '拖把', '除塵拖', '除塵紙'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
-    { keywords: ['潔廁劑', '馬桶刷', '芳香劑', '馬桶清潔'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
-    { keywords: ['酒精', '消毒水', '漂白水', '乾洗手'], emoji: '🧴', cat: 'cleaning', subCat: '酒精' },
-    
-    // 耗材
-    { keywords: ['濾網', '清淨機', 'hepa', '冷氣濾網', '空氣濾網'], emoji: '🌀', cat: 'filter', subCat: '濾網' },
-    { keywords: ['濾芯', '濾心', '淨水', 'ro', '飲水', '濾水壺'], emoji: '💧', cat: 'filter', subCat: '濾芯' },
-    { keywords: ['牙刷', '刷頭', '音波牙刷'], emoji: '🪥', cat: 'filter', subCat: '牙刷' },
-    { keywords: ['除濕盒', '除濕劑', '乾燥劑', '克潮靈', '防潮包'], emoji: '🌧️', cat: 'filter', subCat: '除濕盒' },
-    { keywords: ['吸塵器', '掃地機', '掃地機器人', 'dyson'], emoji: '🧹', cat: 'filter', subCat: '掃地耗材' },
-    
-    // 保固
-    { keywords: ['椅', 'chair', '沙發', '辦公椅', '人體工學', '桌'], emoji: '🪑', cat: 'warranty', subCat: '家具' },
-    { keywords: ['電腦', '筆電', 'mac', 'macbook', 'pc', '主機', 'ipad'], emoji: '💻', cat: 'warranty', subCat: '電腦' },
-    { keywords: ['手機', 'iphone', 'pixel', 'galaxy', 'android'], emoji: '📱', cat: 'warranty', subCat: '手機' },
-    { keywords: ['耳機', 'airpods', 'buds', 'headphone', '喇叭'], emoji: '🎧', cat: 'warranty', subCat: '耳機' },
-    { keywords: ['電視', '螢幕', '顯示器', 'tv', '冰箱', '洗衣機', '冷氣'], emoji: '📺', cat: 'warranty', subCat: '家電' },
-    { keywords: ['手錶', '錶', 'watch', 'apple watch'], emoji: '⌚', cat: 'warranty', subCat: '手錶' },
-    
-    // 食品 (新增青菜、水果等豐富項目)
-    { keywords: ['青菜', '蔬菜', '葉菜', '菠菜', '空心菜', '高麗菜', '花椰菜', '地瓜葉', '大白菜', '芹菜', '萵苣', '豆芽', '小白菜'], emoji: '🥬', cat: 'food', subCat: '青菜' },
-    { keywords: ['水果', '蘋果', '香蕉', '芭樂', '橘子', '柳丁', '葡萄', '奇異果', '芒果', '西瓜', '草莓', '檸檬', '番茄', '鳳梨', '水蜜桃'], emoji: '🍎', cat: 'food', subCat: '水果' },
-    { keywords: ['奶', '乳', 'milk', '鮮乳', '優格', '起司', '鮮奶', '豆漿'], emoji: '🥛', cat: 'food', subCat: '鮮乳' },
-    { keywords: ['咖啡', '咖啡豆', '咖啡粉', '美式', '拿鐵', '濾掛'], emoji: '☕', cat: 'food', subCat: '咖啡' },
-    { keywords: ['蛋', '雞蛋', '鴨蛋', '茶葉蛋'], emoji: '🥚', cat: 'food', subCat: '雞蛋' },
-    { keywords: ['茶', '茶葉', '茶包', '烏龍茶', '綠茶', '紅茶'], emoji: '🍵', cat: 'food', subCat: '茶包' },
-    { keywords: ['醬油', '鹽', '糖', '油', '醋', '調味料', '胡椒', '沙拉醬'], emoji: '🧂', cat: 'food', subCat: '調味料' },
-    { keywords: ['零食', '堅果', '餅乾', '巧克力', '洋芋片', '點心'], emoji: '🍪', cat: 'food', subCat: '零食' },
-    
-    // 日用
-    { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
-    { keywords: ['防曬', '隔離', '粉底', '防曬乳'], emoji: '☀️', cat: 'pao', subCat: '防曬' },
-    { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕', '眼霜'], emoji: '✨', cat: 'pao', subCat: '保養' },
-    { keywords: ['護手霜', '護唇膏'], emoji: '👐', cat: 'pao', subCat: '護手霜' },
-    { keywords: ['牙膏', '漱口水'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
-    { keywords: ['刮鬍刀', '刀頭', '刮鬍泡'], emoji: '🪒', cat: 'pao', subCat: '刮鬍刀' },
-    
-    // 其他
-    { keywords: ['鞋', '球鞋', '皮鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
-    { keywords: ['包', '背包', '皮夾', '手提包', '公事包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
-    { keywords: ['衣服', '外套', '褲', '襯衫', '大衣'], emoji: '🧥', cat: 'other', subCat: '衣物' },
-    { keywords: ['書', '筆記本', '小說', '文具'], emoji: '📚', cat: 'other', subCat: '圖書' }
-  ];
+  // 車輛 (vehicle)
+  { keywords: ['齒輪油', '變速箱油', '差速器油'], emoji: '🛵', cat: 'vehicle', subCat: '齒輪油' },
+  { keywords: ['機油', '机油', '機油芯', '換機油', '換油'], emoji: '🚗', cat: 'vehicle', subCat: '機油' },
+  { keywords: ['輪胎', '胎壓', '補胎', '換胎', '米其林', '馬牌'], emoji: '🛞', cat: 'vehicle', subCat: '輪胎' },
+  { keywords: ['電瓶', '電池', '汽車電瓶', 'agm電瓶', '鉛酸電瓶'], emoji: '🔋', cat: 'vehicle', subCat: '電瓶' },
+  { keywords: ['雨刷', '雨刷片', '雨刷精', '矽膠雨刷'], emoji: '🌧️', cat: 'vehicle', subCat: '雨刷' },
+  { keywords: ['煞車', '剎車', '煞車皮', '煞車油', '來令片'], emoji: '🛑', cat: 'vehicle', subCat: '煞車' },
+  { keywords: ['驗車', '定檢', '代檢', '車輛檢驗'], emoji: '📋', cat: 'vehicle', subCat: '驗車' },
+  { keywords: ['強制險', '車險', '第三人責任險', '丙式', '乙式'], emoji: '📑', cat: 'vehicle', subCat: '車險' },
+  { keywords: ['車', '機車', '汽車', 'gogoro', '重機', '檔車'], emoji: '🚗', cat: 'vehicle', subCat: '車輛' },
+
+  // 訂閱 (subscription)
+  { keywords: ['netflix', 'disney', 'youtube', '影音', '串流', 'hbo', 'friday', '愛奇藝'], emoji: '🎬', cat: 'subscription', subCat: '影音' },
+  { keywords: ['spotify', 'kkbox', 'apple music', '音樂', 'youtube music'], emoji: '🎵', cat: 'subscription', subCat: '音樂' },
+  { keywords: ['icloud', 'google one', '雲端', 'dropbox', 'onedrive'], emoji: '☁️', cat: 'subscription', subCat: '雲端' },
+  { keywords: ['chatgpt', 'openai', 'adobe', '軟體', 'midjourney', 'copilot', 'notion', 'github'], emoji: '💻', cat: 'subscription', subCat: '軟體' },
+  { keywords: ['健身房', '會籍', '健身', '瑜珈', 'world gym', '健身工廠'], emoji: '💪', cat: 'subscription', subCat: '健身' },
+  { keywords: ['寬頻', '電信', '電話費', '第四台', '固網', '光世代', '中華電信', '遠傳', '台灣大哥大'], emoji: '📶', cat: 'subscription', subCat: '電信' },
+  { keywords: ['租約', '房租', '店租', '車位租金', '押金'], emoji: '🏠', cat: 'subscription', subCat: '租約' },
+  { keywords: ['訂閱', '會員', '月費', '年費'], emoji: '📅', cat: 'subscription', subCat: '訂閱服務' },
+
+  // 藥品 (medicine)
+  { keywords: ['眼藥水', '人工淚液', '洗眼液'], emoji: '💊', cat: 'medicine', subCat: '眼藥水' },
+  { keywords: ['維他命', '維生素', 'b群', '維他命c', '合利他命'], emoji: '💊', cat: 'medicine', subCat: '維他命' },
+  { keywords: ['魚油', '葉黃素', '益生菌', '保健品', '膠原蛋白', '鈣片', '鋅錠'], emoji: '🐟', cat: 'medicine', subCat: '魚油' },
+  { keywords: ['藥膏', '皮膚膏', '抗生素', '曼秀雷敦', '眼藥膏', '蚊蟲膏', 'ok繃', '創口貼', '優碘', '碘酒'], emoji: '🩹', cat: 'medicine', subCat: '藥膏' },
+  { keywords: ['止痛藥', '感冒藥', '胃藥', '成藥', '膠囊', '錠', '藥', '普拿疼', '退燒藥', '胃散', '正露丸', '止咳藥', '消炎藥'], emoji: '🩺', cat: 'medicine', subCat: '成藥' },
+  { keywords: ['牙醫', '洗牙', '看診', '診所', '醫院', '看牙', '牙齒', '補牙'], emoji: '🦷', cat: 'medicine', subCat: '醫療' },
+  { keywords: ['隱形眼鏡', '保養液', '隱眼', '生理食鹽水'], emoji: '👁️', cat: 'medicine', subCat: '保養液' },
+
+  // 清潔 (cleaning)
+  { keywords: ['菜瓜布', '海綿', '科技海綿', '洗碗海綿'], emoji: '🧼', cat: 'cleaning', subCat: '菜瓜布' },
+  { keywords: ['洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '漂白水'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
+  { keywords: ['洗碗精', '洗潔精', '洗碗機洗碗粉', '光潔劑', '洗碗錠', '洗碗塊'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
+  { keywords: ['抹布', '拖把', '除塵拖', '除塵紙', '靜電拖'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
+  { keywords: ['潔廁劑', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '洗手乳', '洗手液', '小蘇打', '過碳酸鈉', '除霉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
+  { keywords: ['酒精', '消毒水', '乾洗手', '次氯酸'], emoji: '🧴', cat: 'cleaning', subCat: '酒精' },
+  { keywords: ['除蟎', '防蟎噴霧', '防塵蟎'], emoji: '💨', cat: 'cleaning', subCat: '除蟎' },
+
+  // 耗材 (filter)
+  { keywords: ['濾網', '清淨機', 'hepa', '冷氣濾網', '空氣濾網', '除甲醛濾網'], emoji: '🌀', cat: 'filter', subCat: '濾網' },
+  { keywords: ['濾芯', '濾心', '淨水', 'ro', '飲水', '濾水壺', 'brita'], emoji: '💧', cat: 'filter', subCat: '濾芯' },
+  { keywords: ['牙刷', '刷頭', '音波牙刷', '電動牙刷'], emoji: '🪥', cat: 'filter', subCat: '牙刷' },
+  { keywords: ['除濕盒', '除濕劑', '乾燥劑', '克潮靈', '防潮包', '除濕桶', '集水袋', '備長炭'], emoji: '🌧️', cat: 'filter', subCat: '除濕盒' },
+  { keywords: ['吸塵器', '掃地機', '掃地機器人', 'dyson', '主刷', '邊刷', '集塵袋'], emoji: '🧹', cat: 'filter', subCat: '掃地耗材' },
+  { keywords: ['除鈣劑', '咖啡機除鈣', '水垢除鈣'], emoji: '☕', cat: 'filter', subCat: '咖啡保養' },
+
+  // 保固 (warranty)
+  { keywords: ['椅', 'chair', '沙發', '辦公椅', '人體工學', '升降桌', '家具'], emoji: '🪑', cat: 'warranty', subCat: '家具' },
+  { keywords: ['電腦', '筆電', 'mac', 'macbook', 'pc', '主機', 'ipad', '平板', 'surface'], emoji: '💻', cat: 'warranty', subCat: '電腦' },
+  { keywords: ['手機', 'iphone', 'pixel', 'galaxy', 'android'], emoji: '📱', cat: 'warranty', subCat: '手機' },
+  { keywords: ['耳機', 'airpods', 'buds', 'headphone', '喇叭', '音響', 'soundbar'], emoji: '🎧', cat: 'warranty', subCat: '耳機' },
+  { keywords: ['電視', '螢幕', '顯示器', 'tv', '冰箱', '洗衣機', '冷氣', '微波爐', '烤箱', '除濕機', '電風扇'], emoji: '📺', cat: 'warranty', subCat: '家電' },
+  { keywords: ['手錶', '錶', 'watch', 'apple watch', 'garmin'], emoji: '⌚', cat: 'warranty', subCat: '手錶' },
+  { keywords: ['遊戲機', 'ps5', 'switch', 'xbox', 'playstation', 'steam deck'], emoji: '🎮', cat: 'warranty', subCat: '遊戲機' },
+
+  // 食品 (food)
+  { keywords: [
+    '青菜', '蔬菜', '葉菜', '菠菜', '空心菜', '高麗菜', '花椰菜', '地瓜葉', '大白菜', '芹菜',
+    '萵苣', '豆芽', '小白菜', '青花菜', '綠花椰', '白花椰', '娃娃菜', '青江菜', '油菜',
+    '芥藍', '芥菜', '皇宮菜', '龍鬚菜', '水蓮', '紅鳳菜', '莧菜', '川七', '茼蒿', '美生菜',
+    '蘿蔓', '胡蘿蔔', '紅蘿蔔', '白蘿蔔', '蘿蔔', '洋蔥', '青蔥', '大蔥', '蔥花', '蔥',
+    '大蒜', '蒜頭', '蒜苗', '生薑', '老薑', '薑', '辣椒', '朝天椒', '甜椒', '青椒', '彩椒',
+    '小黃瓜', '黃瓜', '絲瓜', '苦瓜', '冬瓜', '南瓜', '節瓜', '櫛瓜', '佛手瓜', '茄子',
+    '四季豆', '毛豆', '豌豆', '豆莢', '甜豆', '扁豆', '敏豆', '玉米', '玉米筍', '秋葵',
+    '蘆筍', '竹筍', '茭白筍', '綠竹筍', '麻竹筍', '筍', '牛蒡', '蓮藕', '山藥', '地瓜',
+    '馬鈴薯', '芋頭', '香菇', '杏鮑菇', '金針菇', '鴻喜菇', '雪白菇', '秀珍菇', '木耳',
+    '黑木耳', '白木耳', '蘑菇', '洋菇', '九層塔', '香菜'
+  ], emoji: '🥬', cat: 'food', subCat: '青菜' },
+
+  { keywords: [
+    '水果', '木瓜', '蘋果', '香蕉', '芭樂', '橘子', '柳丁', '葡萄', '奇異果', '芒果', '西瓜',
+    '草莓', '檸檬', '番茄', '鳳梨', '水蜜桃', '哈密瓜', '火龍果', '藍莓', '櫻桃', '水梨',
+    '梨子', '蓮霧', '荔枝', '龍眼', '百香果', '葡萄柚', '柚子', '文旦', '金桔', '金柑',
+    '柿子', '甜柿', '甜瓜', '香瓜', '洋香瓜', '釋迦', '鳳梨釋迦', '酪梨', '無花果',
+    '榴槤', '山竹', '桑椹', '蜜棗', '棗子', '桃子', '李子', '梅子', '楊桃', '枇杷',
+    '椰子', '甘蔗'
+  ], emoji: '🍎', cat: 'food', subCat: '水果' },
+
+  { keywords: [
+    '鮮乳', '牛乳', '羊乳', '保久乳', '全脂乳', '低脂乳', '鮮奶', '牛奶', '優格', '起司',
+    '豆漿', '奶粉', 'milk', '優酪乳', '燕麥奶', '堅果奶', '黑豆漿', '米漿', '鮮奶油',
+    '乳酪', '奶酪', '起司片', '起司條', '奶油', '牛油', '優格飲', '發酵乳', '養樂多',
+    '布丁', '木瓜牛奶'
+  ], emoji: '🥛', cat: 'food', subCat: '鮮乳' },
+
+  { keywords: [
+    '咖啡', '咖啡豆', '咖啡粉', '美式', '拿鐵', '濾掛', '濃縮咖啡',
+    '耳掛咖啡', '冷萃', '冰美式', '卡布奇諾', '摩卡', '美式咖啡', '拿鐵咖啡'
+  ], emoji: '☕', cat: 'food', subCat: '咖啡' },
+
+  { keywords: [
+    '蛋', '雞蛋', '鴨蛋', '茶葉蛋', '皮蛋', '鹹蛋', '生鮮蛋', '洗選蛋', '放牧蛋',
+    '土雞蛋', '烏骨雞蛋', '溏心蛋', '溫泉蛋', '水煮蛋', '鵪鶉蛋'
+  ], emoji: '🥚', cat: 'food', subCat: '雞蛋' },
+
+  { keywords: [
+    '茶', '茶葉', '茶包', '烏龍茶', '綠茶', '紅茶', '普洱茶',
+    '四季春', '青茶', '鐵觀音', '包種茶', '奶茶', '花茶', '菊花茶', '麥茶', '玄米茶'
+  ], emoji: '🍵', cat: 'food', subCat: '茶包' },
+
+  { keywords: [
+    '醬油', '鹽', '糖', '油', '醋', '調味料', '胡椒', '沙拉醬', '橄欖油', '辣醬',
+    '味噌', '麻油', '香油', '烏醋', '白醋', '米酒', '料理米酒', '蠔油', '番茄醬',
+    '美乃滋', '芥末', '咖哩', '咖哩塊', '胡椒粉', '胡椒鹽', '辣椒醬', '豆瓣醬',
+    '沙茶醬', '芝麻醬', '烤肉醬', '沙拉油', '葵花油'
+  ], emoji: '🧂', cat: 'food', subCat: '調味料' },
+
+  { keywords: [
+    '零食', '堅果', '餅乾', '巧克力', '洋芋片', '點心', '爆米花', '海苔',
+    '蛋捲', '仙貝', '糖果', '軟糖', '果凍', '肉乾', '豬肉乾', '牛肉乾',
+    '腰果', '核桃', '杏仁', '開心果', '夏威夷豆', '花生'
+  ], emoji: '🍪', cat: 'food', subCat: '零食' },
+
+  { keywords: [
+    '牛肉', '豬肉', '雞肉', '雞胸肉', '鮭魚', '蝦', '生鮮肉品', '牛排', '絞肉',
+    '羊肉', '鴨肉', '鵝肉', '松阪豬', '梅花豬', '豬五花', '五花肉', '里肌', '排骨',
+    '培根', '香腸', '火腿', '肉絲', '肉片', '牛腩', '牛腱', '牛五花', '雞腿', '雞翅',
+    '雞柳', '雞排', '貢丸', '肉丸', '魚', '魚排', '魚片', '生魚片', '鱈魚', '鯛魚',
+    '鱸魚', '虱目魚', '鯖魚', '秋刀魚', '吻仔魚', '鮮蝦', '白蝦', '草蝦', '蝦仁',
+    '明蝦', '龍蝦', '蛤蜊', '文蛤', '牡蠣', '蚵仔', '干貝', '透抽', '花枝', '軟絲',
+    '小卷', '中卷', '章魚', '魷魚', '螃蟹', '蟹肉'
+  ], emoji: '🥩', cat: 'food', subCat: '生鮮肉品' },
+
+  { keywords: [
+    '麵包', '吐司', '貝果', '可頌', '蛋糕', '鬆餅', '烘焙',
+    '菠蘿麵包', '餐包', '生吐司', '法棍', '歐包', '蛋撻', '蛋塔', '泡芙', '派',
+    '司康', '馬卡龍', '披薩', 'pizza'
+  ], emoji: '🍞', cat: 'food', subCat: '麵包烘焙' },
+
+  // 日用 (pao)
+  { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳', '洗髮精', '潤髮乳'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
+  { keywords: ['防曬', '隔離', '防曬乳', '防曬露', '防曬噴霧'], emoji: '☀️', cat: 'pao', subCat: '防曬' },
+  { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕', '眼霜', '面霜', '精華液', '保養品', '洗面乳', '潔顏乳', '卸妝水', '卸妝油', '化妝棉'], emoji: '✨', cat: 'pao', subCat: '保養' },
+  { keywords: ['護手霜', '護唇膏', '身體乳', '護足霜'], emoji: '👐', cat: 'pao', subCat: '護手霜' },
+  { keywords: ['牙膏', '漱口水', '牙線', '牙線棒'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
+  { keywords: ['刮鬍刀', '刀頭', '刮鬍泡', '電鬍刀'], emoji: '🪒', cat: 'pao', subCat: '刮鬍刀' },
+  { keywords: ['香水', '淡香水', '香氛', '香膏'], emoji: '🌸', cat: 'pao', subCat: '香水' },
+  { keywords: ['唇膏', '口紅', '粉底', '遮瑕', '眼影', '腮紅', '彩妝'], emoji: '💄', cat: 'pao', subCat: '彩妝' },
+
+  // 寵物 (pet)
+  { keywords: ['貓糧', '狗糧', '飼料', '乾糧', '無穀飼料'], emoji: '🥣', cat: 'pet', subCat: '乾糧' },
+  { keywords: ['主食罐', '副食罐', '罐罐', '貓罐頭', '狗罐頭'], emoji: '🥫', cat: 'pet', subCat: '罐頭' },
+  { keywords: ['全能狗', '蚤不到', '心絲蟲', '驅蟲', '滴劑', '驅蟲藥'], emoji: '💊', cat: 'pet', subCat: '驅蟲藥' },
+  { keywords: ['狂犬疫苗', '三合一疫苗', '五合一疫苗', '寵物健檢', '寵物疫苗', '結紮'], emoji: '💉', cat: 'pet', subCat: '疫苗健檢' },
+  { keywords: ['豆腐砂', '礦砂', '松木砂', '貓砂', '尿墊', '尿布墊', '便盆'], emoji: '🪵', cat: 'pet', subCat: '貓砂尿墊' },
+  { keywords: ['凍乾', '肉泥', '肉乾', '潔牙骨', '寵物零食', '貓草', '排毛粉'], emoji: '🥩', cat: 'pet', subCat: '零食凍乾' },
+  { keywords: ['貓', '狗', '毛孩', '小貓', '小狗', '貓咪', '幼貓', '幼犬', '倉鼠', '兔子'], emoji: '🐾', cat: 'pet', subCat: '寵物保健' },
+
+  // 母嬰 (baby)
+  { keywords: ['奶粉', '配方奶', '成長奶粉', '水解奶粉', '早產兒奶粉'], emoji: '🍼', cat: 'baby', subCat: '配方奶' },
+  { keywords: ['尿布', '紙尿褲', '拉拉褲', '安睡褲', '學習褲'], emoji: '🧷', cat: 'baby', subCat: '尿布' },
+  { keywords: ['濕紙巾', '純水濕巾', '柔濕巾', '口手濕巾'], emoji: '🧻', cat: 'baby', subCat: '濕紙巾' },
+  { keywords: ['副食品', '寶寶粥', '米餅', '果泥', '常溫粥'], emoji: '🥣', cat: 'baby', subCat: '副食品' },
+  { keywords: ['奶嘴', '安撫奶嘴', '奶瓶', '固齒器', '奶瓶嘴'], emoji: '🍼', cat: 'baby', subCat: '奶嘴用品' },
+  { keywords: ['預防針', '幼兒疫苗', '五合一', '卡介苗', '水痘疫苗'], emoji: '💉', cat: 'baby', subCat: '幼兒疫苗' },
+
+  // 辦公 (office)
+  { keywords: ['墨水', '墨水匣', '連續供墨', '填充墨水'], emoji: '🖨️', cat: 'office', subCat: '耗材墨水' },
+  { keywords: ['碳粉', '碳粉匣', '感光鼓', '雷射碳粉'], emoji: '📦', cat: 'office', subCat: '碳粉匣' },
+  { keywords: ['電池', '3號電池', '4號電池', '鹼性電池', '充電電池', '水銀電池'], emoji: '🔋', cat: 'office', subCat: '電池' },
+  { keywords: ['手帳', '筆記本', '鋼筆', '原子筆', '文具', '影印紙', '便利貼'], emoji: '📓', cat: 'office', subCat: '筆記文具' },
+  { keywords: ['護照', '簽證', '台胞證', '居留證', '身分證', '健保卡', '證件'], emoji: '🛂', cat: 'office', subCat: '證件合約' },
+  { keywords: ['證照', '回訓', '檢定', '換證', '技師證'], emoji: '📜', cat: 'office', subCat: '專業證照' },
+
+  // 戶外 (outdoor)
+  { keywords: ['蛋白粉', '乳清', '乳清蛋白', '肌酸', 'bcaa'], emoji: '🥤', cat: 'outdoor', subCat: '高蛋白' },
+  { keywords: ['帳篷', '天幕', '睡袋', '露營椅', '露營桌', '營釘'], emoji: '🏕️', cat: 'outdoor', subCat: '露營裝備' },
+  { keywords: ['登山鞋', '健行鞋', '登山杖', '登山包', '攻頂包'], emoji: '🥾', cat: 'outdoor', subCat: '登山裝備' },
+  { keywords: ['水壺', '水袋', '保溫瓶', '運動水壺'], emoji: '🧊', cat: 'outdoor', subCat: '水壺配件' },
+  { keywords: ['能量膠', '能量飲', '電解質', '鹽錠', '運動補給'], emoji: '⚡', cat: 'outdoor', subCat: '補給品' },
+  { keywords: ['羽球拍', '網球拍', '拍線', '穿線', '握把布'], emoji: '🏸', cat: 'outdoor', subCat: '球拍線路' },
+
+  // 居家 (home)
+  { keywords: ['澆水', '盆栽', '觀葉植物', '多肉', '綠植', '換盆', '植栽'], emoji: '🌿', cat: 'home', subCat: '植栽綠化' },
+  { keywords: ['肥料', '緩釋肥', '花肥', '液肥', '植物養護'], emoji: '🌱', cat: 'home', subCat: '花草肥料' },
+  { keywords: ['燈泡', 'led燈', '吸頂燈', '嵌燈', '燈管'], emoji: '💡', cat: 'home', subCat: '燈具照明' },
+  { keywords: ['枕套', '被套', '床包', '床單', '天絲', '寢具', '枕頭'], emoji: '🛏️', cat: 'home', subCat: '寢具家飾' },
+  { keywords: ['住警器', '火災警報器', '煙霧偵測', '瓦斯警報', '滅火器'], emoji: '🧯', cat: 'home', subCat: '居家安全' },
+  { keywords: ['水管', '水龍頭', '補漏', '五金', '矽利康'], emoji: '🔧', cat: 'home', subCat: '修繕保養' },
+
+  // 穿搭 (fashion)
+  { keywords: ['羽絨', '乾洗', '送洗', '大衣乾洗', '冬衣送洗'], emoji: '🧥', cat: 'fashion', subCat: '換季送洗' },
+  { keywords: ['名牌包', '皮包', '皮夾', '皮革保養', '皮革油', '貂油'], emoji: '👜', cat: 'fashion', subCat: '皮革保養' },
+  { keywords: ['純銀', '銀飾', '項鍊', '戒指', '拭銀布', '珠寶'], emoji: '💍', cat: 'fashion', subCat: '珠寶飾品' },
+  { keywords: ['樟木', '防蛀包', '防蟲包', '除蟲片', '衣櫃防潮'], emoji: '🌿', cat: 'fashion', subCat: '衣物防護' },
+  { keywords: ['高跟鞋', '皮鞋', '皮靴', '精品鞋', '靴子'], emoji: '👠', cat: 'fashion', subCat: '精品鞋靴' },
+
+  // 其他 (other)
+  { keywords: ['球鞋', '慢跑鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
+  { keywords: ['背包', '後背包', '公事包', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
+  { keywords: ['衣服', '褲子', '襯衫', '外套', '洋裝'], emoji: '🧥', cat: 'other', subCat: '衣物' },
+  { keywords: ['小說', '書籍', '雜誌', '課本'], emoji: '📚', cat: 'other', subCat: '圖書' },
+  { keywords: ['會議', '開會', '研討會', '週會', '月會', '晨會'], emoji: '📅', cat: 'other', subCat: '會議' },
+  { keywords: ['備忘', '筆記', '代辦', '待辦', '雜項', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
+];
+
+  function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
+    if (!text || typeof text !== 'string') {
+      return { category: fallbackCat, subCategory: '', emoji: '📌' };
+    }
+    const lower = text.toLowerCase();
+    let bestMatch = null;
+    let bestLen = 0;
+
+    for (const item of SMART_KEYWORD_MAP) {
+      for (const kw of item.keywords) {
+        const kwLower = kw.toLowerCase();
+        if (lower.includes(kwLower)) {
+          if (kwLower.length > bestLen) {
+            bestLen = kwLower.length;
+            bestMatch = item;
+          }
+        }
+      }
+    }
+
+    if (bestMatch) {
+      return {
+        category: bestMatch.cat || fallbackCat,
+        subCategory: bestMatch.subCat || '',
+        emoji: bestMatch.emoji || '📌'
+      };
+    }
+    return { category: fallbackCat, subCategory: '', emoji: '📌' };
+  }
 
   // 一級與細項分類預設辭典
   const DEFAULT_CATEGORIES = {
@@ -7484,11 +7878,13 @@ var CapacitorBridgeBundle = (() => {
       emoji: '🚗',
       items: [
         { name: '汽車機油', subCat: '機油', emoji: '🚗', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Mobil 1 全合成', location: '車庫', notes: '建議每 6 個月或 5,000 公里更換機油與機油芯' },
+        { name: '機車齒輪油', subCat: '齒輪油', emoji: '🛵', duration: 90, hasEndDate: true, warnDays: 7, location: '機車齒輪箱', notes: '換 2 次機油換 1 次齒輪油' },
         { name: '汽車輪胎', subCat: '輪胎', emoji: '🛞', duration: 180, hasEndDate: true, warnDays: 14, location: '車庫', notes: '定期檢測胎紋深度與輪胎對調' },
         { name: '汽車電瓶', subCat: '電瓶', emoji: '🔋', duration: 730, hasEndDate: true, warnDays: 30, location: '引擎室', notes: '鉛酸/AGM電瓶壽命約 2~3 年' },
         { name: '汽車雨刷', subCat: '雨刷', emoji: '🌧️', duration: 180, hasEndDate: true, warnDays: 14, location: '前擋風玻璃', notes: '橡膠條老化易刷不乾淨，半年至一年換新' },
         { name: '煞車來令片', subCat: '煞車', emoji: '🛑', duration: 730, hasEndDate: true, warnDays: 30, location: '底盤煞車系統', notes: '檢查煞車來令片厚度與煞車油含水量' },
-        { name: '機車齒輪油', subCat: '齒輪油', emoji: '🛵', duration: 90, hasEndDate: true, warnDays: 7, location: '機車齒輪箱', notes: '換 2 次機油換 1 次齒輪油' }
+        { name: '汽機車定期檢驗', subCat: '驗車', emoji: '📋', duration: 365, hasEndDate: true, warnDays: 30, location: '監理站/代檢廠', notes: '出廠逾 5 年車輛每年定期檢驗' },
+        { name: '汽機車強制險', subCat: '車險', emoji: '📑', duration: 365, hasEndDate: true, warnDays: 30, location: '保險合約', notes: '每年定時續保強制汽車責任保險' }
       ]
     },
     subscription: {
@@ -7500,7 +7896,8 @@ var CapacitorBridgeBundle = (() => {
         { name: '雲端硬碟', subCat: '雲端', emoji: '☁️', duration: 365, hasEndDate: true, warnDays: 14, brand: 'iCloud / Google One', location: '年度訂閱', notes: '年費自動續訂提醒' },
         { name: '專業軟體', subCat: '軟體', emoji: '💻', duration: 30, hasEndDate: true, warnDays: 3, brand: 'ChatGPT / Adobe', location: '定期扣款', notes: '工作軟體月租方案' },
         { name: '健身會籍', subCat: '健身', emoji: '💪', duration: 365, hasEndDate: true, warnDays: 14, location: '運動中心', notes: '年度會籍到期前評估是否續約' },
-        { name: '寬頻電信', subCat: '電信', emoji: '📶', duration: 30, hasEndDate: true, warnDays: 3, location: '電信帳單', notes: '每月固網光纖與手機資費結帳' }
+        { name: '寬頻電信', subCat: '電信', emoji: '📶', duration: 30, hasEndDate: true, warnDays: 3, location: '電信帳單', notes: '每月固網光纖與手機資費結帳' },
+        { name: '房屋租約', subCat: '租約', emoji: '🏠', duration: 365, hasEndDate: true, warnDays: 30, location: '租賃契約', notes: '年度租約到期前確認續約或點交退租' }
       ]
     },
     medicine: {
@@ -7512,7 +7909,8 @@ var CapacitorBridgeBundle = (() => {
         { name: '深海魚油', subCat: '魚油', emoji: '🐟', duration: 180, hasEndDate: true, warnDays: 14, location: '餐桌藥盒', notes: '避免陽光高溫直射，保持密封乾燥' },
         { name: '外用藥膏', subCat: '藥膏', emoji: '🩹', duration: 180, hasEndDate: true, warnDays: 14, location: '常備急救箱', notes: '皮膚軟膏開封後定期確認是否變質' },
         { name: '常備感冒藥', subCat: '成藥', emoji: '🩺', duration: 365, hasEndDate: true, warnDays: 30, location: '常備醫藥箱', notes: '定期檢視藥箱內感冒止痛藥品效期' },
-        { name: '隱眼保養液', subCat: '保養液', emoji: '👁️', duration: 90, hasEndDate: true, warnDays: 7, location: '洗手台置物櫃', notes: '浸泡保養液開瓶後建議 3 個月內用畢' }
+        { name: '隱眼保養液', subCat: '保養液', emoji: '👁️', duration: 90, hasEndDate: true, warnDays: 7, location: '洗手台置物櫃', notes: '浸泡保養液開瓶後建議 3 個月內用畢' },
+        { name: '牙科洗牙檢查', subCat: '醫療', emoji: '🦷', duration: 180, hasEndDate: true, warnDays: 14, location: '牙科診所', notes: '健保給付每半年定期超音波洗牙與口腔檢查' }
       ]
     },
     cleaning: {
@@ -7524,7 +7922,8 @@ var CapacitorBridgeBundle = (() => {
         { name: '洗碗精', subCat: '洗碗精', emoji: '🍽️', duration: 60, hasEndDate: true, warnDays: 7, location: '廚房洗滌槽', notes: '溫和洗淨碗盤油脂' },
         { name: '擦拭抹布', subCat: '抹布', emoji: '🧽', duration: 30, hasEndDate: true, warnDays: 5, location: '廚房中島', notes: '抹布容易滋生細菌，每月定期換新' },
         { name: '潔廁芳香劑', subCat: '潔廁劑', emoji: '🚽', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衛浴', notes: '抑菌除垢，持續芳香' },
-        { name: '消毒酒精', subCat: '酒精', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, location: '玄關置物櫃', notes: '75% 消毒酒精日常環境維護' }
+        { name: '消毒酒精', subCat: '酒精', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, location: '玄關置物櫃', notes: '75% 消毒酒精日常環境維護' },
+        { name: '除蟎噴霧', subCat: '除蟎', emoji: '💨', duration: 90, hasEndDate: true, warnDays: 7, location: '臥室', notes: '定期噴灑沙發寢具抑制塵蟎滋生' }
       ]
     },
     warranty: {
@@ -7536,7 +7935,8 @@ var CapacitorBridgeBundle = (() => {
         { name: '智慧型手機', subCat: '手機', emoji: '📱', duration: 365, hasEndDate: true, warnDays: 30, brand: 'iPhone', location: '隨身', notes: '原廠 1 年有限保固與電池健檢' },
         { name: '藍牙耳機', subCat: '耳機', emoji: '🎧', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Sony', location: '防潮箱', notes: '1 年原廠有限保固' },
         { name: '家用電器', subCat: '家電', emoji: '📺', duration: 1095, hasEndDate: true, warnDays: 60, brand: 'Panasonic', location: '客廳', notes: '主要壓縮機/面板 3 年保固' },
-        { name: '智慧手錶', subCat: '手錶', emoji: '⌚', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Apple Watch', location: '臥室充電座', notes: '原廠 1 年保固' }
+        { name: '智慧手錶', subCat: '手錶', emoji: '⌚', duration: 365, hasEndDate: true, warnDays: 30, brand: 'Apple Watch', location: '臥室充電座', notes: '原廠 1 年保固' },
+        { name: '遊戲主機', subCat: '遊戲機', emoji: '🎮', duration: 365, hasEndDate: true, warnDays: 30, brand: 'PS5 / Switch', location: '客廳電視櫃', notes: '原廠 1 年硬體有限保固' }
       ]
     },
     filter: {
@@ -7559,12 +7959,14 @@ var CapacitorBridgeBundle = (() => {
         { name: '常備高麗菜', subCat: '青菜', emoji: '🥗', duration: 10, hasEndDate: true, warnDays: 3, location: '冰箱蔬果室', notes: '包葉蔬菜冷藏保存約 7~10 天' },
         { name: '當季新鮮水果', subCat: '水果', emoji: '🍎', duration: 7, hasEndDate: true, warnDays: 2, brand: '蘋果/芭樂/柑橘', location: '水果籃/冷藏', notes: '新鮮水果建議一週內享用完畢' },
         { name: '香蕉與熟成水果', subCat: '水果', emoji: '🍌', duration: 4, hasEndDate: true, warnDays: 2, location: '室溫通風處', notes: '常溫保存，果皮微斑為最佳賞味期' },
+        { name: '木瓜與當季水果', subCat: '水果', emoji: '🍈', duration: 5, hasEndDate: true, warnDays: 2, location: '室溫通風處/冷藏', notes: '木瓜熟成轉黃變軟為最佳賞味期，建議冷藏並儘早食用' },
         { name: '全脂鮮乳', subCat: '鮮乳', emoji: '🥛', duration: 12, hasEndDate: true, warnDays: 3, brand: '全脂鮮乳', location: '冰箱冷藏', notes: '開封後請於 7 天內飲用完畢' },
         { name: '產地新鮮蛋', subCat: '雞蛋', emoji: '🥚', duration: 21, hasEndDate: true, warnDays: 3, brand: '放牧鮮蛋', location: '冰箱蛋架', notes: '低溫冷藏保存，留意最佳賞味期' },
         { name: '精品咖啡豆', subCat: '咖啡', emoji: '☕', duration: 30, hasEndDate: true, warnDays: 5, location: '乾燥陰涼處', notes: '拆封後最佳香氣賞味期 1 個月' },
         { name: '高山茶包', subCat: '茶包', emoji: '🍵', duration: 180, hasEndDate: true, warnDays: 14, location: '茶水櫃', notes: '密封防潮，維持高雅茶香' },
         { name: '純釀醬油', subCat: '調味料', emoji: '🧂', duration: 90, hasEndDate: true, warnDays: 7, location: '冰箱調味格', notes: '開瓶接觸空氣後建議冷藏保存' },
-        { name: '綜合堅果', subCat: '零食', emoji: '🍪', duration: 60, hasEndDate: true, warnDays: 7, location: '零食收納盒', notes: '拆封後儘早食用防止油脂氧化' }
+        { name: '綜合堅果', subCat: '零食', emoji: '🍪', duration: 60, hasEndDate: true, warnDays: 7, location: '零食收納盒', notes: '拆封後儘早食用防止油脂氧化' },
+        { name: '生鮮肉品', subCat: '生鮮肉品', emoji: '🥩', duration: 3, hasEndDate: true, warnDays: 1, location: '冰箱冷藏', notes: '生鮮肉品冷藏請於 3 天內料理或轉冷凍' }
       ]
     },
     pao: {
@@ -7576,7 +7978,81 @@ var CapacitorBridgeBundle = (() => {
         { name: '保濕精華液', subCat: '保養', emoji: '✨', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '開封後避光保存，保持滴管清潔' },
         { name: '滋潤護手霜', subCat: '護手霜', emoji: '👐', duration: 180, hasEndDate: true, warnDays: 14, location: '辦公桌', notes: '隨身保濕滋潤' },
         { name: '含氟牙膏', subCat: '牙膏', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, location: '浴室洗手台', notes: '早晚日常口腔護理' },
-        { name: '刮鬍刀頭', subCat: '刮鬍刀', emoji: '🪒', duration: 30, hasEndDate: true, warnDays: 5, location: '淋浴間', notes: '潤滑條褪色或刀片變鈍時及時更換' }
+        { name: '刮鬍刀頭', subCat: '刮鬍刀', emoji: '🪒', duration: 30, hasEndDate: true, warnDays: 5, location: '淋浴間', notes: '潤滑條褪色或刀片變鈍時及時更換' },
+        { name: '經典淡香水', subCat: '香水', emoji: '🌸', duration: 730, hasEndDate: true, warnDays: 60, location: '更衣室香水盤', notes: '香水避免陽光高溫直射，建議 2~3 年內使用' },
+        { name: '潤唇膏彩妝', subCat: '彩妝', emoji: '💄', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身化妝包', notes: '唇膏開封接觸空氣建議 1 年內更換' }
+      ]
+    },
+    pet: {
+      label: '寵物',
+      emoji: '🐾',
+      items: [
+        { name: '寵物主糧乾糧', subCat: '乾糧', emoji: '🥣', duration: 60, hasEndDate: true, warnDays: 7, brand: '無穀主糧', location: '寵物飼料桶', notes: '拆封後密封防潮，建議 2 個月內食用完畢' },
+        { name: '主食機能罐頭', subCat: '罐頭', emoji: '🥫', duration: 365, hasEndDate: true, warnDays: 14, location: '儲物櫃', notes: '開罐後請冷藏保鮮，並於 48 小時內餵食' },
+        { name: '體內外驅蟲滴劑', subCat: '驅蟲藥', emoji: '💊', duration: 30, hasEndDate: true, warnDays: 3, brand: '蚤不到 / 全能狗', location: '寵物專用藥箱', notes: '每月定期滴劑或口服驅蟲，預防心絲蟲與跳蚤' },
+        { name: '狂犬年度疫苗', subCat: '疫苗健檢', emoji: '💉', duration: 365, hasEndDate: true, warnDays: 30, location: '動物醫院', notes: '每年定期施打核心疫苗、狂犬病疫苗與例行健康檢查' },
+        { name: '凝結天然貓砂', subCat: '貓砂尿墊', emoji: '🪵', duration: 30, hasEndDate: true, warnDays: 5, location: '貓砂盆', notes: '每個月整盆徹底換新並清洗消毒貓砂盆' },
+        { name: '原肉零食凍乾', subCat: '零食凍乾', emoji: '🥩', duration: 45, hasEndDate: true, warnDays: 7, location: '零食密封罐', notes: '純天然純肉凍乾，拆封後防潮保存' },
+        { name: '寵物潔牙凝膠', subCat: '寵物保健', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, location: '寵物用品架', notes: '日常口腔護理，預防牙結石' }
+      ]
+    },
+    baby: {
+      label: '母嬰',
+      emoji: '🍼',
+      items: [
+        { name: '嬰兒配方奶粉', subCat: '配方奶', emoji: '🍼', duration: 30, hasEndDate: true, warnDays: 5, location: '泡奶台', notes: '開罐後一個月內食用完畢，避免受潮變質' },
+        { name: '透氣紙尿褲', subCat: '尿布', emoji: '🧷', duration: 90, hasEndDate: true, warnDays: 14, location: '尿布台收納箱', notes: '保持乾燥通風，受潮易影響吸水防漏效果' },
+        { name: '純水柔濕紙巾', subCat: '濕紙巾', emoji: '🧻', duration: 45, hasEndDate: true, warnDays: 7, location: '推車隨身包', notes: '開封後請貼緊封口標籤，避免水分蒸發乾涸' },
+        { name: '寶寶副食品粥', subCat: '副食品', emoji: '🥣', duration: 180, hasEndDate: true, warnDays: 14, location: '常溫儲存區', notes: '常溫寶寶副食品常溫保存，隔水加熱即食效期' },
+        { name: '矽膠奶瓶奶嘴', subCat: '奶嘴用品', emoji: '🍼', duration: 90, hasEndDate: true, warnDays: 7, location: '消毒鍋旁', notes: '矽膠奶嘴高溫消毒後易老化，建議每 2~3 個月換新' },
+        { name: '嬰幼兒常規疫苗', subCat: '幼兒疫苗', emoji: '💉', duration: 60, hasEndDate: true, warnDays: 7, location: '小兒科診所', notes: '依照兒童健康手冊進度定期施打預防針' }
+      ]
+    },
+    office: {
+      label: '辦公',
+      emoji: '💼',
+      items: [
+        { name: '彩色印表機墨水', subCat: '耗材墨水', emoji: '🖨️', duration: 180, hasEndDate: true, warnDays: 14, location: '辦公室列印區', notes: '墨水開封後半年內使用，避免噴頭乾涸堵塞' },
+        { name: '雷射碳粉匣', subCat: '碳粉匣', emoji: '📦', duration: 365, hasEndDate: true, warnDays: 30, location: '辦公物料櫃', notes: '碳粉避免高溫潮濕，定期檢查存量' },
+        { name: '3C鹼性電池', subCat: '電池', emoji: '🔋', duration: 730, hasEndDate: true, warnDays: 30, location: '抽屜物料盒', notes: '遙控器與滑鼠定期檢查更換，避免電池漏液損毀設備' },
+        { name: '工作手帳筆記本', subCat: '筆記文具', emoji: '📓', duration: 365, hasEndDate: false, location: '辦公桌', notes: '年度手帳與工作筆記記錄陪伴天數' },
+        { name: '出國護照簽證', subCat: '證件合約', emoji: '🛂', duration: 3650, hasEndDate: true, warnDays: 180, location: '防潮保險箱', notes: '出國前請確認護照有效效期需在 6 個月以上' },
+        { name: '專業證照回訓', subCat: '專業證照', emoji: '📜', duration: 1095, hasEndDate: true, warnDays: 60, location: '證照夾', notes: '專業證照定期回訓換發學分審驗' }
+      ]
+    },
+    outdoor: {
+      label: '戶外',
+      emoji: '⛺',
+      items: [
+        { name: '乳清蛋白粉', subCat: '高蛋白', emoji: '🥤', duration: 90, hasEndDate: true, warnDays: 7, brand: 'ON 雙倍巧克力', location: '廚房流理台', notes: '大包裝拆封後密封乾燥儲存，避免受潮結塊' },
+        { name: '露營帳篷天幕', subCat: '露營裝備', emoji: '🏕️', duration: 1095, hasEndDate: true, warnDays: 30, location: '儲藏室裝備袋', notes: '定期展開通風除濕，檢查防水壓膠條與布料狀態' },
+        { name: '登山健行鞋', subCat: '登山裝備', emoji: '🥾', duration: 730, hasEndDate: false, location: '玄關通風處', notes: 'PU環保中底水解特性監測，定期穿著使用壽命' },
+        { name: '戶外運動水壺', subCat: '水壺配件', emoji: '🧊', duration: 365, hasEndDate: true, warnDays: 14, location: '隨身背包側袋', notes: '水壺防漏矽膠密封圈建議每年更換' },
+        { name: '馬拉松能量果膠', subCat: '補給品', emoji: '⚡', duration: 180, hasEndDate: true, warnDays: 14, location: '運動補給包', notes: '賽事能量膠賞味期，避免高溫變質' },
+        { name: '羽網球拍穿線', subCat: '球拍線路', emoji: '🏸', duration: 60, hasEndDate: true, warnDays: 7, location: '球袋', notes: '拍線張力磅數會隨時間自然衰減，定時重穿換線' }
+      ]
+    },
+    home: {
+      label: '居家',
+      emoji: '🪴',
+      items: [
+        { name: '室內觀葉綠植', subCat: '植栽綠化', emoji: '🌿', duration: 7, hasEndDate: true, warnDays: 1, location: '客廳採光窗台', notes: '室內觀葉植物每週定期澆水與葉面擦拭清潔' },
+        { name: '植物長效緩釋肥', subCat: '花草肥料', emoji: '🌱', duration: 90, hasEndDate: true, warnDays: 7, location: '園藝花架', notes: '每季定期於盆土表層追加顆粒緩效肥' },
+        { name: 'LED節能燈泡', subCat: '燈具照明', emoji: '💡', duration: 1095, hasEndDate: true, warnDays: 30, location: '玄關天花板', notes: '居家主要照明燈具使用壽命約 3~5 年' },
+        { name: '防蟎天絲寢具', subCat: '寢具家飾', emoji: '🛏️', duration: 14, hasEndDate: true, warnDays: 2, location: '主臥床鋪', notes: '枕套床單被單每兩週定期清洗烘乾' },
+        { name: '住警器與警報設備', subCat: '居家安全', emoji: '🧯', duration: 1825, hasEndDate: true, warnDays: 60, location: '廚房/走廊天花板', notes: '獨立式偵煙住警器電池壽命與測試按鈕定期檢查' },
+        { name: '管路防漏五金修繕', subCat: '修繕保養', emoji: '🔧', duration: 365, hasEndDate: true, warnDays: 30, location: '浴室/廚房水路', notes: '定期檢測進水軟管與三角凡爾墊片密封性' }
+      ]
+    },
+    fashion: {
+      label: '穿搭',
+      emoji: '👗',
+      items: [
+        { name: '羽絨冬衣專業送洗', subCat: '換季送洗', emoji: '🧥', duration: 180, hasEndDate: true, warnDays: 14, location: '衣帽間', notes: '換季前送專業洗衣店乾洗水洗，套透氣防塵袋收納' },
+        { name: '真皮皮包皮夾', subCat: '皮革保養', emoji: '👜', duration: 90, hasEndDate: true, warnDays: 7, location: '防潮更衣室', notes: '真皮材質每季塗抹保養皮革油防止乾燥龜裂' },
+        { name: '純銀珠寶飾品', subCat: '珠寶飾品', emoji: '💍', duration: 180, hasEndDate: true, warnDays: 14, location: '飾品首飾盒', notes: '收納於密封防氧化夾鏈袋，定期以拭銀布擦拭保養' },
+        { name: '天然樟木防蛀防蟲包', subCat: '衣物防護', emoji: '🌿', duration: 180, hasEndDate: true, warnDays: 14, location: '衣櫃層板抽屜', notes: '天然防蟲防蛀樟木塊每半年打磨更新氣味' },
+        { name: '精品皮鞋鞋靴', subCat: '精品鞋靴', emoji: '👠', duration: 180, hasEndDate: true, warnDays: 14, location: '玄關通風鞋櫃', notes: '換季鞋靴放置除濕包與鞋撐防變形' }
       ]
     },
     other: {
@@ -7585,8 +8061,8 @@ var CapacitorBridgeBundle = (() => {
       items: [
         { name: '慢跑球鞋', subCat: '球鞋', emoji: '👟', brand: 'Nike Invincible', location: '玄關鞋櫃', hasEndDate: false, notes: '僅記錄購買穿著天數，定期檢視中底衰退' },
         { name: '商務背包', subCat: '包袋', emoji: '🎒', location: '玄關掛架', hasEndDate: false, notes: '通勤耐用度與陪伴使用天數記錄' },
-        { name: '羊毛大衣', subCat: '衣物', emoji: '🧥', location: '臥室衣櫃', hasEndDate: false, notes: '換季送洗與收納天數' },
-        { name: '閱讀書籍', subCat: '圖書', emoji: '📚', location: '床頭櫃', hasEndDate: false, notes: '閱讀進度陪伴天數' }
+        { name: '日常工作會議', subCat: '會議', emoji: '📅', duration: 7, hasEndDate: true, warnDays: 1, location: '線上會議室', notes: '日常工作進度會議與專案追蹤' },
+        { name: '各類生活備忘', subCat: '備忘', emoji: '📌', duration: 30, hasEndDate: true, warnDays: 3, location: '生活隨手記', notes: '各類個人自訂物品使用效期追蹤' }
       ]
     }
   };
@@ -10397,6 +10873,7 @@ var CapacitorBridgeBundle = (() => {
     updateAvatarPreview();
     itemModal.style.display = 'flex';
     lockBodyScroll();
+    if (itemNameInput) setTimeout(() => itemNameInput.focus(), 120);
   }
 
   function openEditModal(id) {
@@ -12939,7 +13416,7 @@ var CapacitorBridgeBundle = (() => {
    * 本機自然語言解析器 (純 JavaScript 演算法 / 100% 離線運行)
    */
   // ==========================================================================
-  // Section 8.5: On-Device Smart Natural Language Parser & Confirmation Modal v1.7.4
+  // Section 8.5: On-Device Smart Natural Language Parser & Confirmation Modal v1.7.9
   // 特性：100% 離線運行、主體保留（如「交通會議」）、精準時分推算、自訂提醒彈窗
   // ==========================================================================
 
@@ -13130,91 +13607,146 @@ var CapacitorBridgeBundle = (() => {
     return null;
   }
 
-  function extractCleanName(rawText) {
-    let clean = rawText;
+  function simplifyItemName(rawText) {
+    if (!rawText || typeof rawText !== 'string') return '未命名物品';
 
-    const noisePrefixes = [
-      /幫我(?:記錄|記一下|記|紀錄)(?:一下)?/g,
-      /請幫我(?:記錄|記一下|記|紀錄)?/g,
-      /記錄一下|記一下/g,
-      /剛剛買了|剛買了|剛剛買|剛買/g,
-      /有一隻|有一頭|有一個|有一位|有一場|有一部|有一件|有一堂|有隻|有個|有場|有件/g,
-      /下星期有|下週有|這週有|下月有|明天有|後天有/g,
-      /記得提醒我?|記得幫我|提醒我/g,
-      /記得|別忘記|別忘了/g,
-      /要去|準備去|去拿|拿|吃|喝|用|存了|放了|想去/g
-    ];
-    noisePrefixes.forEach(rg => { clean = clean.replace(rg, ' '); });
+    let clean = rawText.trim()
+      .replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+      .replace(/\u3000/g, ' ');
 
-    clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}分))?)?\s*(?:提醒|通知)/g, ' ');
+    // 1. 移除時鐘與提醒修飾詞
+    clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}分))?)?\s*(?:提醒|通知)/g, ' ');
     clean = clean.replace(/(?:當天|當日|當天上午|當天下午|當天晚上)\s*(?:提醒|通知)?/g, ' ');
-    clean = clean.replace(/不提醒|提醒我?|通知我?|提醒/g, ' ');
+    clean = clean.replace(/不提醒|免提醒|不用提醒|提醒我?|通知我?|提醒|通知/g, ' ');
 
-    const timeWords = [
+    // 2. 移除時間日期字詞
+    const timeRegexes = [
       /20\d\d[-/年\.]\s*\d{1,2}[-/月\.]\s*\d{1,2}[日號]?/g,
       /\d{1,2}[-/月\.]\s*\d{1,2}[日號]?/g,
-      /大後天|大后天|後天|后天|明天|明兒個|今天|今日/g,
+      /大後天|大后天|後天|后天|明天|明兒個|今天|今日|昨天|昨兒個/g,
       /(?:下下|下|這|本)?\s*(?:週|周|星期|禮拜)(?:\s*[一二三四五六日天1-7])?/g,
-      /半年(?:後|后)?/g,
-      /\d+\s*個?年(?:半)?(?:後|后)?/g,
-      /\d+\s*個?月(?:半)?(?:後|后)?/g,
-      /\d+\s*(?:週|周|星期|禮拜)(?:後|后)?/g,
-      /\d+\s*(?:天|日)(?:後|后|之后|之內|到期|過期)?/g,
+      /每(?:年|月|週|周|星期|禮拜|天|日)/g,
+      /(?:還有|剩|保質|保存|保固|有效期)?\s*(?:半|\d+|[一二兩三四五六七八九十]+)\s*(?:個)?(?:半)?(?:年|個月|月|週|周|星期|禮拜|天|日)(?:後|后|到期|過期)?/g,
+      /半個月(?:後|后)?|半月(?:後|后)?|半年(?:後|后)?/g,
+      /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*個?月(?:半)?(?:後|后)?/g,
+      /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:個)?(?:週|周|星期|禮拜)(?:後|后)?/g,
+      /(?:放|存|保質|保存|剩|還有)?\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日)(?:\s*(?:後|后|之后|之內|到期|過期))?/g,
+      /(?:延長|延後|推遲|再放|再存|多放)\s*(\d+|[一二兩三四五六七八九十]+)\s*(?:天|日)/g,
       /(?:上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨)\s*\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
+      /\d{1,2}\s*(?:點|点|時|时)(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?/g,
       /(?:^|[^\d:])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/g,
-      /過期了?|到期了?|過期日|效期|有效期限|保質期|保存期限/g
+      /上午|早上|早晨|清晨|中午|下午|午後|傍晚|晚上|今晚|明晚|半夜|凌晨/g
     ];
-    timeWords.forEach(rg => { clean = clean.replace(rg, ' '); });
+    timeRegexes.forEach(rg => { clean = clean.replace(rg, ' '); });
 
-    clean = clean.replace(/(?:一大|一小|一|幾|[一二兩三四五六七八九十\d]+)?\s*(?:大瓶|大盒|小瓶|小盒|瓶|顆|盒|包|袋|條|罐|杯|份|件|套|隻|把|碗|片|組|條|雙|捲|張|支|箱|本|個|場|堂)\s*/g, ' ');
+    // 2.5 移除僅記天數/不設到期修飾詞
+    clean = clean.replace(/(?:謹記|僅記|記|紀錄|記錄)?\s*(?:使用天數|陪伴天數|天數)/g, ' ');
+    clean = clean.replace(/不設定到期(?:日|時間)?|不設到期(?:日|時間)?|無到期日?|不限期|永久/g, ' ');
 
-    clean = clean.replace(/^(?:買了|買|開了|開封|更換|換|吃|喝|用|存了|放了|需要|要做|要|想|補貨|購買|參加)\s*/g, '');
-    clean = clean.replace(/(?:買了|買|開了|開封|更換|換|吃|喝|用|存了|放了|需要|要做|要|想|補貨|購買|參加)\s*$/g, '');
+    // 3. 移除口語前綴贅詞 (Conversational Noise Prefixes)
+    const conversationalNoise = [
+      /幫我(?:記錄|記一下|記|紀錄|寫一下|建一下|備忘一下)(?:一下)?/g,
+      /請幫我(?:記錄|記一下|記|紀錄)?/g,
+      /記錄一下|記一下|紀錄一下/g,
+      /記得(?:幫我|提醒我|通知我)?/g,
+      /別忘記|別忘了|麻煩幫我|要記得/g,
+      /剛剛在|剛在|今天在|昨天在|在[^\s,，。]+(?:買的|訂購的|新買的|買了|剛買的)/g,
+      /剛剛買了|剛買了|剛剛買|剛買|剛剛訂購|剛訂購|新買的|新買了|新買|訂購了|訂購|購買了|購買|買了/g,
+      /有一隻|有一頭|有一個|有一位|有一場|有一部|有一件|有一堂|有一臺|有一台|有一批|有一支|有一輛|有一袋|有一箱|有一包|有一盒|有一瓶|有一罐|有一條/g,
+      /領養了一隻|領養了|收編了一隻|收編了/g,
+      /準備(?:要|去|參加|去吃|去拿|更換|換)?/g,
+      /要去|準備去|去拿|去吃|去買|去喝|想去/g,
+      /放在|放進|存進|存放在|存了|放了|留著|收在|收進/g
+    ];
+    conversationalNoise.forEach(rg => { clean = clean.replace(rg, ' '); });
 
-    clean = clean.replace(/[，,。\.！!？\?：:;；~～\(\)(（）\[\]【】"'`]/g, ' ');
-    clean = clean.replace(/\s+/g, ' ').trim();
-    clean = clean.replace(/^[個場瓶隻件張條盒包袋碗次批堂大瓶小瓶大盒小盒]+/g, '').trim();
-    clean = clean.replace(/^[的了在與和從於]+|[的了在與和從於]+$/g, '').trim();
+    // 4. 移除數量詞修飾 (如：兩大瓶、5盒、一個、三大包、一條、三包)
+    clean = clean.replace(/(?:\d+|[一二兩三四五六七八九十幾]+)\s*(?:個|場|瓶|隻|件|張|條|盒|包|袋|碗|次|批|堂|大瓶|小瓶|大盒|小盒|罐|箱|支|臺|台|顆|粒|片|包裝|抽|大袋|大箱|捲|公升|ml|g|kg|斤|瓶裝)/gi, ' ');
+    clean = clean.replace(/兩大瓶|三大盒|一大箱|好幾盒|幾包|幾瓶|好幾瓶|兩小瓶|一大顆/g, ' ');
 
-    // 專用語意保護（主體詞精準保留）
+    // 5. 移除存儲位置與口語中介詞
+    clean = clean.replace(/(?:在|放|放在)?(?:冰箱|冷藏|冷凍|蔬果室|防潮箱|陽台|車庫|客廳|廚房|臥室|浴室|抽屜|櫃子|書房|桌上|鞋櫃|衣櫃|儲藏室|後車廂|後座|推車|辦公室)(?:裡|內|中|上|下)?/g, ' ');
+    clean = clean.replace(/放冷藏|放冷凍|放陰涼處|常溫保存|密封保存/g, ' ');
+
+    // 6. 移除狀態贅詞與動作尾綴
+    clean = clean.replace(/大概|預計|預估|應該|可能|差不多|左右|之內|前後/g, ' ');
+    clean = clean.replace(/到期了|過期了|到期|過期|更換|換新|換了|截止|用完|喝完|吃完|結束|開始|續約|續訂|提醒我|通知我|買的|買了|完成了|完成/g, ' ');
+
+    // 7. 清除標點符號與邊界雜詞
+    clean = clean.replace(/[,，。!！?？~～、:：()（）\[\]【】]/g, ' ').replace(/\s+/g, ' ').trim();
+    clean = clean.replace(/^[個場瓶隻件張條盒包袋碗次批堂大瓶小瓶大盒小盒顆粒箱片]+/g, '').trim();
+    clean = clean.replace(/^(?:訂購|購買|領養|收編|準備|新買|新訂|[的了在與和從於去買拿放換])+/g, '').trim();
+    clean = clean.replace(/(?:更換|換新|換了|到期|過期|穿著|送洗|保固|完成|處理|後|后|[的了在與和從於去買拿放換])+$/g, '').trim();
+
+    // 8. 專有名詞語意簡化與核心保留
+    // 會議保護
     if (clean.includes('會議') || clean.includes('開會') || clean.includes('研討會')) {
-      const match = clean.match(/([^\s]{1,6})(?:會議|開會|研討會)/);
+      const match = clean.match(/([^\s]{1,12})(?:會議|開會|研討會)/);
       if (match) {
         let prefix = match[1].replace(/^[要有去參加個場堂]/, '').trim();
         if (prefix.length > 0 && prefix !== '個' && prefix !== '場') {
-          return `${prefix}${clean.includes('研討會') ? '研討會' : '會議'}`;
+          return prefix + (clean.includes('研討會') ? '研討會' : '會議');
         }
       }
-      return clean.includes('研討會') ? '線上研討會' : '會議';
+      return clean.includes('研討會') ? '研討會' : '工作會議';
     }
 
-    if (/貓.*出生|貓咪.*出生|貓.*誕生|貓咪.*誕生/.test(rawText)) {
-      const petM = rawText.match(/([^\s]{1,3})(?:貓|貓咪).*(?:出生|誕生)/);
-      if (petM && !['一隻', '一頭', '個', '有', '那隻'].includes(petM[1])) {
-        return `${petM[1]}貓咪誕生`;
+    // 寵物出生 / 誕生
+    if (/貓.*(?:出生|誕生)/.test(rawText)) {
+      const petM = clean.match(/([^\s]{1,4})(?:貓|小貓|幼貓)/);
+      if (petM && !['一隻', '有隻', '那隻', '這隻'].includes(petM[1])) {
+        return petM[1] + '貓咪誕生';
       }
       return '貓咪誕生';
     }
+    if (/狗.*(?:出生|誕生)/.test(rawText)) {
+      return '狗狗誕生';
+    }
 
+    // 車輛耗材
     if (/機油/.test(rawText)) {
       if (rawText.includes('機車')) return '機車機油';
       if (rawText.includes('汽車')) return '汽車機油';
-      return '更換機油';
+      return clean.includes('機油') ? clean : '機油更換';
+    }
+    if (/齒輪油/.test(rawText)) {
+      return '機車齒輪油';
     }
 
+    // 鮮奶與乳品保留品牌完整度
     if (/鮮奶|牛奶|鮮乳/.test(rawText)) {
-      const milkM = clean.match(/([^\s]{2,4})(?:鮮奶|牛奶|鮮乳)/);
-      if (milkM && !['買了', '剛剛', '一大', '一瓶', '大瓶', '全脂'].includes(milkM[1])) {
-        return `${milkM[1]}鮮奶`;
+      const brandMatch = clean.match(/(好市多|光泉|瑞穗|義美|福樂|林鳳營|高大|初鹿|柳營|四方|東海|萬丹|六甲|崙背)?([^\s]{0,6})(?:鮮奶|牛奶|鮮乳)/);
+      if (brandMatch && brandMatch[0]) {
+        let result = brandMatch[0].replace(/^[買了大瓶小瓶一兩三]+/g, '').trim();
+        if (result.length >= 2) return result;
       }
-      return '全脂鮮奶';
+      return clean.includes('鮮奶') ? clean : '全脂鮮奶';
     }
 
-    if (clean.length > 8) {
-      clean = clean.slice(0, 8);
+    // 9. 取消 6 個字硬性限制，放寬至合理的 30 字上限，保留品名完整性！
+    if (clean.length > 30) {
+      clean = clean.slice(0, 30);
     }
+
+    // 若清理後只剩單字，進行自然補齊
+    if (clean.length === 1) {
+      if (clean === '貓') clean = '貓咪';
+      else if (clean === '狗') clean = '狗狗';
+      else if (clean === '藥') clean = '常備藥';
+      else if (clean === '奶') clean = '鮮奶';
+      else if (clean === '蛋') clean = '新鮮雞蛋';
+      else if (clean === '茶') clean = '茶葉包';
+      else if (clean === '水') clean = '礦泉水';
+      else clean = clean + '品';
+    }
+
     return clean || '未命名物品';
   }
+
+function extractCleanName(rawText) {
+  return simplifyItemName(rawText);
+}
+
 
   function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], lastCreated = null) {
     if (!rawInput || typeof rawInput !== 'string') return { success: false, error: 'EMPTY_INPUT' };
@@ -13275,7 +13807,7 @@ var CapacitorBridgeBundle = (() => {
         }
       }
 
-      if (newName.length > 8) newName = newName.slice(0, 8);
+      if (newName.length > 30) newName = newName.slice(0, 30);
 
       const expDate = parsedDate || targetItem.endDate || targetItem.expiryDate || formatDate(offsetDays(baseDate, 3));
       const targetWarn = remindDaysBefore !== null ? remindDaysBefore : (targetItem.warnDays !== undefined ? targetItem.warnDays : 3);
@@ -13300,50 +13832,41 @@ var CapacitorBridgeBundle = (() => {
       };
     }
 
+    const isElapsedExplicit = /(?:謹記|僅記|記|紀錄|記錄)?\s*(?:使用天數|陪伴天數|天數)|不設(?:定)?(?:到期|效期|時間|日)|無到期|不限期|永久/i.test(text);
+
     let finalDate = parsedDate;
-    if (!finalDate) {
+    let hasEndDate = true;
+
+    if (isElapsedExplicit) {
+      hasEndDate = false;
+      finalDate = null;
+    } else if (!finalDate) {
       if (/鮮奶|牛奶|鮮乳/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
       else if (/蔬菜|青菜/.test(text)) finalDate = formatDate(offsetDays(baseDate, 5));
+      else if (/水果|木瓜|蘋果|香蕉|芭樂|西瓜|芒果/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
       else if (/機油/.test(text)) finalDate = formatDate(offsetDays(baseDate, 180));
       else if (/會議|開會|研討會/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
       else if (/貓.*出生|貓.*誕生/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-      else return { success: false, error: 'NO_TIME_FOUND' };
+      else {
+        // 智慧輸入未設定到期時間，自動切換為「謹記使用天數」模式
+        hasEndDate = false;
+        finalDate = null;
+      }
     }
 
     const cleanName = extractCleanName(text);
 
-    let category = 'other';
-    let subCategory = '';
-    let emoji = '📌';
-    if (/會議|開會|研討會/.test(cleanName)) {
-      category = 'other';
-      subCategory = '會議';
-      emoji = '📅';
-    } else if (/鮮奶|牛奶|鮮乳/.test(cleanName)) {
-      category = 'food';
-      subCategory = '鮮乳';
-      emoji = '🥛';
-    } else if (/機油/.test(cleanName)) {
-      category = 'vehicle';
-      subCategory = '機油';
-      emoji = '🚗';
-    } else if (/貓/.test(cleanName)) {
-      category = 'other';
-      subCategory = '寵物';
-      emoji = '🐱';
-    } else if (/牙醫|看診|藥/.test(cleanName)) {
-      category = 'medicine';
-      subCategory = '醫療';
-      emoji = '💊';
-    } else if (/護照|簽證|證件/.test(cleanName)) {
-      category = 'other';
-      subCategory = '證件';
-      emoji = '🛂';
-    }
+    // 分類與細項項目自動對應（若無對應則自動選 other 其他）
+    const matched = (typeof matchCategoryAndSubCategory === 'function')
+      ? matchCategoryAndSubCategory(text + ' ' + cleanName, 'other')
+      : { category: 'other', subCategory: '', emoji: '📌' };
+    let category = matched.category || 'other';
+    let subCategory = matched.subCategory || '';
+    let emoji = matched.emoji || '📌';
 
-    const finalWarnDays = defaultWarnDays;
+    const finalWarnDays = hasEndDate ? defaultWarnDays : -1;
     const finalRemindTime = parsedTime || '09:00';
-    const calculatedReminderDate = (finalWarnDays >= 0)
+    const calculatedReminderDate = (hasEndDate && finalDate && finalWarnDays >= 0)
       ? formatDate(offsetDays(new Date(finalDate + 'T00:00:00'), -finalWarnDays))
       : null;
 
@@ -13354,6 +13877,8 @@ var CapacitorBridgeBundle = (() => {
       category: category,
       subCategory: subCategory,
       emoji: emoji,
+      hasEndDate: hasEndDate,
+      mode: hasEndDate ? 'expiry' : 'elapsed',
       expiryDate: finalDate,
       remindDaysBefore: finalWarnDays,
       remindTime: finalRemindTime,
@@ -13371,6 +13896,44 @@ var CapacitorBridgeBundle = (() => {
   // 自然語言確認彈窗管理 (Confirmation Modal)
   // ----------------------------------------------------
   let currentNlpParsed = null;
+  let currentNlpTrackingMode = 'expiry';
+
+  function setNlpTrackingMode(mode) {
+    currentNlpTrackingMode = mode;
+    const btnExpiry = document.getElementById('btnNlpTrackExpiry');
+    const btnElapsed = document.getElementById('btnNlpTrackElapsed');
+    const dateWrap = document.getElementById('nlpConfirmDateWrap');
+    const reminderWrap = document.getElementById('nlpConfirmReminderWrap');
+    const customRow = document.getElementById('nlpCustomReminderRow');
+    const elapsedHint = document.getElementById('nlpElapsedModeHintWrap');
+    const dateInput = document.getElementById('nlpConfirmDate');
+
+    if (mode === 'elapsed') {
+      if (btnElapsed) btnElapsed.classList.add('active');
+      if (btnExpiry) btnExpiry.classList.remove('active');
+      if (dateWrap) dateWrap.style.display = 'none';
+      if (reminderWrap) reminderWrap.style.display = 'none';
+      if (customRow) customRow.style.display = 'none';
+      if (elapsedHint) elapsedHint.style.display = 'flex';
+    } else {
+      if (btnExpiry) btnExpiry.classList.add('active');
+      if (btnElapsed) btnElapsed.classList.remove('active');
+      if (dateWrap) dateWrap.style.display = 'block';
+      if (reminderWrap) reminderWrap.style.display = 'block';
+      if (elapsedHint) elapsedHint.style.display = 'none';
+      const remindSelect = document.getElementById('nlpConfirmReminder');
+      if (remindSelect && remindSelect.value === 'custom' && customRow) {
+        customRow.style.display = 'block';
+      }
+      if (dateInput && !dateInput.value) {
+        const defaultDays = 7;
+        const daysInput = document.getElementById('nlpConfirmDays');
+        if (daysInput) daysInput.value = defaultDays;
+        dateInput.value = getOffsetDateString(getTodayString(), defaultDays);
+        updateNlpDateHint(dateInput.value);
+      }
+    }
+  }
 
   function updateNlpDateHint(dateStr) {
     const hintEl = document.getElementById('nlpConfirmDateHint');
@@ -13400,6 +13963,60 @@ var CapacitorBridgeBundle = (() => {
     }
   }
 
+  function populateNlpSubCategoryDropdown(category, activeSubCatName = '') {
+    const subCatSelect = document.getElementById('nlpConfirmSubCategory');
+    const customSubCatInput = document.getElementById('nlpConfirmCustomSubCategory');
+    if (!subCatSelect) return;
+
+    subCatSelect.innerHTML = '';
+    const allCats = (typeof getAllCategories === 'function') ? getAllCategories() : DEFAULT_CATEGORIES;
+    const catData = allCats[category] || allCats['other'] || { label: '其他', emoji: '📌', items: [] };
+
+    // 預設/無細項選項
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '(無細項 / 預設)';
+    subCatSelect.appendChild(defaultOpt);
+
+    let hasMatched = false;
+    if (catData.items && Array.isArray(catData.items)) {
+      const seen = new Set();
+      catData.items.forEach(subItem => {
+        const scName = (subItem.subCat || subItem.name || '').trim();
+        if (!scName || seen.has(scName)) return;
+        seen.add(scName);
+
+        const opt = document.createElement('option');
+        opt.value = scName;
+        opt.textContent = `${subItem.emoji || catData.emoji || '🏷️'} ${scName}`;
+        if (activeSubCatName && (activeSubCatName === scName || activeSubCatName === subItem.name)) {
+          opt.selected = true;
+          hasMatched = true;
+        }
+        subCatSelect.appendChild(opt);
+      });
+    }
+
+    // 自訂細項入口
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '➕ 自訂細項名稱...';
+    subCatSelect.appendChild(customOpt);
+
+    if (activeSubCatName && !hasMatched) {
+      customOpt.selected = true;
+      if (customSubCatInput) {
+        customSubCatInput.style.display = 'block';
+        customSubCatInput.value = activeSubCatName;
+      }
+    } else {
+      if (customSubCatInput) {
+        customSubCatInput.style.display = (subCatSelect.value === '__custom__') ? 'block' : 'none';
+        if (subCatSelect.value !== '__custom__') customSubCatInput.value = '';
+      }
+    }
+  }
+
   function openNlpConfirmModal(parsed) {
     currentNlpParsed = parsed;
     const modal = document.getElementById('nlpConfirmModal');
@@ -13407,16 +14024,21 @@ var CapacitorBridgeBundle = (() => {
     const badgeEl = document.getElementById('nlpConfirmBadge');
     const noticeWrap = document.getElementById('nlpConfirmUpdateNotice');
     const noticeText = document.getElementById('nlpConfirmUpdateText');
+    const btnModeUpdate = document.getElementById('btnNlpModeUpdate');
+    const btnModeCreate = document.getElementById('btnNlpModeCreate');
     const nameInput = document.getElementById('nlpConfirmName');
     const catSelect = document.getElementById('nlpConfirmCategory');
     const dateInput = document.getElementById('nlpConfirmDate');
     const remindSelect = document.getElementById('nlpConfirmReminder');
     const customRow = document.getElementById('nlpCustomReminderRow');
     const customInput = document.getElementById('nlpConfirmCustomTime');
-    const customHint = document.getElementById('nlpCustomReminderHint');
     const applyBtn = document.getElementById('btnApplyNlpConfirm');
 
     if (!modal) return;
+
+    // 設定追蹤方式（設定到期日 vs 謹記使用天數）
+    const isElapsed = (parsed.hasEndDate === false || parsed.mode === 'elapsed' || !parsed.expiryDate);
+    setNlpTrackingMode(isElapsed ? 'elapsed' : 'expiry');
 
     if (catSelect) {
       catSelect.innerHTML = '';
@@ -13428,29 +14050,62 @@ var CapacitorBridgeBundle = (() => {
         catSelect.appendChild(opt);
       }
       catSelect.value = parsed.category || 'other';
+      populateNlpSubCategoryDropdown(catSelect.value, parsed.subCategory || '');
     }
 
-    const isUpdate = parsed.action === 'update';
-    if (titleEl) titleEl.textContent = isUpdate ? '確認修改物品' : '確認新增物品';
-    if (badgeEl) {
-      badgeEl.textContent = isUpdate ? '✏️ 修改既有' : '✨ 智慧速記';
-      if (isUpdate) badgeEl.classList.add('update');
-      else badgeEl.classList.remove('update');
-    }
+    const isUpdateCandidate = (parsed.action === 'update' || !!parsed.targetName || !!parsed.targetId);
 
-    if (noticeWrap) {
-      if (isUpdate && parsed.targetName) {
-        noticeWrap.style.display = 'flex';
-        if (noticeText) noticeText.textContent = `將更新現有物品「${parsed.targetName}」`;
+    function setNlpInteractionMode(mode) {
+      if (!currentNlpParsed) return;
+      currentNlpParsed.action = mode;
+      if (mode === 'update') {
+        if (btnModeUpdate) btnModeUpdate.classList.add('active');
+        if (btnModeCreate) btnModeCreate.classList.remove('active');
+        if (titleEl) titleEl.textContent = '確認修改物品';
+        if (badgeEl) {
+          badgeEl.textContent = '修改既有';
+          badgeEl.classList.add('update');
+        }
+        if (noticeText) noticeText.textContent = `將更新現有物品「${currentNlpParsed.targetName || ''}」`;
+        if (applyBtn) applyBtn.textContent = '確定更新';
       } else {
-        noticeWrap.style.display = 'none';
+        if (btnModeCreate) btnModeCreate.classList.add('active');
+        if (btnModeUpdate) btnModeUpdate.classList.remove('active');
+        if (titleEl) titleEl.textContent = '確認新增物品';
+        if (badgeEl) {
+          badgeEl.textContent = '✨ 智慧速記';
+          badgeEl.classList.remove('update');
+        }
+        if (noticeText) noticeText.textContent = `將新增為獨立物品，保留現有「${currentNlpParsed.targetName || ''}」`;
+        if (applyBtn) applyBtn.textContent = '確定加入';
       }
     }
 
+    if (noticeWrap) {
+      if (isUpdateCandidate && parsed.targetName) {
+        noticeWrap.style.display = 'flex';
+        setNlpInteractionMode(parsed.action === 'update' ? 'update' : 'create');
+      } else {
+        noticeWrap.style.display = 'none';
+        setNlpInteractionMode('create');
+      }
+    } else {
+      setNlpInteractionMode(parsed.action === 'update' ? 'update' : 'create');
+    }
+
+    const daysInput = document.getElementById('nlpConfirmDays');
     if (nameInput) nameInput.value = parsed.name || '';
     if (dateInput) {
       dateInput.value = parsed.expiryDate || '';
       updateNlpDateHint(dateInput.value);
+      if (daysInput) {
+        if (parsed.expiryDate) {
+          const diff = diffDays(getTodayString(), parsed.expiryDate);
+          daysInput.value = diff > 0 ? diff : '';
+        } else {
+          daysInput.value = '';
+        }
+      }
     }
 
     // 提醒通知與自訂時間判定
@@ -13465,16 +14120,11 @@ var CapacitorBridgeBundle = (() => {
       if (parsed.hasCustomTime) {
         remindSelect.value = 'custom';
         if (customRow) customRow.style.display = 'block';
-        if (customHint) customHint.textContent = `⏰ 將於 ${targetRemindDate} ${targetRemindTime} 發送提醒通知`;
       } else {
         const warnVal = typeof parsed.remindDaysBefore === 'number' ? parsed.remindDaysBefore : 3;
         remindSelect.value = String(warnVal);
         if (customRow) customRow.style.display = 'none';
       }
-    }
-
-    if (applyBtn) {
-      applyBtn.textContent = isUpdate ? '確定更新' : '確定加入';
     }
 
     modal.style.display = 'flex';
@@ -13510,21 +14160,35 @@ var CapacitorBridgeBundle = (() => {
       return;
     }
 
+    const isElapsedMode = (currentNlpTrackingMode === 'elapsed');
     const confirmedCat = catSelect ? catSelect.value : (currentNlpParsed.category || 'other');
-    const confirmedDate = dateInput ? dateInput.value : currentNlpParsed.expiryDate;
-    if (!confirmedDate) {
-      showToast('請選擇有效到期日');
+    const daysInput = document.getElementById('nlpConfirmDays');
+    let confirmedDate = dateInput ? dateInput.value : currentNlpParsed.expiryDate;
+    if (!confirmedDate && daysInput && daysInput.value) {
+      const numDays = parseInt(daysInput.value, 10);
+      if (!isNaN(numDays) && numDays > 0) {
+        confirmedDate = getOffsetDateString(getTodayString(), numDays);
+        if (dateInput) dateInput.value = confirmedDate;
+      }
+    }
+    if (!isElapsedMode && !confirmedDate) {
+      showToast('請選擇有效到期日或輸入自訂天數');
       if (dateInput) dateInput.focus();
       return;
     }
 
-    // 提醒時間處理（自訂時間 vs 預設天數）
+    // 提醒時間處理（自訂時間 vs 預設天數 vs 僅記使用天數）
     let confirmedReminderType = 'preset';
     let confirmedReminderDate = null;
     let confirmedReminderTime = '09:00';
     let confirmedWarnDays = 3;
 
-    if (remindSelect && remindSelect.value === 'custom') {
+    if (isElapsedMode) {
+      confirmedReminderType = 'none';
+      confirmedReminderDate = null;
+      confirmedReminderTime = null;
+      confirmedWarnDays = -1;
+    } else if (remindSelect && remindSelect.value === 'custom') {
       const customVal = customInput ? customInput.value : '';
       if (!customVal) {
         showToast('請設定自訂提醒日期與時間');
@@ -13543,10 +14207,31 @@ var CapacitorBridgeBundle = (() => {
       confirmedReminderTime = currentNlpParsed.remindTime || '09:00';
     }
 
+    const subCatSelect = document.getElementById('nlpConfirmSubCategory');
+    const customSubCatInput = document.getElementById('nlpConfirmCustomSubCategory');
+
+    let subCat = '';
+    if (subCatSelect) {
+      if (subCatSelect.value === '__custom__') {
+        subCat = customSubCatInput ? customSubCatInput.value.trim() : '';
+      } else {
+        subCat = subCatSelect.value.trim();
+      }
+    }
+    if (!subCat && currentNlpParsed.subCategory) {
+      subCat = currentNlpParsed.subCategory.trim();
+    }
+
     const allCats = (typeof getAllCategories === 'function') ? getAllCategories() : DEFAULT_CATEGORIES;
     const catObj = allCats[confirmedCat] || { label: '其他', emoji: '📌' };
-    let subCat = currentNlpParsed.subCategory || catObj.label || '';
-    let emoji = currentNlpParsed.emoji || catObj.emoji || '📌';
+    let emoji = currentNlpParsed.emoji;
+    if (catObj && catObj.items) {
+      const matchedItem = catObj.items.find(it => it.subCat === subCat || it.name === subCat);
+      if (matchedItem && matchedItem.emoji) {
+        emoji = matchedItem.emoji;
+      }
+    }
+    if (!emoji) emoji = catObj.emoji || '📌';
 
     if (currentNlpParsed.action === 'update') {
       let target = null;
@@ -13571,12 +14256,23 @@ var CapacitorBridgeBundle = (() => {
       target.category = confirmedCat;
       target.subCategory = subCat;
       target.emoji = emoji;
-      target.endDate = confirmedDate;
-      target.durationDays = Math.max(1, diffDays(target.startDate, target.endDate));
-      target.warnDays = confirmedWarnDays;
-      target.reminderType = confirmedReminderType;
-      target.reminderDate = confirmedReminderDate;
-      target.reminderTime = confirmedReminderTime;
+
+      if (isElapsedMode) {
+        target.hasEndDate = false;
+        target.endDate = null;
+        target.warnDays = -1;
+        target.reminderType = 'none';
+        target.reminderDate = null;
+        target.reminderTime = null;
+      } else {
+        target.hasEndDate = true;
+        target.endDate = confirmedDate;
+        target.durationDays = Math.max(1, diffDays(target.startDate, target.endDate));
+        target.warnDays = confirmedWarnDays;
+        target.reminderType = confirmedReminderType;
+        target.reminderDate = confirmedReminderDate;
+        target.reminderTime = confirmedReminderTime;
+      }
 
       lastCreatedItem = target;
       saveItems();
@@ -13588,14 +14284,15 @@ var CapacitorBridgeBundle = (() => {
       if (quickAddInput) quickAddInput.value = '';
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
-      showToast(`已更新「${target.name}」`);
+      showToast(isElapsedMode ? `已更新「${target.name}」（謹記使用天數）` : `已更新「${target.name}」`);
     } else {
       const newItem = addItem({
         name: confirmedName,
         category: confirmedCat,
         subCategory: subCat,
         emoji: emoji,
-        endDate: confirmedDate,
+        hasEndDate: !isElapsedMode,
+        endDate: isElapsedMode ? null : confirmedDate,
         reminderType: confirmedReminderType,
         reminderDate: confirmedReminderDate,
         reminderTime: confirmedReminderTime,
@@ -13606,12 +14303,37 @@ var CapacitorBridgeBundle = (() => {
       if (quickAddInput) quickAddInput.value = '';
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
-      showToast(`✨ 已加入「${newItem.name}」（${newItem.endDate} 到期）`);
+      showToast(isElapsedMode ? `✨ 已加入「${newItem.name}」（謹記使用天數）` : `✨ 已加入「${newItem.name}」（${newItem.endDate} 到期）`);
     }
   }
 
   function initNlpConfirmModal() {
     const modal = document.getElementById('nlpConfirmModal');
+    const catSelect = document.getElementById('nlpConfirmCategory');
+    const subCatSelect = document.getElementById('nlpConfirmSubCategory');
+    const customSubCatInput = document.getElementById('nlpConfirmCustomSubCategory');
+
+    if (catSelect) {
+      catSelect.addEventListener('change', function() {
+        populateNlpSubCategoryDropdown(this.value, '');
+      });
+    }
+
+    if (subCatSelect) {
+      subCatSelect.addEventListener('change', function() {
+        if (this.value === '__custom__') {
+          if (customSubCatInput) {
+            customSubCatInput.style.display = 'block';
+            customSubCatInput.focus();
+          }
+        } else {
+          if (customSubCatInput) {
+            customSubCatInput.style.display = 'none';
+            customSubCatInput.value = '';
+          }
+        }
+      });
+    }
     const closeBtn = document.getElementById('btnCloseNlpConfirm');
     const cancelBtn = document.getElementById('btnCancelNlpConfirm');
     const applyBtn = document.getElementById('btnApplyNlpConfirm');
@@ -13619,7 +14341,68 @@ var CapacitorBridgeBundle = (() => {
     const remindSelect = document.getElementById('nlpConfirmReminder');
     const customRow = document.getElementById('nlpCustomReminderRow');
     const customInput = document.getElementById('nlpConfirmCustomTime');
-    const customHint = document.getElementById('nlpCustomReminderHint');
+    const btnModeUpdate = document.getElementById('btnNlpModeUpdate');
+    const btnModeCreate = document.getElementById('btnNlpModeCreate');
+    const btnTrackExpiry = document.getElementById('btnNlpTrackExpiry');
+    const btnTrackElapsed = document.getElementById('btnNlpTrackElapsed');
+
+    if (btnTrackExpiry) {
+      btnTrackExpiry.addEventListener('click', function () {
+        setNlpTrackingMode('expiry');
+      });
+    }
+
+    if (btnTrackElapsed) {
+      btnTrackElapsed.addEventListener('click', function () {
+        setNlpTrackingMode('elapsed');
+      });
+    }
+
+    if (btnModeUpdate) {
+      btnModeUpdate.addEventListener('click', function () {
+        if (!currentNlpParsed) return;
+        currentNlpParsed.action = 'update';
+        const titleEl = document.getElementById('nlpConfirmModalTitle');
+        const badgeEl = document.getElementById('nlpConfirmBadge');
+        const noticeText = document.getElementById('nlpConfirmUpdateText');
+        const applyBtnEl = document.getElementById('btnApplyNlpConfirm');
+        const btnU = document.getElementById('btnNlpModeUpdate');
+        const btnC = document.getElementById('btnNlpModeCreate');
+
+        if (btnU) btnU.classList.add('active');
+        if (btnC) btnC.classList.remove('active');
+        if (titleEl) titleEl.textContent = '確認修改物品';
+        if (badgeEl) {
+          badgeEl.textContent = '修改既有';
+          badgeEl.classList.add('update');
+        }
+        if (noticeText) noticeText.textContent = `將更新現有物品「${currentNlpParsed.targetName || ''}」`;
+        if (applyBtnEl) applyBtnEl.textContent = '確定更新';
+      });
+    }
+
+    if (btnModeCreate) {
+      btnModeCreate.addEventListener('click', function () {
+        if (!currentNlpParsed) return;
+        currentNlpParsed.action = 'create';
+        const titleEl = document.getElementById('nlpConfirmModalTitle');
+        const badgeEl = document.getElementById('nlpConfirmBadge');
+        const noticeText = document.getElementById('nlpConfirmUpdateText');
+        const applyBtnEl = document.getElementById('btnApplyNlpConfirm');
+        const btnU = document.getElementById('btnNlpModeUpdate');
+        const btnC = document.getElementById('btnNlpModeCreate');
+
+        if (btnC) btnC.classList.add('active');
+        if (btnU) btnU.classList.remove('active');
+        if (titleEl) titleEl.textContent = '確認新增物品';
+        if (badgeEl) {
+          badgeEl.textContent = '✨ 智慧速記';
+          badgeEl.classList.remove('update');
+        }
+        if (noticeText) noticeText.textContent = `將新增為獨立物品，保留現有「${currentNlpParsed.targetName || ''}」`;
+        if (applyBtnEl) applyBtnEl.textContent = '確定加入';
+      });
+    }
 
     if (closeBtn) closeBtn.addEventListener('click', closeNlpConfirmModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeNlpConfirmModal);
@@ -13631,9 +14414,49 @@ var CapacitorBridgeBundle = (() => {
       });
     }
 
+    const daysInput = document.getElementById('nlpConfirmDays');
     if (dateInput) {
-      dateInput.addEventListener('input', function() { updateNlpDateHint(this.value); });
-      dateInput.addEventListener('change', function() { updateNlpDateHint(this.value); });
+      const syncDaysFromDate = function () {
+        updateNlpDateHint(dateInput.value);
+        if (daysInput && dateInput.value) {
+          const diff = diffDays(getTodayString(), dateInput.value);
+          daysInput.value = diff > 0 ? diff : '';
+        }
+      };
+      dateInput.addEventListener('input', syncDaysFromDate);
+      dateInput.addEventListener('change', syncDaysFromDate);
+    }
+
+    if (daysInput) {
+      const syncDateFromDays = function () {
+        const val = parseInt(daysInput.value, 10);
+        if (!isNaN(val) && val > 0) {
+          const newDate = getOffsetDateString(getTodayString(), val);
+          if (dateInput) {
+            dateInput.value = newDate;
+            updateNlpDateHint(newDate);
+          }
+        }
+      };
+      daysInput.addEventListener('input', syncDateFromDays);
+      daysInput.addEventListener('change', syncDateFromDays);
+    }
+
+    const dateWrap = document.getElementById('nlpConfirmDateWrap');
+    if (dateWrap) {
+      dateWrap.addEventListener('click', function (e) {
+        const pill = e.target.closest('.nlp-day-pill');
+        if (!pill) return;
+        const d = parseInt(pill.dataset.days, 10);
+        if (!isNaN(d) && d > 0) {
+          if (daysInput) daysInput.value = d;
+          const newDate = getOffsetDateString(getTodayString(), d);
+          if (dateInput) {
+            dateInput.value = newDate;
+            updateNlpDateHint(newDate);
+          }
+        }
+      });
     }
 
     if (remindSelect) {
@@ -13644,24 +14467,8 @@ var CapacitorBridgeBundle = (() => {
             const d = dateInput && dateInput.value ? dateInput.value : getTodayString();
             customInput.value = `${d}T09:00`;
           }
-          if (customHint && customInput) {
-            customHint.textContent = `⏰ 將於 ${customInput.value.replace('T', ' ')} 發送提醒通知`;
-          }
         } else {
           if (customRow) customRow.style.display = 'none';
-        }
-      });
-    }
-
-    if (customInput) {
-      customInput.addEventListener('input', function() {
-        if (customHint && this.value) {
-          customHint.textContent = `⏰ 將於 ${this.value.replace('T', ' ')} 發送提醒通知`;
-        }
-      });
-      customInput.addEventListener('change', function() {
-        if (customHint && this.value) {
-          customHint.textContent = `⏰ 將於 ${this.value.replace('T', ' ')} 發送提醒通知`;
         }
       });
     }
@@ -13688,7 +14495,7 @@ var CapacitorBridgeBundle = (() => {
       });
     }
 
-    function handleQuickAddSubmit(e) {
+    async function handleQuickAddSubmit(e) {
       if (e) e.preventDefault();
       const rawText = input.value.trim();
       if (!rawText) {
@@ -13696,9 +14503,24 @@ var CapacitorBridgeBundle = (() => {
         return;
       }
 
-      const parsed = parseNaturalInput(rawText, new Date(), items, lastCreatedItem);
+      // 1. 優先使用 RoBERTa-Tiny / BERT-Tiny 本地命名實體抽取 (parseWithLocalNER)
+      let parsed = null;
+      if (typeof window.parseWithLocalNER === 'function') {
+        try {
+          parsed = await window.parseWithLocalNER(rawText, new Date(), items, lastCreatedItem);
+        } catch (err) {
+          console.warn('[NLP] parseWithLocalNER 執行異常，降級使用正則解析器：', err);
+        }
+      }
+
+      // 2. 錯誤降級處理：若模型尚未下載完成、離線或解析失敗，自動使用本地正則備援
       if (!parsed || !parsed.success) {
-        showToast('請包含預計到期時間（例如：明天下午2點、3天後、下週一）');
+        const fallbackFn = window.parseNaturalInput || parseNaturalInput;
+        parsed = fallbackFn(rawText, new Date(), items, lastCreatedItem);
+      }
+
+      if (!parsed || !parsed.success) {
+        showToast('請輸入物品名稱（例如：鮮奶 下週三到期、慢跑鞋 謹記使用天數）');
         input.focus();
         return;
       }
@@ -13915,5 +14737,28 @@ var CapacitorBridgeBundle = (() => {
 })();
 
 </script>
+  <!-- Transformers.js 本地微型模型推論庫 (RoBERTa-Tiny / BERT-Tiny 中文實體辨識) -->
+  <script type="module">
+    try {
+      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+      window.pipeline = pipeline;
+      window.transformersEnv = env;
+      if (env) {
+        env.allowLocalModels = false;
+        env.useBrowserCache = true;
+      }
+      window.dispatchEvent(new CustomEvent('transformers-ready'));
+      if (typeof window.initModel === 'function') {
+        window.initModel();
+      }
+    } catch (err) {
+      console.warn('[Transformers.js] CDN 載入失敗或處於離線環境，將降級使用純本地正則解析器：', err);
+      if (typeof window.updateNerStatus === 'function') {
+        window.updateNerStatus('fallback');
+      }
+    }
+  </script>
+  <!-- 本地自然語言實體抽取與速記控制器 -->
+  <script src="app.js"></script>
 </body>
 </html>
