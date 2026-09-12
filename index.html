@@ -1415,10 +1415,11 @@ body {
 }
 
 /* Minimalist Progress Bar */
+.progress-bar-container,
 .card-progress-bar {
   width: 100%;
   height: 4px;
-  background: #343438;
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   overflow: hidden;
   margin-top: auto;
@@ -1427,28 +1428,28 @@ body {
 .progress-bar-fill,
 .card-progress-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 2px;
+  transition: width 0.3s ease, background-color 0.2s ease;
 }
 
-/* 已過期 - 警示紅 */
+/* 已過期 - 警示紅 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #FF453A;
 }
 
-/* 即將到期 / 3天內到期 - 警告橘 */
+/* 即將到期 / 3天內到期 - 警告橘 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #FF9F0A;
 }
 
-/* 正常/安全狀態 - 中性微透白/深灰（絕對嚴禁套用紅色或橘色） */
+/* 正常/安全狀態 - 中性微透白 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-normal,
 .card-progress-fill.status-normal {
-  background-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Card Group Actions (物品分類頁面專屬：移除此群組按鈕) */
@@ -4139,25 +4140,26 @@ input[type="time"]::-webkit-date-and-time-value {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
+[data-theme="light"] .progress-bar-container,
 [data-theme="light"] .card-progress-bar {
-  background: #e5e5ea;
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="light"] .progress-bar-fill.status-normal,
 [data-theme="light"] .card-progress-fill.status-normal {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #FF453A;
 }
 
 [data-theme="light"] .progress-bar-fill.status-warning,
 [data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #FF9F0A;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5437,14 +5439,14 @@ body.modal-open .view-panel {
 [data-theme="amoled"] .progress-bar-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #FF453A;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
 }
 
 [data-theme="amoled"] .progress-bar-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #FF9F0A;
   box-shadow: 0 0 8px rgba(255, 149, 0, 0.45);
 }
 
@@ -9624,14 +9626,23 @@ var CapacitorBridgeBundle = (() => {
   // 3. 生命週期指標計算 (支援無到期日項目)
   // ==========================================
   function calculateMetrics(item) {
-    const today = getTodayString();
-    const elapsedDays = Math.max(0, diffDays(item.startDate, today));
-    const hasEndDate = item.hasEndDate !== false && item.endDate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // 模式 A：無到期日（僅計算已使用/陪伴天數）
-    if (!hasEndDate) {
+    const expDateStr = item.expiryDate || item.endDate;
+    const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
+
+    let elapsedDays = 0;
+    if (item.startDate) {
+      const start = new Date(item.startDate);
+      start.setHours(0, 0, 0, 0);
+      elapsedDays = Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
+    }
+
+    // 模式 A：無到期日／僅記使用天數（不參與任何過期/即將到期計數）
+    if (isCountUp) {
       return {
-        today,
+        today: getTodayString(),
         hasEndDate: false,
         remainingDays: null,
         elapsedDays,
@@ -9641,29 +9652,37 @@ var CapacitorBridgeBundle = (() => {
       };
     }
 
-    // 模式 B：有到期日與週期倒數
-    const remainingDays = diffDays(today, item.endDate);
-    const totalDays = Math.max(1, diffDays(item.startDate, item.endDate));
-    let percent = Math.round((elapsedDays / totalDays) * 100);
-    percent = Math.min(100, Math.max(0, percent));
+    // 模式 B：有到期日項目的嚴格三段天數判定（以毫秒相除轉為整數天數）
+    const exp = new Date(expDateStr);
+    exp.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
 
-    // 統一絕對天數門檻規則：
-    // 已過期：remainingDays < 0
-    // 即將到期：remainingDays >= 0 且 remainingDays <= 3
-    // 正常/安全：remainingDays > 3
+    let percent = 100;
+    let totalDays = 1;
+    if (item.startDate) {
+      const start = new Date(item.startDate);
+      start.setHours(0, 0, 0, 0);
+      totalDays = Math.max(1, Math.ceil((exp - start) / (1000 * 60 * 60 * 24)));
+      percent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+    }
+
+    // 嚴格三段天數判定：
+    // 【情況 A：已過期】diffDays < 0
+    // 【情況 B：即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
+    // 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
     let status = 'good';
-    if (remainingDays < 0) {
+    if (diffDays < 0) {
       status = 'expired';
-    } else if (remainingDays >= 0 && remainingDays <= 3) {
+    } else if (diffDays >= 0 && diffDays <= 3) {
       status = 'urgent';
     } else {
       status = 'good';
     }
 
     return {
-      today,
+      today: getTodayString(),
       hasEndDate: true,
-      remainingDays,
+      remainingDays: diffDays,
       elapsedDays,
       totalDays,
       percent,
@@ -9752,16 +9771,25 @@ var CapacitorBridgeBundle = (() => {
     let expired = 0;
     let dueToday = 0;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     items.forEach(item => {
-      const m = calculateMetrics(item);
-      if (m.hasEndDate) {
-        if (m.status === 'expired') {
-          expired++;
-        } else if (m.status === 'urgent') {
-          urgent++;
-          if (m.remainingDays === 0) {
-            dueToday++;
-          }
+      const expDateStr = item.expiryDate || item.endDate;
+      const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
+      // 排除無到期日／僅記使用天數的項目：不參與任何過期/即將到期的計數
+      if (isCountUp) return;
+
+      const exp = new Date(expDateStr);
+      exp.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        expired++;
+      } else if (diffDays >= 0 && diffDays <= 3) {
+        urgent++;
+        if (diffDays === 0) {
+          dueToday++;
         }
       }
     });
@@ -9980,6 +10008,94 @@ var CapacitorBridgeBundle = (() => {
     });
   }
 
+
+  /**
+   * 直接透過 JavaScript 計算並設定進度條元素 (progressBarFill) 之 element.style.backgroundColor 與 width
+   * 嚴格遵循「3天內橘、過期紅、其餘白」硬性規則
+   */
+  function renderProgressBar(progressBarFill, item) {
+    if (!item) return null;
+
+    const expDateStr = item.expiryDate || item.endDate;
+    const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
+
+    // 1. 排除無到期日／僅記使用天數的項目
+    if (isCountUp) {
+      if (progressBarFill && progressBarFill.style) {
+        progressBarFill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+        progressBarFill.style.setProperty('background-color', 'rgba(255, 255, 255, 0.15)', 'important');
+        progressBarFill.style.width = '100%';
+      }
+      return {
+        status: 'count_up',
+        diffDays: null,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        width: '100%'
+      };
+    }
+
+    // 2. 有到期日項目的嚴格三段天數判定（以毫秒相除轉為整數天數）
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exp = new Date(expDateStr);
+    exp.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+    let bgColor = 'rgba(255, 255, 255, 0.25)';
+    let fillWidth = '100%';
+    let status = 'normal';
+
+    if (diffDays < 0) {
+      // 【情況 A：已過期】diffDays < 0
+      status = 'expired';
+      bgColor = '#FF453A'; // 純紅
+      fillWidth = '100%';
+    } else if (diffDays >= 0 && diffDays <= 3) {
+      // 【情況 B：即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
+      status = 'warning';
+      bgColor = '#FF9F0A'; // 警告橘
+      let percent = 100;
+      if (item.startDate) {
+        const start = new Date(item.startDate);
+        start.setHours(0, 0, 0, 0);
+        const total = Math.max(1, Math.ceil((exp - start) / (1000 * 60 * 60 * 24)));
+        const elapsed = Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
+        percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+      }
+      fillWidth = `${percent > 0 ? percent : 20}%`;
+    } else {
+      // 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
+      status = 'normal';
+      bgColor = 'rgba(255, 255, 255, 0.25)'; // 中性低調白
+      let percent = 100;
+      if (item.startDate) {
+        const start = new Date(item.startDate);
+        start.setHours(0, 0, 0, 0);
+        const total = Math.max(1, Math.ceil((exp - start) / (1000 * 60 * 60 * 24)));
+        const elapsed = Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
+        percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+      }
+      fillWidth = `${percent > 0 ? percent : 15}%`;
+    }
+
+    if (progressBarFill && progressBarFill.style) {
+      progressBarFill.style.backgroundColor = bgColor;
+      progressBarFill.style.setProperty('background-color', bgColor, 'important');
+      progressBarFill.style.width = fillWidth;
+    }
+
+    return {
+      status,
+      diffDays,
+      backgroundColor: bgColor,
+      width: fillWidth
+    };
+  }
+
+  window.renderProgressBar = renderProgressBar;
+  window.renderCardProgressBar = renderProgressBar;
+  window.applyProgressBarStatus = renderProgressBar;
+
   function createCardElement(item, isInventory = false) {
     const m = calculateMetrics(item);
     const card = document.createElement('div');
@@ -9994,60 +10110,58 @@ var CapacitorBridgeBundle = (() => {
       iconContent = `<span>${escapeHtml(item.emoji || '🪑')}</span>`;
     }
 
-    // 統一絕對天數門檻規則：
-    // 1. 【已過期】diffDays < 0：
-    //    * 狀態標記：'status-expired'
-    //    * 文字顏色與進度條：警示紅（#FF453A）
-    // 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（三天內，包含三天整）：
-    //    * 狀態標記：'status-warning'
-    //    * 文字顏色與進度條：警告橘（#FF9F0A）
-    // 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天）：
-    //    * 狀態標記：'status-normal'
-    //    * 文字顏色：淺灰/次要文字色（rgba(255, 255, 255, 0.7)）
-    //    * 進度條顏色：中性微透白/深灰（rgba(255, 255, 255, 0.25)）
-    //    * 絕對嚴禁套用紅色或橘色！
+    const expDateStr = item.expiryDate || item.endDate;
+    const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
+
     let subMetricText = '';
     let subMetricClass = '';
     let statusClass = 'status-normal';
-    let progressColor = 'rgba(255, 255, 255, 0.25)';
+    let progressBgColor = 'rgba(255, 255, 255, 0.25)';
+    let progressWidth = '100%';
     let metricTextColor = 'rgba(255, 255, 255, 0.7)';
 
-    if (!m.hasEndDate) {
+    if (isCountUp) {
       subMetricText = '持續使用中 ⏳';
       subMetricClass = 'ongoing status-normal';
       statusClass = 'status-normal';
-      progressColor = 'rgba(255, 255, 255, 0.25)';
+      progressBgColor = 'rgba(255, 255, 255, 0.15)';
+      progressWidth = '100%';
       metricTextColor = 'rgba(255, 255, 255, 0.7)';
-    } else if (m.remainingDays < 0) {
-      subMetricText = `已超過 ${Math.abs(m.remainingDays)} 天`;
-      subMetricClass = 'expired status-expired';
-      statusClass = 'status-expired';
-      progressColor = '#FF453A';
-      metricTextColor = '#FF453A';
-    } else if (m.remainingDays >= 0 && m.remainingDays <= 3) {
-      subMetricText = m.remainingDays === 0 ? '今天到期' : `還有 ${formatNumber(m.remainingDays)} 天`;
-      subMetricClass = 'urgent status-warning';
-      statusClass = 'status-warning';
-      progressColor = '#FF9F0A'; // 警告橘
-      metricTextColor = '#FF9F0A';
     } else {
-      subMetricText = `還有 ${formatNumber(m.remainingDays)} 天`;
-      subMetricClass = 'status-normal';
-      statusClass = 'status-normal';
-      progressColor = 'rgba(255, 255, 255, 0.25)';
-      metricTextColor = 'rgba(255, 255, 255, 0.7)';
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const exp = new Date(expDateStr);
+      exp.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        // 【情況 A：已過期】diffDays < 0
+        subMetricText = `已超過 ${Math.abs(diffDays)} 天`;
+        subMetricClass = 'expired status-expired';
+        statusClass = 'status-expired';
+        progressBgColor = '#FF453A'; // 純紅
+        progressWidth = '100%';
+        metricTextColor = '#FF453A';
+      } else if (diffDays >= 0 && diffDays <= 3) {
+        // 【情況 B：即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
+        subMetricText = diffDays === 0 ? '今天到期' : `還有 ${formatNumber(diffDays)} 天`;
+        subMetricClass = 'urgent status-warning';
+        statusClass = 'status-warning';
+        progressBgColor = '#FF9F0A'; // 警告橘
+        progressWidth = `${m.percent > 0 ? m.percent : 20}%`;
+        metricTextColor = '#FF9F0A';
+      } else {
+        // 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
+        subMetricText = `還有 ${formatNumber(diffDays)} 天`;
+        subMetricClass = 'status-normal';
+        statusClass = 'status-normal';
+        progressBgColor = 'rgba(255, 255, 255, 0.25)'; // 中性低調白
+        progressWidth = `${m.percent > 0 ? m.percent : 15}%`;
+        metricTextColor = 'rgba(255, 255, 255, 0.7)';
+      }
     }
 
-    // 進度條寬度與樣式
-    let progressFillStyle = '';
-    if (!m.hasEndDate) {
-      progressFillStyle = 'width: 100%; opacity: 0.28;';
-    } else {
-      progressFillStyle = `width: ${m.percent}%;`;
-    }
-
-    // 物品進度條類別（結合 progress-bar-fill 與專屬狀態 class）
-    let progressFillClass = `progress-bar-fill ${statusClass}`;
+    let progressFillClass = `progress-bar-fill card-progress-fill ${statusClass}`;
     if (statusClass === 'status-expired') {
       progressFillClass += ' expired';
     } else if (statusClass === 'status-warning') {
@@ -10079,16 +10193,23 @@ var CapacitorBridgeBundle = (() => {
       </div>
 
       <!-- Progress Bar at bottom of card -->
-      <div class="card-progress-bar">
-        <div class="card-progress-fill ${progressFillClass}" style="${progressFillStyle} background-color: ${progressColor};"></div>
+      <div class="card-progress-bar progress-bar-container">
+        <div class="card-progress-fill progress-bar-fill ${progressFillClass}"></div>
       </div>
     `;
 
-    // 確保在任何裝置（包含 Android WebView）上顏色精確生效且優先級最高
-    const progressFillEl = card.querySelector('.card-progress-fill');
-    if (progressFillEl && progressColor) {
-      progressFillEl.style.setProperty('background-color', progressColor, 'important');
+    // 直接透過 JavaScript 計算並設定 element.style.backgroundColor 與 width
+    const progressFillEl = card.querySelector('.progress-bar-fill, .card-progress-fill');
+    if (progressFillEl) {
+      if (typeof window.renderProgressBar === 'function') {
+        window.renderProgressBar(progressFillEl, item);
+      } else {
+        progressFillEl.style.backgroundColor = progressBgColor;
+        progressFillEl.style.setProperty('background-color', progressBgColor, 'important');
+        progressFillEl.style.width = progressWidth;
+      }
     }
+
     const metricSubEl = card.querySelector('.card-metric-sub');
     if (metricSubEl && metricTextColor) {
       metricSubEl.style.setProperty('color', metricTextColor, 'important');

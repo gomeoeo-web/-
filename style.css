@@ -1397,10 +1397,11 @@ body {
 }
 
 /* Minimalist Progress Bar */
+.progress-bar-container,
 .card-progress-bar {
   width: 100%;
   height: 4px;
-  background: #343438;
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   overflow: hidden;
   margin-top: auto;
@@ -1409,28 +1410,28 @@ body {
 .progress-bar-fill,
 .card-progress-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 2px;
+  transition: width 0.3s ease, background-color 0.2s ease;
 }
 
-/* 已過期 - 警示紅 */
+/* 已過期 - 警示紅 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #FF453A;
 }
 
-/* 即將到期 / 3天內到期 - 警告橘 */
+/* 即將到期 / 3天內到期 - 警告橘 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #FF9F0A;
 }
 
-/* 正常/安全狀態 - 中性微透白/深灰（絕對嚴禁套用紅色或橘色） */
+/* 正常/安全狀態 - 中性微透白 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-normal,
 .card-progress-fill.status-normal {
-  background-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Card Group Actions (物品分類頁面專屬：移除此群組按鈕) */
@@ -4121,25 +4122,26 @@ input[type="time"]::-webkit-date-and-time-value {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
+[data-theme="light"] .progress-bar-container,
 [data-theme="light"] .card-progress-bar {
-  background: #e5e5ea;
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="light"] .progress-bar-fill.status-normal,
 [data-theme="light"] .card-progress-fill.status-normal {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #FF453A;
 }
 
 [data-theme="light"] .progress-bar-fill.status-warning,
 [data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #FF9F0A;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5419,14 +5421,14 @@ body.modal-open .view-panel {
 [data-theme="amoled"] .progress-bar-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.status-expired,
 [data-theme="amoled"] .card-progress-fill.expired {
-  background-color: #FF453A !important;
+  background-color: #FF453A;
   box-shadow: 0 0 8px rgba(255, 69, 58, 0.4);
 }
 
 [data-theme="amoled"] .progress-bar-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.status-warning,
 [data-theme="amoled"] .card-progress-fill.urgent {
-  background-color: #FF9F0A !important;
+  background-color: #FF9F0A;
   box-shadow: 0 0 8px rgba(255, 149, 0, 0.45);
 }
 

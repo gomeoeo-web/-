@@ -1298,73 +1298,147 @@ function updateItemByNlp(targetId, updates) {
 // 7.5 卡片效期狀態與進度條判定模組 (v1.8.2)
 // ==========================================
 /**
- * 依據剩餘天數判定卡片狀態、進度條顏色與類別標記
+ * 依據效期嚴格三段天數判定，直接透過 JavaScript 計算並設定 progressBarFill 的 backgroundColor 與 width
  * 
- * 統一絕對天數門檻規則：
- * 1. 【已過期】diffDays < 0：
- *    - 狀態標記：'status-expired'
- *    - 進度條與文字顏色：警示紅（#FF453A）
- *    - 綁定 Class：status-expired
- * 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（三天內，包含三天整）：
- *    - 狀態標記：'status-warning'
- *    - 進度條與文字顏色：警告橘（#FF9F0A）
- *    - 綁定 Class：status-warning
- * 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天）：
- *    - 狀態標記：'status-normal'
- *    - 進度條顏色：中性微透白/深灰（rgba(255, 255, 255, 0.2)）
- *    - 文字顏色：淺灰/次要文字色（rgba(255, 255, 255, 0.7)）
- *    - 綁定 Class：status-normal
- *    - 絕對嚴禁套用紅色或橘色！
+ * 1. 排除無到期日／僅記使用天數的項目：
+ *    - 檢查項目是否為「僅記使用天數」（trackingType === 'count_up' 或無 expiryDate）：
+ *    - 若無到期日，進度條顏色固定為微透白：
+ *      progressBarFill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+ *      progressBarFill.style.width = '100%';
+ *      並且不參與任何過期/即將到期的計數。
  * 
- * @param {Object} item 物品物件
- * @param {string} [todayStr] 今日日期 (YYYY-MM-DD)
- * @returns {Object} 狀態配置資訊
+ * 2. 有到期日項目的嚴格三段天數判定（以毫秒相除轉為整數天數）：
+ *    const today = new Date();
+ *    today.setHours(0, 0, 0, 0);
+ *    const exp = new Date(item.expiryDate);
+ *    exp.setHours(0, 0, 0, 0);
+ *    const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+ * 
+ *    - 【情況 A：已過期】diffDays < 0：
+ *      progressBarFill.style.backgroundColor = '#FF453A'; // 純紅
+ *      progressBarFill.style.width = '100%';
+ * 
+ *    - 【情況 B：即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）：
+ *      progressBarFill.style.backgroundColor = '#FF9F0A'; // 警告橘
+ *      // 依剩餘比例計算寬度，或固定為高顯眼寬度
+ * 
+ *    - 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上）：
+ *      progressBarFill.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; // 中性低調白
+ *      // 絕不可出現 #FF453A 或 #FF9F0A！
+ * 
+ * @param {HTMLElement} progressBarFill 進度條填充元素
+ * @param {Object} item 物品資料物件
+ * @returns {Object} 狀態與樣式配置資訊
  */
-function parseDateSafe(dateStr) {
-  if (!dateStr) return new Date();
-  if (dateStr instanceof Date) return dateStr;
-  const s = String(dateStr).trim().split('T')[0].split(' ')[0].replace(/\//g, '-');
-  const parts = s.split('-');
-  if (parts.length === 3) {
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-      return new Date(y, m, d, 0, 0, 0, 0);
+function renderProgressBar(progressBarFill, item) {
+  if (!item) return null;
+
+  const expDateStr = item.expiryDate || item.endDate;
+  const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
+
+  // 1. 排除無到期日／僅記使用天數的項目
+  if (isCountUp) {
+    if (progressBarFill && progressBarFill.style) {
+      progressBarFill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+      progressBarFill.style.setProperty('background-color', 'rgba(255, 255, 255, 0.15)', 'important');
+      progressBarFill.style.width = '100%';
     }
+    return {
+      status: 'count_up',
+      diffDays: null,
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      width: '100%'
+    };
   }
-  const dt = new Date(dateStr);
-  return isNaN(dt.getTime()) ? new Date() : dt;
+
+  // 2. 有到期日項目的嚴格三段天數判定（以毫秒相除轉為整數天數）
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expDateStr);
+  exp.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+  let bgColor = 'rgba(255, 255, 255, 0.25)';
+  let fillWidth = '100%';
+  let status = 'normal';
+
+  if (diffDays < 0) {
+    // 【情況 A：已過期】diffDays < 0
+    status = 'expired';
+    bgColor = '#FF453A'; // 純紅
+    fillWidth = '100%';
+  } else if (diffDays >= 0 && diffDays <= 3) {
+    // 【情況 B：即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
+    status = 'warning';
+    bgColor = '#FF9F0A'; // 警告橘
+    let percent = 100;
+    if (item.startDate) {
+      const start = new Date(item.startDate);
+      start.setHours(0, 0, 0, 0);
+      const total = Math.max(1, Math.ceil((exp - start) / (1000 * 60 * 60 * 24)));
+      const elapsed = Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
+      percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+    }
+    fillWidth = `${percent > 0 ? percent : 20}%`;
+  } else {
+    // 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
+    status = 'normal';
+    bgColor = 'rgba(255, 255, 255, 0.25)'; // 中性低調白
+    let percent = 100;
+    if (item.startDate) {
+      const start = new Date(item.startDate);
+      start.setHours(0, 0, 0, 0);
+      const total = Math.max(1, Math.ceil((exp - start) / (1000 * 60 * 60 * 24)));
+      const elapsed = Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
+      percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+    }
+    fillWidth = `${percent > 0 ? percent : 15}%`;
+  }
+
+  if (progressBarFill && progressBarFill.style) {
+    progressBarFill.style.backgroundColor = bgColor;
+    progressBarFill.style.setProperty('background-color', bgColor, 'important');
+    progressBarFill.style.width = fillWidth;
+  }
+
+  return {
+    status,
+    diffDays,
+    backgroundColor: bgColor,
+    width: fillWidth
+  };
 }
 
 function getItemStatusConfig(item, todayStr) {
-  const today = todayStr || formatDate(new Date());
-  const hasEndDate = item && item.hasEndDate !== false && !!item.endDate;
+  const expDateStr = item ? (item.expiryDate || item.endDate) : null;
+  const isCountUp = !item || item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
 
-  if (!hasEndDate || !item) {
+  if (isCountUp) {
     return {
       statusMark: 'status-normal',
-      color: 'rgba(255, 255, 255, 0.25)',
+      color: 'rgba(255, 255, 255, 0.15)',
       textColor: 'rgba(255, 255, 255, 0.7)',
       text: '持續使用中 ⏳',
       subMetricClass: 'ongoing status-normal',
       progressClass: 'progress-bar-fill status-normal',
       diffDays: null,
-      percent: 100
+      percent: 100,
+      width: '100%'
     };
   }
 
-  const dToday = parseDateSafe(today);
-  const dEnd = parseDateSafe(item.endDate);
-  const diffTime = dEnd.getTime() - dToday.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  const today = todayStr ? new Date(todayStr) : new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expDateStr);
+  exp.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
 
-  // 計算百分比
   let percent = 100;
   if (item.startDate) {
-    const dStart = parseDateSafe(item.startDate);
-    const elapsed = Math.max(0, Math.round((dToday.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24)));
-    const total = Math.max(1, Math.round((dEnd.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24)));
+    const start = new Date(item.startDate);
+    start.setHours(0, 0, 0, 0);
+    const total = Math.max(1, Math.ceil((exp - start) / (1000 * 60 * 60 * 24)));
+    const elapsed = Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
     percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
   }
 
@@ -1378,11 +1452,12 @@ function getItemStatusConfig(item, todayStr) {
       subMetricClass: 'expired status-expired',
       progressClass: 'progress-bar-fill status-expired expired',
       diffDays,
-      percent
+      percent: 100,
+      width: '100%'
     };
   }
 
-  // 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（三天內，包含三天整）
+  // 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
   if (diffDays >= 0 && diffDays <= 3) {
     return {
       statusMark: 'status-warning',
@@ -1392,11 +1467,12 @@ function getItemStatusConfig(item, todayStr) {
       subMetricClass: 'urgent status-warning',
       progressClass: 'progress-bar-fill status-warning urgent',
       diffDays,
-      percent
+      percent: percent > 0 ? percent : 20,
+      width: `${percent > 0 ? percent : 20}%`
     };
   }
 
-  // 3. 【正常/安全】diffDays > 3（大於三天，如 4 天、6 天、500 天，絕對嚴禁套用紅色或橘色）
+  // 3. 【正常/安全】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
   return {
     statusMark: 'status-normal',
     color: 'rgba(255, 255, 255, 0.25)',
@@ -1405,7 +1481,8 @@ function getItemStatusConfig(item, todayStr) {
     subMetricClass: 'status-normal',
     progressClass: 'progress-bar-fill status-normal',
     diffDays,
-    percent
+    percent: percent > 0 ? percent : 15,
+    width: `${percent > 0 ? percent : 15}%`
   };
 }
 
@@ -1427,6 +1504,9 @@ if (typeof window !== 'undefined') {
   window.simplifyItemName = simplifyItemName;
   window.addItem = addItem;
   window.updateItemByNlp = updateItemByNlp;
+  window.renderProgressBar = renderProgressBar;
+  window.renderCardProgressBar = renderProgressBar;
+  window.applyProgressBarStatus = renderProgressBar;
   window.getItemStatusConfig = getItemStatusConfig;
   window.getLastCreatedItem = () => lastCreatedItem;
   window.setLastCreatedItem = (item) => { lastCreatedItem = item; };
@@ -1456,6 +1536,9 @@ if (typeof module !== 'undefined' && module.exports) {
     simplifyItemName,
     addItem,
     updateItemByNlp,
+    renderProgressBar,
+    renderCardProgressBar: renderProgressBar,
+    applyProgressBarStatus: renderProgressBar,
     getItemStatusConfig,
     getLastCreatedItem: () => lastCreatedItem,
     setLastCreatedItem: (item) => { lastCreatedItem = item; }
