@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.8.4
+ * Smart Quick Add & On-Device NER Parser v1.8.6
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -1295,7 +1295,7 @@ function updateItemByNlp(targetId, updates) {
 }
 
 // ==========================================
-// 7.5 卡片效期狀態與進度條判定模組 (v1.8.2)
+// 7.5 卡片效期狀態與進度條判定模組 (v1.8.6)
 // ==========================================
 /**
  * 依據效期嚴格三段天數判定，直接透過 JavaScript 計算並設定 progressBarFill 的 backgroundColor 與 width
@@ -1486,6 +1486,514 @@ function getItemStatusConfig(item, todayStr) {
   };
 }
 
+
+// ==========================================
+// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗) v1.8.6
+// ==========================================
+
+const CATEGORY_MAP_TO_KEY = {
+  '食品': 'food', 'food': 'food',
+  '清潔': 'cleaning', 'cleaning': 'cleaning',
+  '保固': 'warranty', 'warranty': 'warranty',
+  '耗材': 'filter', 'filter': 'filter',
+  '藥品': 'medicine', 'medicine': 'medicine',
+  '其他': 'other', 'other': 'other',
+  '車輛': 'vehicle', 'vehicle': 'vehicle',
+  '訂閱': 'subscription', 'subscription': 'subscription',
+  '日化開封': 'pao', 'pao': 'pao',
+  '寵物': 'pet', 'pet': 'pet',
+  '母嬰': 'baby', 'baby': 'baby',
+  '辦公': 'office', 'office': 'office',
+  '戶外': 'outdoor', 'outdoor': 'outdoor',
+  '居家': 'home', 'home': 'home',
+  '穿搭': 'fashion', 'fashion': 'fashion'
+};
+
+function normalizeCategoryKey(cat) {
+  if (!cat) return 'food';
+  const str = String(cat).trim().toLowerCase();
+  return CATEGORY_MAP_TO_KEY[str] || CATEGORY_MAP_TO_KEY[cat] || 'food';
+}
+
+/**
+ * 本地外觀特徵庫與自動分類字典 (VISUAL_APPEARANCE_DICT)
+ * 涵蓋 ImageNet 常見外觀類別並直接綁定中文品名、預設分類與預設天數
+ */
+const VISUAL_APPEARANCE_DICT = [
+  // 1. 蔬果與生鮮（依靠外觀形體）
+  {
+    keywords: ['banana'],
+    name: '香蕉',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '水果',
+    defaultDays: 5,
+    emoji: '🍌',
+    isContainer: false
+  },
+  {
+    keywords: ['granny smith', 'apple'],
+    name: '蘋果',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '水果',
+    defaultDays: 14,
+    emoji: '🍎',
+    isContainer: false
+  },
+  {
+    keywords: ['orange', 'lemon', 'citrus'],
+    name: '柑橘/檸檬',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '水果',
+    defaultDays: 14,
+    emoji: '🍊',
+    isContainer: false
+  },
+  {
+    keywords: ['bell pepper', 'broccoli', 'cauliflower', 'cucumber', 'zucchini', 'cabbage'],
+    name: '新鮮蔬菜',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '生鮮',
+    defaultDays: 5,
+    emoji: '🥦',
+    isContainer: false
+  },
+  {
+    keywords: ['bakery', 'french loaf', 'bagel', 'bread', 'baguette'],
+    name: '麵包/土司',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '烘焙',
+    defaultDays: 3,
+    emoji: '🍞',
+    isContainer: false
+  },
+
+  // 2. 瓶罐容器與清潔用品（依靠瓶身外觀）
+  {
+    keywords: ['lotion', 'soap dispenser', 'sunscreen', 'lotion bottle', 'spray'],
+    name: '瓶裝洗劑/保養品',
+    category: 'cleaning',
+    categoryLabel: '清潔',
+    subCategory: '衛浴保養',
+    defaultDays: 180,
+    emoji: '🧴',
+    isContainer: true
+  },
+  {
+    keywords: ['pill bottle', 'medicine bottle', 'prescription bottle'],
+    name: '藥罐/保健品',
+    category: 'medicine',
+    categoryLabel: '藥品',
+    subCategory: '常備藥品',
+    defaultDays: 180,
+    emoji: '💊',
+    isContainer: true
+  },
+  {
+    keywords: ['water bottle', 'pop bottle', 'beer bottle', 'wine bottle', 'bottle'],
+    name: '瓶裝飲料',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '飲品',
+    defaultDays: 30,
+    emoji: '🍾',
+    isContainer: true
+  },
+  {
+    keywords: ['can', 'tin', 'tin can', 'canned'],
+    name: '罐頭/鐵罐',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '乾貨',
+    defaultDays: 180,
+    emoji: '🥫',
+    isContainer: true
+  },
+
+  // 3. 3C、家電與居家耗材（依靠外觀結構）
+  {
+    keywords: ['laptop', 'notebook', 'laptop computer'],
+    name: '筆記型電腦',
+    category: 'warranty',
+    categoryLabel: '保固',
+    subCategory: '電腦',
+    defaultDays: 365,
+    emoji: '💻',
+    isContainer: false
+  },
+  {
+    keywords: ['cellular telephone', 'ipod', 'mobile phone', 'cellphone', 'smartphone'],
+    name: '手機/電子產品',
+    category: 'warranty',
+    categoryLabel: '保固',
+    subCategory: '3C產品',
+    defaultDays: 365,
+    emoji: '📱',
+    isContainer: false
+  },
+  {
+    keywords: ['mouse', 'computer mouse', 'keyboard', 'typewriter keyboard', 'space bar'],
+    name: '電腦周邊耗材',
+    category: 'filter',
+    categoryLabel: '耗材',
+    subCategory: '周邊',
+    defaultDays: 180,
+    emoji: '⌨️',
+    isContainer: false
+  },
+  {
+    keywords: ['coffee mug', 'cup', 'mug'],
+    name: '馬克杯/杯具',
+    category: 'other',
+    categoryLabel: '其他',
+    subCategory: '生活日用',
+    defaultDays: 365,
+    emoji: '☕',
+    isContainer: false
+  }
+];
+
+let mobileNetModel = null;
+let isMobileNetLoading = false;
+
+/**
+ * 非同步初始化本地 MobileNet 視覺模型
+ */
+async function initMobileNet() {
+  if (mobileNetModel) return mobileNetModel;
+  if (typeof window === 'undefined') return null;
+  if (!window.mobilenet) return null;
+  if (isMobileNetLoading) {
+    while (isMobileNetLoading) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return mobileNetModel;
+  }
+  isMobileNetLoading = true;
+  try {
+    console.log('[Vision] 正在載入本地 MobileNet 視覺辨識模型...');
+    mobileNetModel = await window.mobilenet.load({ version: 2, alpha: 1.0 });
+    console.log('[Vision] ✅ MobileNet 視覺模型載入就緒！');
+    return mobileNetModel;
+  } catch (err) {
+    console.warn('[Vision] MobileNet 模型載入失敗或處於離線環境：', err);
+    return null;
+  } finally {
+    isMobileNetLoading = false;
+  }
+}
+
+/**
+ * 軌道一：視覺外觀辨識引擎
+ * mobilenet.classify(img, 5)（擷取前 5 大可能的外觀特徵與信心度）
+ */
+async function classifyImageVisual(imgSource) {
+  try {
+    const model = await initMobileNet();
+    if (!model || typeof model.classify !== 'function') {
+      return [];
+    }
+    const predictions = await model.classify(imgSource, 5);
+    return Array.isArray(predictions) ? predictions : [];
+  } catch (err) {
+    console.warn('[Vision] classifyImageVisual 執行異常：', err);
+    return [];
+  }
+}
+
+/**
+ * 從字串中精確提取有效日期格式 (YYYY-MM-DD)
+ */
+function extractDateFromText(text) {
+  if (!text || typeof text !== 'string') return null;
+
+  // 1. 標準日期格式：YYYY[-/.年]MM[-/.月]DD[日]?
+  const stdDateRegex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|USE\s*BY)?\s*[:.]?\s*(202\d[-/.年]\d{1,2}[-/.月]\d{1,2}日?)/i;
+  const match1 = text.match(stdDateRegex);
+  if (match1) {
+    const raw = match1[1].replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '-').replace(/\//g, '-').trim();
+    const parts = raw.split('-');
+    if (parts.length === 3) {
+      const y = parts[0];
+      const m = String(parseInt(parts[1], 10)).padStart(2, '0');
+      const d = String(parseInt(parts[2], 10)).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+  }
+
+  // 2. 8位連號格式 (如 20260920)
+  const num8Match = text.match(/(?:EXP|有效|到期|保存)?\s*[:.]?\s*(202\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/i);
+  if (num8Match) {
+    return `${num8Match[1]}-${num8Match[2]}-${num8Match[3]}`;
+  }
+
+  // 3. 雙位數年日月 (如 26.10.15, 26/10/15)
+  const shortYearMatch = text.match(/(?:EXP|有效|到期)?\s*[:.]?\s*([2-3]\d)[-/.](0[1-9]|1[0-2])[-/.](0[1-9]|[12]\d|3[01])/i);
+  if (shortYearMatch) {
+    return `20${shortYearMatch[1]}-${shortYearMatch[2]}-${shortYearMatch[3]}`;
+  }
+
+  // 4. 日/月/年格式 (如 15/10/2026, 15-10-2026)
+  const dmyMatch = text.match(/([0-2]\d|3[01])[-/.](0[1-9]|1[0-2])[-/.](202\d)/);
+  if (dmyMatch) {
+    return `${dmyMatch[3]}-${dmyMatch[2]}-${dmyMatch[1]}`;
+  }
+
+  return null;
+}
+
+/**
+ * 軌道二：文字與效期掃描引擎 (Tesseract OCR + 原生 TextDetector/BarcodeDetector)
+ */
+async function runTextAndDateOcr(imgSource) {
+  let text = '';
+  let barcode = null;
+
+  // 1. Tesseract.js OCR (支援離線與中英雙語)
+  if (typeof window !== 'undefined' && window.Tesseract) {
+    try {
+      console.log('[OCR] 正在執行 Tesseract OCR 文字辨識...');
+      const ocrResult = await window.Tesseract.recognize(imgSource, 'chi_tra+eng', {
+        logger: () => {}
+      });
+      if (ocrResult && ocrResult.data && ocrResult.data.text) {
+        text += ' ' + ocrResult.data.text;
+      }
+    } catch (tessErr) {
+      console.warn('[OCR] Tesseract 執行異常，嘗試降級原生識別器：', tessErr);
+    }
+  }
+
+  // 2. 原生 TextDetector (若環境支援)
+  if (typeof window !== 'undefined' && typeof window.TextDetector === 'function') {
+    try {
+      const textDetector = new window.TextDetector();
+      const detected = await textDetector.detect(imgSource);
+      if (detected && detected.length > 0) {
+        text += ' ' + detected.map(t => t.rawValue).join(' ');
+      }
+    } catch (tdErr) {
+      console.warn('[OCR] 原生 TextDetector 異常：', tdErr);
+    }
+  }
+
+  // 3. 原生 BarcodeDetector (條碼/QR Code 輔助)
+  if (typeof window !== 'undefined' && typeof window.BarcodeDetector === 'function') {
+    try {
+      const barcodeDetector = new window.BarcodeDetector({
+        formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'data_matrix']
+      });
+      const barcodes = await barcodeDetector.detect(imgSource);
+      if (barcodes && barcodes.length > 0) {
+        barcode = barcodes[0].rawValue;
+      }
+    } catch (bcErr) {
+      console.warn('[Barcode] 原生 BarcodeDetector 異常：', bcErr);
+    }
+  }
+
+  text = text.trim();
+  const detectedDate = extractDateFromText(text + (barcode ? ' ' + barcode : ''));
+
+  return { text, date: detectedDate, barcode };
+}
+
+/**
+ * 【三、外觀與文字決策融合演算法（Fusion Logic）】
+ * 依據雙軌回傳的資料自動計算最終品名、分類與到期天數
+ */
+function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 1. 檢視視覺辨識前 5 大結果命中外觀特徵庫的情況
+  let topVisualMatch = null;
+  let topVisualConfidence = 0;
+  let topVisualClassName = '';
+
+  if (Array.isArray(visualPredictions)) {
+    let bestKwLength = 0;
+    for (const pred of visualPredictions) {
+      const clsName = (pred.className || '').toLowerCase();
+      const prob = typeof pred.probability === 'number' ? pred.probability : 0;
+      for (const dictItem of VISUAL_APPEARANCE_DICT) {
+        for (const kw of dictItem.keywords) {
+          const kwLower = kw.toLowerCase();
+          if (clsName.includes(kwLower)) {
+            // 優先考慮信心度較高者；同等/接近信心度下以最長特徵關鍵字為準 (如 pill bottle 優於 generic bottle)
+            if (prob > topVisualConfidence || (Math.abs(prob - topVisualConfidence) < 0.05 && kwLower.length > bestKwLength)) {
+              topVisualConfidence = prob;
+              bestKwLength = kwLower.length;
+              topVisualMatch = dictItem;
+              topVisualClassName = pred.className;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 2. 檢視 OCR 掃描到的文字中是否含有特定商品、品牌或中文關鍵字
+  const ocrText = (ocrData && ocrData.text) ? String(ocrData.text).trim() : '';
+  const ocrBarcode = (ocrData && ocrData.barcode) ? String(ocrData.barcode).trim() : '';
+  let ocrKeywordMatch = null;
+  let ocrMatchedWord = '';
+
+  if (ocrText) {
+    const ocrLower = ocrText.toLowerCase();
+    let maxKwLen = 0;
+    for (const mapItem of SMART_KEYWORD_MAP) {
+      for (const kw of mapItem.keywords) {
+        const kwLower = kw.toLowerCase();
+        if (ocrLower.includes(kwLower)) {
+          if (kwLower.length > maxKwLen) {
+            maxKwLen = kwLower.length;
+            ocrKeywordMatch = mapItem;
+            ocrMatchedWord = kw;
+          }
+        }
+      }
+    }
+  }
+
+  // 3. 期限判定：若 OCR 掃到印刷日期，優先採用印刷日期
+  let finalDate = (ocrData && ocrData.date) ? ocrData.date : extractDateFromText(ocrText + ' ' + ocrBarcode);
+
+  let finalName = '';
+  let finalCategory = 'food';
+  let finalSubCategory = '';
+  let finalEmoji = '📌';
+  let defaultDays = 7;
+  let fusionMode = 'fallback';
+
+  // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle），且 OCR 同步掃到品牌或產品字樣（如「洗髮精」、「醬油」）
+  if (topVisualMatch && topVisualMatch.isContainer && ocrMatchedWord) {
+    fusionMode = 'container_ocr_fusion';
+    finalName = ocrMatchedWord;
+
+    // 若外觀為清潔瓶身 (lotion/soap dispenser)，分類統一遵循外觀特徵庫為 'cleaning' (清潔)
+    if (topVisualMatch.category === 'cleaning') {
+      finalCategory = 'cleaning';
+      finalSubCategory = topVisualMatch.subCategory || (ocrKeywordMatch ? ocrKeywordMatch.subCat : '衛浴保養');
+      defaultDays = topVisualMatch.defaultDays; // 180
+    } else if (topVisualMatch.category === 'medicine') {
+      finalCategory = 'medicine';
+      finalSubCategory = topVisualMatch.subCategory || '常備藥品';
+      defaultDays = topVisualMatch.defaultDays; // 180
+    } else if (ocrKeywordMatch && ocrKeywordMatch.cat) {
+      finalCategory = ocrKeywordMatch.cat;
+      finalSubCategory = ocrKeywordMatch.subCat || topVisualMatch.subCategory;
+      defaultDays = (ocrKeywordMatch.duration && ocrKeywordMatch.duration > 0) ? ocrKeywordMatch.duration : topVisualMatch.defaultDays;
+    } else {
+      finalCategory = topVisualMatch.category;
+      finalSubCategory = topVisualMatch.subCategory;
+      defaultDays = topVisualMatch.defaultDays;
+    }
+    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : topVisualMatch.emoji;
+  }
+  // 【決策分支 1】：若外觀特徵命中率高（置信度 > 0.35），且圖片中無明顯中文品名
+  else if (topVisualMatch && topVisualConfidence > 0.35 && !ocrMatchedWord) {
+    fusionMode = 'visual_priority';
+    finalName = topVisualMatch.name;
+    finalCategory = topVisualMatch.category;
+    finalSubCategory = topVisualMatch.subCategory;
+    finalEmoji = topVisualMatch.emoji;
+    defaultDays = topVisualMatch.defaultDays;
+  }
+  // 【決策分支 3】：若 OCR 掃到明確中文品名，但外觀非容器或信心度較低
+  else if (ocrMatchedWord) {
+    fusionMode = 'ocr_priority';
+    finalName = ocrMatchedWord;
+    finalCategory = ocrKeywordMatch ? ocrKeywordMatch.cat : 'food';
+    finalSubCategory = ocrKeywordMatch ? ocrKeywordMatch.subCat : '';
+    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : '📌';
+    defaultDays = 14;
+  }
+  // 【決策分支 4】：外觀特徵有命中但置信度 <= 0.35 且無 OCR 品名
+  else if (topVisualMatch) {
+    fusionMode = 'visual_low_confidence';
+    finalName = topVisualMatch.name;
+    finalCategory = topVisualMatch.category;
+    finalSubCategory = topVisualMatch.subCategory;
+    finalEmoji = topVisualMatch.emoji;
+    defaultDays = topVisualMatch.defaultDays;
+  }
+  // 【決策分支 5】：檢查條碼比對現有庫存
+  else if (ocrBarcode) {
+    fusionMode = 'barcode_match';
+    const existing = Array.isArray(existingItems) ? existingItems.find(i => (i.notes && i.notes.includes(ocrBarcode)) || i.name.includes(ocrBarcode)) : null;
+    if (existing) {
+      finalName = existing.name;
+      finalCategory = existing.category;
+      finalSubCategory = existing.subCategory || '';
+      finalEmoji = existing.emoji || '📦';
+      defaultDays = 14;
+    } else {
+      finalName = `物品 ${ocrBarcode}`;
+      finalCategory = 'food';
+      defaultDays = 30;
+    }
+  }
+  // 【決策分支 6】：完全無特徵之預設降級
+  else {
+    fusionMode = 'default_fallback';
+    finalName = '拍攝物品';
+    finalCategory = 'food';
+    defaultDays = 7;
+    finalEmoji = '📷';
+  }
+
+  // 期限判定：若無印刷日期，自動採用外觀特徵庫指定的預設保存天數（如麵包 +3 天、水果 +7 天、保養瓶罐 +180 天）
+  if (!finalDate) {
+    finalDate = formatDate(offsetDays(today, defaultDays));
+  }
+
+  finalCategory = normalizeCategoryKey(finalCategory);
+
+  return {
+    success: true,
+    name: finalName,
+    category: finalCategory,
+    subCategory: finalSubCategory,
+    emoji: finalEmoji,
+    expiryDate: finalDate,
+    hasEndDate: true,
+    remindDaysBefore: 3,
+    confidence: topVisualConfidence,
+    visualMatch: topVisualMatch ? topVisualMatch.name : null,
+    fusionMode,
+    visualPredictions: visualPredictions || [],
+    ocrText: ocrText
+  };
+}
+
+/**
+ * 智慧鏡頭雙軌並行融合分析入口
+ * 使用 Promise.all 同步啟動視覺外觀 (MobileNet) 與 文字效期 (Tesseract OCR)
+ */
+async function analyzeSmartCameraDualTrack(imageSource, photoDataUrl) {
+  const [visualPredictions, ocrData] = await Promise.all([
+    classifyImageVisual(imageSource),
+    runTextAndDateOcr(imageSource)
+  ]);
+
+  const itemsList = (typeof window !== 'undefined' && window.getItems) ? window.getItems() : [];
+  const fused = fuseVisualAndOcrDecision(visualPredictions, ocrData, itemsList);
+
+  if (photoDataUrl) {
+    fused.image = photoDataUrl;
+  }
+  if (ocrData && ocrData.barcode && !fused.notes) {
+    fused.notes = `條碼: ${ocrData.barcode}`;
+  }
+
+  return fused;
+}
+
 // ==========================================
 // 8. 全域掛載與自啟動
 // ==========================================
@@ -1508,6 +2016,15 @@ if (typeof window !== 'undefined') {
   window.renderCardProgressBar = renderProgressBar;
   window.applyProgressBarStatus = renderProgressBar;
   window.getItemStatusConfig = getItemStatusConfig;
+  window.VISUAL_APPEARANCE_DICT = VISUAL_APPEARANCE_DICT;
+  window.CATEGORY_MAP_TO_KEY = CATEGORY_MAP_TO_KEY;
+  window.normalizeCategoryKey = normalizeCategoryKey;
+  window.initMobileNet = initMobileNet;
+  window.classifyImageVisual = classifyImageVisual;
+  window.extractDateFromText = extractDateFromText;
+  window.runTextAndDateOcr = runTextAndDateOcr;
+  window.fuseVisualAndOcrDecision = fuseVisualAndOcrDecision;
+  window.analyzeSmartCameraDualTrack = analyzeSmartCameraDualTrack;
   window.getLastCreatedItem = () => lastCreatedItem;
   window.setLastCreatedItem = (item) => { lastCreatedItem = item; };
 
@@ -1540,6 +2057,15 @@ if (typeof module !== 'undefined' && module.exports) {
     renderCardProgressBar: renderProgressBar,
     applyProgressBarStatus: renderProgressBar,
     getItemStatusConfig,
+    VISUAL_APPEARANCE_DICT,
+    CATEGORY_MAP_TO_KEY,
+    normalizeCategoryKey,
+    initMobileNet,
+    classifyImageVisual,
+    extractDateFromText,
+    runTextAndDateOcr,
+    fuseVisualAndOcrDecision,
+    analyzeSmartCameraDualTrack,
     getLastCreatedItem: () => lastCreatedItem,
     setLastCreatedItem: (item) => { lastCreatedItem = item; }
   };
