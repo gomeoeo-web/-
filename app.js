@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.8.6
+ * Smart Quick Add & On-Device NER Parser v1.9.0
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -303,17 +303,17 @@ function updateNerStatus(status) {
 
   if (status === 'loading') {
     if (input) {
-      input.placeholder = '智慧輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
+      input.placeholder = '智慧輸入 (如：鮮奶5天後到期、那隻貓叫小黑)';
       input.title = '智慧輸入：支援自然語言與日期分析';
     }
   } else if (status === 'ready') {
     if (input) {
-      input.placeholder = '✨ 智慧輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
+      input.placeholder = '✨ 智慧輸入 (如：鮮奶5天後到期、那隻貓叫小黑)';
       input.title = '智慧輸入：本地微型實體模型支援';
     }
   } else if (status === 'fallback') {
     if (input) {
-      input.placeholder = '智慧輸入（如：交通會議 下週三下午2點提醒、鮮奶5天後到期）';
+      input.placeholder = '智慧輸入 (如：交通會議 下週三下午2點提醒、鮮奶5天後到期)';
       input.title = '智慧輸入';
     }
   }
@@ -1295,7 +1295,7 @@ function updateItemByNlp(targetId, updates) {
 }
 
 // ==========================================
-// 7.5 卡片效期狀態與進度條判定模組 (v1.8.6)
+// 7.5 卡片效期狀態與進度條判定模組 (v1.8.7)
 // ==========================================
 /**
  * 依據效期嚴格三段天數判定，直接透過 JavaScript 計算並設定 progressBarFill 的 backgroundColor 與 width
@@ -1488,7 +1488,7 @@ function getItemStatusConfig(item, todayStr) {
 
 
 // ==========================================
-// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗) v1.8.6
+// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗) v1.8.7
 // ==========================================
 
 const CATEGORY_MAP_TO_KEY = {
@@ -1863,6 +1863,23 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
   // 3. 期限判定：若 OCR 掃到印刷日期，優先採用印刷日期
   let finalDate = (ocrData && ocrData.date) ? ocrData.date : extractDateFromText(ocrText + ' ' + ocrBarcode);
 
+  // 中英詞彙優化對應 (例如英文 OCR 'milk' 自動對應至中文品名「牛奶」)
+  const OCR_NAME_TRANSLATIONS = {
+    'milk': '牛奶',
+    'whole milk': '全脂牛奶',
+    'low fat milk': '低脂牛奶',
+    'fresh milk': '鮮乳',
+    'yogurt': '優格',
+    'soy milk': '豆漿',
+    'coffee': '咖啡',
+    'tea': '茶包',
+    'bread': '麵包',
+    'apple': '蘋果',
+    'banana': '香蕉',
+    'egg': '雞蛋',
+    'eggs': '雞蛋'
+  };
+
   let finalName = '';
   let finalCategory = 'food';
   let finalSubCategory = '';
@@ -1870,30 +1887,33 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
   let defaultDays = 7;
   let fusionMode = 'fallback';
 
-  // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle），且 OCR 同步掃到品牌或產品字樣（如「洗髮精」、「醬油」）
+  // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle / carton），且 OCR 同步掃到品牌或產品字樣（如「milk」、「洗髮精」、「醬油」）
   if (topVisualMatch && topVisualMatch.isContainer && ocrMatchedWord) {
     fusionMode = 'container_ocr_fusion';
-    finalName = ocrMatchedWord;
+    finalName = OCR_NAME_TRANSLATIONS[ocrMatchedWord.toLowerCase()] || ocrMatchedWord;
 
-    // 若外觀為清潔瓶身 (lotion/soap dispenser)，分類統一遵循外觀特徵庫為 'cleaning' (清潔)
-    if (topVisualMatch.category === 'cleaning') {
+    // 若 OCR 掃描到明確關鍵字，以 OCR 的品項分類為最優先！（容器形狀不可顛覆內容物種類）
+    if (ocrKeywordMatch && ocrKeywordMatch.cat) {
+      finalCategory = ocrKeywordMatch.cat;
+      finalSubCategory = ocrKeywordMatch.subCat || topVisualMatch.subCategory;
+      defaultDays = (ocrKeywordMatch.duration && ocrKeywordMatch.duration > 0) ? ocrKeywordMatch.duration : (topVisualMatch.defaultDays || 12);
+      finalEmoji = ocrKeywordMatch.emoji;
+    } else if (topVisualMatch.category === 'cleaning') {
       finalCategory = 'cleaning';
-      finalSubCategory = topVisualMatch.subCategory || (ocrKeywordMatch ? ocrKeywordMatch.subCat : '衛浴保養');
+      finalSubCategory = topVisualMatch.subCategory || '衛浴保養';
       defaultDays = topVisualMatch.defaultDays; // 180
+      finalEmoji = topVisualMatch.emoji;
     } else if (topVisualMatch.category === 'medicine') {
       finalCategory = 'medicine';
       finalSubCategory = topVisualMatch.subCategory || '常備藥品';
       defaultDays = topVisualMatch.defaultDays; // 180
-    } else if (ocrKeywordMatch && ocrKeywordMatch.cat) {
-      finalCategory = ocrKeywordMatch.cat;
-      finalSubCategory = ocrKeywordMatch.subCat || topVisualMatch.subCategory;
-      defaultDays = (ocrKeywordMatch.duration && ocrKeywordMatch.duration > 0) ? ocrKeywordMatch.duration : topVisualMatch.defaultDays;
+      finalEmoji = topVisualMatch.emoji;
     } else {
       finalCategory = topVisualMatch.category;
       finalSubCategory = topVisualMatch.subCategory;
       defaultDays = topVisualMatch.defaultDays;
+      finalEmoji = topVisualMatch.emoji;
     }
-    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : topVisualMatch.emoji;
   }
   // 【決策分支 1】：若外觀特徵命中率高（置信度 > 0.35），且圖片中無明顯中文品名
   else if (topVisualMatch && topVisualConfidence > 0.35 && !ocrMatchedWord) {
@@ -1904,14 +1924,14 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     finalEmoji = topVisualMatch.emoji;
     defaultDays = topVisualMatch.defaultDays;
   }
-  // 【決策分支 3】：若 OCR 掃到明確中文品名，但外觀非容器或信心度較低
+  // 【決策分支 3】：若 OCR 掃到明確品名，但外觀非容器或信心度較低
   else if (ocrMatchedWord) {
     fusionMode = 'ocr_priority';
-    finalName = ocrMatchedWord;
+    finalName = OCR_NAME_TRANSLATIONS[ocrMatchedWord.toLowerCase()] || ocrMatchedWord;
     finalCategory = ocrKeywordMatch ? ocrKeywordMatch.cat : 'food';
     finalSubCategory = ocrKeywordMatch ? ocrKeywordMatch.subCat : '';
     finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : '📌';
-    defaultDays = 14;
+    defaultDays = (ocrKeywordMatch && ocrKeywordMatch.duration) ? ocrKeywordMatch.duration : 14;
   }
   // 【決策分支 4】：外觀特徵有命中但置信度 <= 0.35 且無 OCR 品名
   else if (topVisualMatch) {
@@ -1945,6 +1965,18 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     finalCategory = 'food';
     defaultDays = 7;
     finalEmoji = '📷';
+  }
+
+  // 關鍵防呆保護：嚴禁將乳品/食品誤歸類為清潔用品 (防止 milk / 牛奶辨識成清潔液)
+  const isFoodOrDairy = /milk|牛奶|鮮奶|鮮乳|牛乳|優格|豆漿|起司|飲料|乳品/i.test(finalName + ' ' + (ocrMatchedWord || '') + ' ' + (ocrText || ''));
+  if (isFoodOrDairy && (finalCategory === 'cleaning' || finalCategory === 'pao')) {
+    finalCategory = 'food';
+    finalSubCategory = '鮮乳';
+    finalEmoji = '🥛';
+    if (!finalName || finalName === '瓶裝洗劑/保養品' || finalName.includes('洗劑') || finalName === '拍攝物品') {
+      finalName = '牛奶';
+    }
+    defaultDays = 12;
   }
 
   // 期限判定：若無印刷日期，自動採用外觀特徵庫指定的預設保存天數（如麵包 +3 天、水果 +7 天、保養瓶罐 +180 天）

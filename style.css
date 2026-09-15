@@ -440,8 +440,14 @@ body {
 }
 
 /* 強制最高權重校準 (防止三星/Android 瀏覽器深色模式強制反轉或繼承成深灰色/黑色) */
-.fab-add-btn, #fabAddBtn, .floating-btn, .ios-fab-btn,
-.tab-btn.active, .filter-pill.active, [data-filter="all"].active, .home-filter-btn[data-filter="all"].active {
+.fab-add-btn,
+#fabAddBtn,
+.floating-btn,
+.ios-fab-btn,
+.tab-btn.active,
+.filter-pill.active,
+[data-filter="all"].active,
+.home-filter-btn[data-filter="all"].active {
   background: linear-gradient(#FFFFFF, #FFFFFF) !important;
   background-image: linear-gradient(#FFFFFF, #FFFFFF) !important;
   background-color: rgba(255, 255, 255, 0.99) !important;
@@ -450,18 +456,30 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 
-.fab-add-btn, #fabAddBtn, .floating-btn, .ios-fab-btn,
-.tab-btn.active, .filter-pill.active,
+.fab-add-btn,
+#fabAddBtn,
+.floating-btn,
+.ios-fab-btn,
+.tab-btn.active,
+.filter-pill.active,
 .home-filter-btn[data-filter="all"].active .filter-btn-text,
 [data-filter="all"].active .filter-btn-text {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
 }
 
-.fab-add-btn svg, .fab-add-btn i, .fab-add-btn span,
-#fabAddBtn svg, #fabAddBtn i, #fabAddBtn span,
-.floating-btn svg, .floating-btn i, .floating-btn span,
-.ios-fab-btn svg, .ios-fab-btn i, .ios-fab-btn span {
+.fab-add-btn svg,
+.fab-add-btn i,
+.fab-add-btn span,
+#fabAddBtn svg,
+#fabAddBtn i,
+#fabAddBtn span,
+.floating-btn svg,
+.floating-btn i,
+.floating-btn span,
+.ios-fab-btn svg,
+.ios-fab-btn i,
+.ios-fab-btn span {
   fill: #000000 !important;
   stroke: #000000 !important;
   color: #000000 !important;
@@ -634,9 +652,19 @@ body {
 }
 
 @keyframes scanLaserMove {
-  0% { top: 8%; opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { top: 92%; opacity: 0.3; }
+  0% {
+    top: 8%;
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 92%;
+    opacity: 0.3;
+  }
 }
 
 .camera-viewfinder-hint {
@@ -5597,6 +5625,7 @@ body.modal-open .view-panel {
 .btn-unarchive:active {
   transform: scale(0.96);
 }
+
 /* ==========================================================================
    Settings Bottom Version Badge (設置裡的左下角版本號碼)
    ========================================================================== */
@@ -6010,4 +6039,180 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 [data-theme="light"] .nlp-day-pill:hover {
   background: #d1d1d6;
   color: #000000;
+}
+
+/* 提醒通知排程與提醒時間橫向排列樣式 (v1.8.8) */
+.nlp-reminder-time-grid {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.nlp-reminder-time-grid .nlp-confirm-field-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#nlpConfirmReminderWrap {
+  flex: 1.15;
+}
+
+#nlpConfirmTimeRow {
+  flex: 1;
+}
+
+/* 提醒通知時間格式下拉選單與上午/下午選擇器 */
+.nlp-time-format-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.nlp-time-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px;
+  border-radius: 12px;
+  margin-bottom: 0;
+}
+
+.nlp-time-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.25rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a1a1a6;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.nlp-time-mode-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nlp-time-mode-btn.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="light"] .nlp-time-mode-selector {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .nlp-time-mode-btn {
+  color: #636366;
+}
+
+[data-theme="light"] .nlp-time-mode-btn:hover {
+  color: #000000;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .nlp-time-mode-btn.active {
+  background: #007aff !important;
+  color: #ffffff !important;
+  border-color: #007aff !important;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3) !important;
+}
+
+[data-theme="amoled"] .nlp-time-mode-selector {
+  background: #121216;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 物品複製按鈕樣式 */
+.btn-modal-duplicate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  padding: 0.32rem 0.65rem;
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+}
+
+.btn-modal-duplicate:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.btn-modal-duplicate:active {
+  transform: scale(0.96);
+}
+
+[data-theme="light"] .btn-modal-duplicate {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #000000;
+}
+
+.nlp-quick-time-pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.nlp-time-pill {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  border: 1px solid var(--ios-border-strong);
+  background: var(--ios-surface-secondary);
+  color: var(--ios-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.nlp-time-pill:hover {
+  background: var(--ios-surface-tertiary);
+  color: var(--ios-text-primary);
+  border-color: #0a84ff;
+}
+
+.nlp-time-pill.active {
+  background: rgba(10, 132, 255, 0.18);
+  color: #0a84ff;
+  border-color: rgba(10, 132, 255, 0.45);
+}
+
+[data-theme="light"] .nlp-time-pill.active {
+  background: rgba(0, 122, 255, 0.12);
+  color: #007aff;
+  border-color: rgba(0, 122, 255, 0.4);
+}
+
+.nlp-time-input-24h {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  text-align: center !important;
 }

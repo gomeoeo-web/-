@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.8.6">
+  <link rel="stylesheet" href="style.css?v=1.8.8">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -500,6 +500,374 @@ body {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* ==========================================================================
+   AI Camera Scanning & Recognition Loading HUD (智慧鏡頭拍攝後雙軌分析載入動畫)
+   ========================================================================== */
+.ai-scan-loading-backdrop {
+  z-index: 10000;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-scan-loading-card {
+  width: 90%;
+  max-width: 360px;
+  background: rgba(28, 28, 30, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 28px;
+  padding: 1.5rem 1.25rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(10, 132, 255, 0.15);
+  animation: aiCardPopIn 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes aiCardPopIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.ai-scan-preview-container {
+  width: 140px;
+  height: 140px;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  background: #121214;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1.25rem;
+}
+
+.ai-scan-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ai-scan-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #0a84ff, #30d158, #0a84ff, transparent);
+  box-shadow: 0 0 12px #0a84ff, 0 0 6px #30d158;
+  animation: aiScanLaserMove 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  z-index: 5;
+}
+
+@keyframes aiScanLaserMove {
+  0% { top: 4%; opacity: 0.6; }
+  50% { opacity: 1; height: 3.5px; }
+  100% { top: 94%; opacity: 0.6; }
+}
+
+.ai-scan-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #0a84ff;
+  border-style: solid;
+  z-index: 6;
+  pointer-events: none;
+}
+.ai-scan-corner.corner-tl { top: 4px; left: 4px; border-width: 2.5px 0 0 2.5px; border-top-left-radius: 6px; }
+.ai-scan-corner.corner-tr { top: 4px; right: 4px; border-width: 2.5px 2.5px 0 0; border-top-right-radius: 6px; }
+.ai-scan-corner.corner-bl { bottom: 4px; left: 4px; border-width: 0 0 2.5px 2.5px; border-bottom-left-radius: 6px; }
+.ai-scan-corner.corner-br { bottom: 4px; right: 4px; border-width: 0 2.5px 2.5px 0; border-bottom-right-radius: 6px; }
+
+.ai-scan-status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.ai-scan-spinner-ring {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(10, 132, 255, 0.2);
+  border-top-color: #0a84ff;
+  border-right-color: #30d158;
+  animation: aiSpinRing 0.9s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@keyframes aiSpinRing {
+  to { transform: rotate(360deg); }
+}
+
+.ai-scan-title-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-scan-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ai-scan-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.ai-scan-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.25), rgba(48, 209, 88, 0.25));
+  color: #64d2ff;
+  border: 1px solid rgba(100, 210, 255, 0.3);
+}
+
+.ai-scan-desc {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0.2rem 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-scan-steps {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.32);
+  border-radius: 14px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ai-scan-step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.45);
+  transition: all 0.2s ease;
+}
+
+.ai-scan-step-item.active {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.ai-scan-step-item.done {
+  color: #30d158;
+}
+
+.ai-scan-step-item .step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ai-scan-step-item.active .step-dot {
+  background: #0a84ff;
+  box-shadow: 0 0 6px #0a84ff;
+}
+
+.ai-scan-step-item.done .step-dot {
+  background: #30d158;
+  box-shadow: 0 0 6px #30d158;
+}
+
+/* 提醒通知排程與提醒時間橫向排列樣式 (v1.8.8) */
+.nlp-reminder-time-grid {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.nlp-reminder-time-grid .nlp-confirm-field-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#nlpConfirmReminderWrap {
+  flex: 1.15;
+}
+
+#nlpConfirmTimeRow {
+  flex: 1;
+}
+
+/* 提醒通知時間格式下拉選單與上午/下午選擇器 */
+.nlp-time-format-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.nlp-time-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px;
+  border-radius: 12px;
+  margin-bottom: 0;
+}
+
+.nlp-time-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.25rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a1a1a6;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.nlp-time-mode-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nlp-time-mode-btn.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="light"] .nlp-time-mode-selector {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .nlp-time-mode-btn {
+  color: #636366;
+}
+
+[data-theme="light"] .nlp-time-mode-btn:hover {
+  color: #000000;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .nlp-time-mode-btn.active {
+  background: #007aff !important;
+  color: #ffffff !important;
+  border-color: #007aff !important;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3) !important;
+}
+
+[data-theme="amoled"] .nlp-time-mode-selector {
+  background: #121216;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 物品複製按鈕樣式 */
+.btn-modal-duplicate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  padding: 0.32rem 0.65rem;
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+}
+
+.btn-modal-duplicate:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.btn-modal-duplicate:active {
+  transform: scale(0.96);
+}
+
+[data-theme="light"] .btn-modal-duplicate {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #000000;
+}
+
+.nlp-quick-time-pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.nlp-time-pill {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  border: 1px solid var(--ios-border-strong);
+  background: var(--ios-surface-secondary);
+  color: var(--ios-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.nlp-time-pill:hover {
+  background: var(--ios-surface-tertiary);
+  color: var(--ios-text-primary);
+  border-color: #0a84ff;
+}
+
+.nlp-time-pill.active {
+  background: rgba(10, 132, 255, 0.18);
+  color: #0a84ff;
+  border-color: rgba(10, 132, 255, 0.45);
+}
+
+[data-theme="light"] .nlp-time-pill.active {
+  background: rgba(0, 122, 255, 0.12);
+  color: #007aff;
+  border-color: rgba(0, 122, 255, 0.4);
+}
+
+.nlp-time-input-24h {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  text-align: center !important;
 }
 
 /* ==========================================================================
@@ -6042,7 +6410,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
           type="text"
           id="smartQuickAddInput"
           class="header-smart-input"
-          placeholder="智慧輸入（如：交通會議 下週三下午2點提醒、鮮奶5天後到期）"
+          placeholder="智慧輸入 (如：交通會議 下週三下午2點提醒、鮮奶5天後到期)"
           autocomplete="off"
           aria-label="智慧輸入"
           title="智慧輸入"
@@ -6251,7 +6619,13 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
             即時儲存
           </span>
         </div>
-        <button id="btnCloseModal" class="btn-modal-close" aria-label="關閉">✕</button>
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <button type="button" id="btnDuplicateFromModal" class="btn-modal-duplicate" title="複製此物品" aria-label="複製" style="display:none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>複製</span>
+          </button>
+          <button id="btnCloseModal" class="btn-modal-close" aria-label="關閉">✕</button>
+        </div>
       </div>
 
       <div class="ios-modal-scroll">
@@ -6317,6 +6691,10 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
                     <option value="food">🥛 食品</option>
                     <option value="pao">🧴 日用</option>
                     <option value="other">📌 其他</option>
+                    <option value="animation">🎬 動畫</option>
+                    <option value="game">🎮 遊戲</option>
+                    <option value="otaku">✨ 二次元</option>
+                    <option value="ticket">🎟️ 票券/活動</option>
                   </select>
                   <span class="select-chevron">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -6396,58 +6774,28 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
             <!-- Reminder Details Wrap (Controlled by sliding switch) -->
             <div id="reminderDetailWrap" class="reminder-detail-wrap">
-              <div class="ios-field">
-                <label for="itemWarnDaysSelect">提前提醒天數</label>
-                <div class="ios-select-wrapper">
-                  <select id="itemWarnDaysSelect" class="ios-select">
-                    <option value="0">到期當天提醒</option>
-                    <option value="1">到期 1 天前提醒</option>
-                    <option value="3">到期 3 天前提醒</option>
-                    <option value="5">到期 5 天前提醒</option>
-                    <option value="7" selected>到期 7 天前提醒</option>
-                    <option value="10">到期 10 天前提醒</option>
-                    <option value="14">到期 14 天前提醒</option>
-                    <option value="30">到期 30 天前提醒</option>
-                    <option value="60">到期 60 天前提醒</option>
-                    <option value="90">到期 90 天前提醒</option>
-                    <option value="custom">自訂指定提醒日期與時間...</option>
-                  </select>
-                  <span class="select-chevron">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                  </span>
+              <!-- Custom Exact Date & Time Sub-card (常駐提醒日期與時間) -->
+              <div id="customReminderDateTimeWrap" class="reminder-custom-box">
+                <div class="reminder-custom-header">
+                  <span class="reminder-custom-title">提醒日期與時間</span>
+                  <span class="reminder-custom-badge">排程提醒</span>
                 </div>
-              </div>
-
-            <!-- Preset Reminder Time Setting (預設提前天數下的提醒時間點) -->
-            <div id="presetReminderTimeWrap" class="preset-time-inline">
-              <span class="preset-time-label">提醒發送時間</span>
-              <div class="time-input-wrap">
-                <input type="time" id="itemPresetReminderTime" class="ios-time-input" value="09:00">
-              </div>
-            </div>
-
-            <!-- Custom Exact Date & Time Sub-card (自訂特定提醒日期與時間) -->
-            <div id="customReminderDateTimeWrap" class="reminder-custom-box" style="display:none;">
-              <div class="reminder-custom-header">
-                <span class="reminder-custom-title">指定提醒日期與時間</span>
-                <span class="reminder-custom-badge">精確排程</span>
-              </div>
-              <div class="reminder-custom-grid">
-                <div class="ios-field">
-                  <label for="itemReminderCustomDate">自訂提醒日期</label>
-                  <input type="date" id="itemReminderCustomDate">
+                <div class="reminder-custom-grid">
+                  <div class="ios-field">
+                    <label for="itemReminderCustomDate">提醒日期</label>
+                    <input type="date" id="itemReminderCustomDate">
+                  </div>
+                  <div class="ios-field">
+                    <label for="itemReminderCustomTime">提醒時間</label>
+                    <input type="time" id="itemReminderCustomTime" value="09:00">
+                  </div>
                 </div>
-                <div class="ios-field">
-                  <label for="itemReminderCustomTime">提醒時間</label>
-                  <input type="time" id="itemReminderCustomTime" value="09:00">
+                <div class="reminder-hint">
+                  💡 系統將於指定之日期與時間發送推播通知。
                 </div>
-              </div>
-              <div class="reminder-hint">
-                💡 可指定任意特定年月日時分，系統將於該特定時點發送提醒。
               </div>
             </div>
           </div>
-        </div>
 
           <!-- Live Preview Banner for Expiry Mode -->
           <div class="ios-preview-bar" id="previewExpiryBar">
@@ -6539,7 +6887,13 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
             <span>編輯物品資訊</span>
           </button>
 
-          <!-- 2. Reset Action (重設週期) -->
+          <!-- 2. Duplicate Action (複製此物品) -->
+          <button type="button" class="btn-sheet-action" id="btnSheetDuplicate" title="複製此物品" aria-label="複製此物品">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>複製此物品</span>
+          </button>
+
+          <!-- 3. Reset Action (重設週期) -->
           <button type="button" class="btn-sheet-action highlight" id="btnSheetReset" title="重設週期" aria-label="重設週期">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
             <span id="btnSheetResetText">重設週期</span>
@@ -6682,7 +7036,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.4</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.8</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -6758,6 +7112,48 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
       <!-- Hidden canvas and file input -->
       <canvas id="cameraCanvas" style="display: none;"></canvas>
       <input type="file" id="cameraFileInput" accept="image/*" style="display: none;">
+    </div>
+  </div>
+
+  <!-- Modal: AI Camera Scanning & Recognition Loading HUD (智慧鏡頭拍攝後雙軌分析載入動畫) -->
+  <div id="aiScanLoadingModal" class="ios-modal-backdrop ai-scan-loading-backdrop" style="display: none;">
+    <div class="ai-scan-loading-card">
+      <div class="ai-scan-preview-container">
+        <img id="aiScanPreviewImg" src="" alt="拍攝影像預覽" class="ai-scan-preview-img">
+        <div class="ai-scan-laser-line"></div>
+        <div class="ai-scan-corner corner-tl"></div>
+        <div class="ai-scan-corner corner-tr"></div>
+        <div class="ai-scan-corner corner-bl"></div>
+        <div class="ai-scan-corner corner-br"></div>
+      </div>
+
+      <div class="ai-scan-status-wrap">
+        <div class="ai-scan-spinner-ring">
+          <div class="ai-scan-spinner-core"></div>
+        </div>
+        <div class="ai-scan-title-group">
+          <div class="ai-scan-title-row">
+            <span class="ai-scan-title">AI 智慧分析辨識中</span>
+            <span class="ai-scan-tag">雙軌並行</span>
+          </div>
+          <p id="aiScanStatusText" class="ai-scan-desc">正在啟動 MobileNet 視覺與 OCR 效期解析...</p>
+        </div>
+      </div>
+
+      <div class="ai-scan-steps">
+        <div class="ai-scan-step-item active" id="scanStepVisual">
+          <span class="step-dot"></span>
+          <span class="step-text">MobileNet 物品外觀特徵分類</span>
+        </div>
+        <div class="ai-scan-step-item active" id="scanStepOcr">
+          <span class="step-dot"></span>
+          <span class="step-text">Tesseract OCR 效期文字提取</span>
+        </div>
+        <div class="ai-scan-step-item" id="scanStepFuse">
+          <span class="step-dot"></span>
+          <span class="step-text">特徵交叉校對與提醒排程</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -6866,30 +7262,67 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
           <div id="nlpConfirmStartDateHint" class="nlp-confirm-hint">已使用 0 天</div>
         </div>
 
-        <!-- Field 4: Reminder -->
-        <div class="nlp-confirm-field" id="nlpConfirmReminderWrap">
-          <label class="nlp-confirm-label" for="nlpConfirmReminder">提醒通知</label>
-          <div class="nlp-select-wrap">
-            <select id="nlpConfirmReminder" class="nlp-confirm-select">
-              <option value="-1">不提醒</option>
-              <option value="0">當天提醒 (09:00)</option>
-              <option value="1">提早 1 天 (09:00)</option>
-              <option value="2">提早 2 天 (09:00)</option>
-              <option value="3" selected>提早 3 天 (09:00)</option>
-              <option value="5">提早 5 天 (09:00)</option>
-              <option value="7">提早 7 天（1週前 09:00）</option>
-              <option value="14">提早 14 天（2週前 09:00）</option>
-              <option value="30">提早 30 天（1個月前 09:00）</option>
-              <option value="custom">自訂提醒時間...</option>
-            </select>
-            <span class="select-arrow">▾</span>
-          </div>
-        </div>
+        <!-- Field 4 & 5: Reminder Schedule & Time (提醒通知排程與提醒時間 橫向對齊排列) -->
+        <div class="nlp-confirm-field" id="nlpReminderScheduleTimeSection" style="margin-bottom: 0.85rem;">
+          <div class="nlp-reminder-time-grid" id="nlpReminderTimeGrid">
+            <!-- 提醒通知排程 -->
+            <div class="nlp-confirm-field-col" id="nlpConfirmReminderWrap">
+              <label class="nlp-confirm-label" for="nlpConfirmReminder">提醒通知排程</label>
+              <div class="nlp-select-wrap">
+                <select id="nlpConfirmReminder" class="nlp-confirm-select">
+                  <option value="-1">不提醒</option>
+                  <option value="0">到期當天提醒</option>
+                  <option value="1">提前 1 天提醒</option>
+                  <option value="2">提前 2 天提醒</option>
+                  <option value="3" selected>提前 3 天提醒</option>
+                  <option value="5">提前 5 天提醒</option>
+                  <option value="7">提前 7 天提醒 (1週前)</option>
+                  <option value="14">提前 14 天提醒 (2週前)</option>
+                  <option value="30">提前 30 天提醒 (1個月前)</option>
+                  <option value="custom">自訂指定日期提醒...</option>
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
 
-        <!-- Field 5: Custom Reminder Datetime Row (when custom is selected) -->
-        <div id="nlpCustomReminderRow" class="nlp-custom-reminder-row" style="display: none;">
-          <label class="nlp-confirm-label" for="nlpConfirmCustomTime">自訂提醒日期與時間</label>
-          <input type="datetime-local" id="nlpConfirmCustomTime" class="nlp-confirm-input custom-time-input" step="60">
+            <!-- 提醒時間 (刪除「（24小時制）」描述與副標題) -->
+            <div class="nlp-confirm-field-col" id="nlpConfirmTimeRow">
+              <label class="nlp-confirm-label" for="nlpConfirmReminderTime">提醒時間</label>
+              <div class="nlp-time-input-container">
+                <input type="time" id="nlpConfirmReminderTime" class="nlp-confirm-input nlp-time-input-24h" value="09:00" step="60" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Field 4.5: Custom Specific Reminder Date (when user chooses '自訂指定日期提醒...') -->
+          <div id="nlpCustomDateRow" class="nlp-confirm-field" style="display: none; margin-top: 8px;">
+            <label class="nlp-confirm-label" for="nlpConfirmCustomDate">指定提醒日期</label>
+            <input type="date" id="nlpConfirmCustomDate" class="nlp-confirm-input date-picker-input">
+          </div>
+
+          <!-- Field 5.2: Time Format Dropdown & AM/PM Selector -->
+          <div class="nlp-time-adjust-wrap" id="nlpTimeAdjustWrap" style="margin-top: 8px;">
+            <div class="nlp-time-format-row" id="nlpTimeFormatRow" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div class="ios-select-wrapper" style="flex: 1; max-width: 140px;">
+                <select id="nlpTimeFormatSelect" class="ios-select" style="font-size: 0.82rem; height: 34px; padding: 0 26px 0 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #ffffff;">
+                  <option value="24h" selected>24小時制</option>
+                  <option value="12h">12小時制</option>
+                </select>
+                <span class="select-chevron" style="right: 8px; font-size: 10px; pointer-events: none;">▾</span>
+              </div>
+              <div class="nlp-time-mode-selector" id="nlpTimeModeSelector" style="display: none; flex: 1; margin: 0;">
+                <button type="button" class="nlp-time-mode-btn active" data-mode="am">上午</button>
+                <button type="button" class="nlp-time-mode-btn" data-mode="pm">下午</button>
+              </div>
+            </div>
+            <!-- Quick Time Pills (快捷時間膠囊) -->
+            <div class="nlp-quick-time-pills" id="nlpQuickTimePills">
+              <button type="button" class="nlp-time-pill active" data-time="09:00">09:00 上午</button>
+              <button type="button" class="nlp-time-pill" data-time="12:00">12:00 中午</button>
+              <button type="button" class="nlp-time-pill" data-time="15:00">15:00 下午</button>
+              <button type="button" class="nlp-time-pill" data-time="20:00">20:00 晚間</button>
+            </div>
+          </div>
         </div>
 
         <!-- Elapsed Mode Hint (謹記使用天數提示) -->
@@ -8124,7 +8557,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.8.6';
+  const APP_VERSION = '1.8.8';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -8479,6 +8912,50 @@ var CapacitorBridgeBundle = (() => {
         { name: '集水除濕盒', subCat: '除濕盒', emoji: '🌧️', duration: 60, hasEndDate: true, warnDays: 7, location: '主臥衣櫃', notes: '集水線滿時請及時更換替換包' },
         { name: '掃地機主刷', subCat: '掃地耗材', emoji: '🧹', duration: 180, hasEndDate: true, warnDays: 14, location: '客廳基站', notes: '滾刷與邊刷定期清理與換新' },
         { name: '咖啡機除鈣劑', subCat: '咖啡保養', emoji: '☕', duration: 90, hasEndDate: true, warnDays: 7, location: '廚房吧台', notes: '水路管線定期除鈣延長機器壽命' }
+      ]
+    },
+    animation: {
+      label: '動畫',
+      emoji: '🎬',
+      items: [
+        { name: '漫畫/單行本', subCat: '漫畫', emoji: '📚', duration: 365, hasEndDate: true, warnDays: 30, location: '書櫃', notes: '' },
+        { name: '輕小說', subCat: '輕小說', emoji: '📖', duration: 365, hasEndDate: true, warnDays: 30, location: '書櫃', notes: '' },
+        { name: 'BD/影音', subCat: '影音', emoji: '💿', duration: 180, hasEndDate: true, warnDays: 14, location: '電視', notes: '' },
+        { name: '畫冊/設定集', subCat: '畫冊', emoji: '🎨', duration: 365, hasEndDate: true, warnDays: 30, location: '書櫃', notes: '' },
+        { name: '周邊特典', subCat: '周邊', emoji: '🎁', duration: 365, hasEndDate: true, warnDays: 30, location: '櫃子', notes: '' }
+      ]
+    },
+    game: {
+      label: '遊戲',
+      emoji: '🎮',
+      items: [
+        { name: 'Switch 卡帶', subCat: 'Switch卡帶', emoji: '🎮', duration: 365, hasEndDate: true, warnDays: 30, location: '收藏盒', notes: '' },
+        { name: 'PS/Xbox 光碟', subCat: '光碟', emoji: '💿', duration: 365, hasEndDate: true, warnDays: 30, location: '收藏盒', notes: '' },
+        { name: '主機/手把周邊', subCat: '周邊', emoji: '🕹️', duration: 365, hasEndDate: true, warnDays: 30, location: '抽屜', notes: '' },
+        { name: '點數卡/序號', subCat: '點數卡', emoji: '💳', duration: 365, hasEndDate: true, warnDays: 30, location: '抽屜', notes: '' },
+        { name: '特典周邊', subCat: '特典', emoji: '🎁', duration: 365, hasEndDate: true, warnDays: 30, location: '櫃子', notes: '' }
+      ]
+    },
+    otaku: {
+      label: '二次元',
+      emoji: '✨',
+      items: [
+        { name: '徽章/吧唧', subCat: '徽章', emoji: '🏅', duration: 365, hasEndDate: true, warnDays: 30, location: '櫃子', notes: '' },
+        { name: '壓克力立牌/磚', subCat: '立牌', emoji: '🪧', duration: 365, hasEndDate: true, warnDays: 30, location: '牆面', notes: '' },
+        { name: '色紙/相卡', subCat: '相卡', emoji: '🖼️', duration: 365, hasEndDate: true, warnDays: 30, location: '抽屜', notes: '' },
+        { name: '模型/黏土人/景品', subCat: '模型', emoji: '🪀', duration: 365, hasEndDate: true, warnDays: 30, location: '展示櫃', notes: '' },
+        { name: '棉花娃/玩偶', subCat: '玩偶', emoji: '🧸', duration: 365, hasEndDate: true, warnDays: 30, location: '櫃子', notes: '' },
+        { name: '一番賞', subCat: '一番賞', emoji: '🏆', duration: 365, hasEndDate: true, warnDays: 30, location: '抽屜', notes: '' }
+      ]
+    },
+    ticket: {
+      label: '票券/活動',
+      emoji: '🎟️',
+      items: [
+        { name: '電影票', subCat: '電影票', emoji: '🎬', duration: 7, hasEndDate: true, warnDays: 1, location: '抽屜', notes: '' },
+        { name: '演唱會/音樂會', subCat: '演唱會', emoji: '🎤', duration: 30, hasEndDate: true, warnDays: 5, location: '抽屜', notes: '' },
+        { name: '動漫展覽門票', subCat: '展覽門票', emoji: '🖼️', duration: 30, hasEndDate: true, warnDays: 5, location: '抽屜', notes: '' },
+        { name: '活動兌換券', subCat: '兌換券', emoji: '🔖', duration: 365, hasEndDate: true, warnDays: 30, location: '抽屣', notes: '' }
       ]
     },
     food: {
@@ -9009,7 +9486,7 @@ var CapacitorBridgeBundle = (() => {
     const plugin = getCapacitorNotifications();
 
     const title = `🔔 期效管家提醒：${item.name}`;
-    const body = `${item.name} 即將到期（到期日：${item.endDate}），請留意！`;
+    const body = `${item.name} 即將到期 (到期日：${item.endDate})，請留意！`;
 
     if (plugin && typeof plugin.schedule === 'function') {
       try {
@@ -10659,6 +11136,48 @@ var CapacitorBridgeBundle = (() => {
     openEditModal(id);
   });
 
+  // 複製物品核心函式 (支援從 ActionSheet 或編輯視窗一鍵完整複製)
+  function duplicateItem(itemId) {
+    const source = items.find(it => it.id === itemId);
+    if (!source) return null;
+
+    const cloned = JSON.parse(JSON.stringify(source));
+    cloned.id = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    cloned.name = (source.name || '物品') + ' (複製)';
+    cloned.createdAt = Date.now();
+    cloned.history = [];
+
+    // 重設開始日期為今天，到期日依週期重新計算
+    const today = getTodayString();
+    cloned.startDate = today;
+    if (cloned.hasEndDate !== false) {
+      const dur = parseInt(cloned.durationDays, 10) || 180;
+      cloned.endDate = getOffsetDateString(today, dur);
+    }
+
+    items.unshift(cloned);
+    lastCreatedItem = cloned;
+    if (typeof scheduleItemNotification === 'function') {
+      scheduleItemNotification(cloned);
+    }
+    saveItems();
+    renderApp();
+    if (typeof closeActionSheet === 'function') closeActionSheet();
+    if (typeof closeModal === 'function') closeModal();
+    showToast(`已成功複製「${cloned.name}」`);
+    if (typeof autoSyncIfLoggedIn === 'function') autoSyncIfLoggedIn();
+    return cloned;
+  }
+  window.duplicateItem = duplicateItem;
+
+  const btnSheetDuplicate = document.getElementById('btnSheetDuplicate');
+  if (btnSheetDuplicate) {
+    btnSheetDuplicate.addEventListener('click', function () {
+      if (!activeSheetItemId) return;
+      duplicateItem(activeSheetItemId);
+    });
+  }
+
   if (btnSheetArchive) {
     btnSheetArchive.addEventListener('click', function () {
       if (!activeSheetItemId) return;
@@ -10756,7 +11275,7 @@ var CapacitorBridgeBundle = (() => {
   const fieldEndDateWrap = document.getElementById('fieldEndDateWrap');
   const itemDurationInput = document.getElementById('itemDuration');
   const fieldDurationWrap = document.getElementById('fieldDurationWrap');
-  const itemWarnDaysSelect = document.getElementById('itemWarnDaysSelect');
+  const itemWarnDaysSelect = null; // dropdown removed
   const fieldReminderWrap = document.getElementById('fieldReminderWrap');
   const itemReminderToggle = document.getElementById('itemReminderToggle');
   const reminderDetailWrap = document.getElementById('reminderDetailWrap');
@@ -10800,7 +11319,9 @@ var CapacitorBridgeBundle = (() => {
       if (fieldDurationWrap) fieldDurationWrap.style.display = 'block';
       if (fieldReminderWrap) fieldReminderWrap.style.display = 'block';
       if (typeof updateReminderSectionVisibility === 'function') {
-        updateReminderSectionVisibility(itemWarnDaysSelect ? itemWarnDaysSelect.value : '7');
+        updateReminderSectionVisibility();
+        updateReminderToggleState(true);
+        updateReminderSectionVisibility();
       }
       previewExpiryBar.style.display = 'flex';
       previewElapsedBar.style.display = 'none';
@@ -11307,7 +11828,13 @@ var CapacitorBridgeBundle = (() => {
         opt.dataset.notes = subItem.notes || '';
         opt.dataset.image = subItem.image || '';
 
-        if (activeSubCatName && (activeSubCatName === subItem.subCat || activeSubCatName === subItem.name)) {
+        const isMilkAlias = (s) => /鮮乳|牛奶|鮮奶|milk/i.test(s || '');
+        const isTargetMatch = activeSubCatName && (
+          activeSubCatName === subItem.subCat || 
+          activeSubCatName === subItem.name ||
+          (isMilkAlias(activeSubCatName) && isMilkAlias(subItem.subCat))
+        );
+        if (isTargetMatch) {
           opt.selected = true;
           hasMatched = true;
         }
@@ -11453,86 +11980,57 @@ var CapacitorBridgeBundle = (() => {
   if (itemReminderToggle) {
     itemReminderToggle.addEventListener('change', function () {
       updateReminderToggleState(this.checked);
-      if (this.checked) {
-        if (itemWarnDaysSelect && itemWarnDaysSelect.value === '-1') {
-          itemWarnDaysSelect.value = '7';
-        }
-        updateReminderSectionVisibility(itemWarnDaysSelect ? itemWarnDaysSelect.value : '7');
-      } else {
-        updateReminderSectionVisibility('-1');
-      }
+      // Always update visibility based on toggle state
+      updateReminderSectionVisibility();
     });
   }
 
-  function updateReminderSectionVisibility(val) {
+  function updateReminderSectionVisibility() {
     if (currentModalMode === 'elapsed') {
-      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+      if (reminderDetailWrap) reminderDetailWrap.style.display = 'none';
       if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
       return;
     }
     const isToggleOn = itemReminderToggle ? itemReminderToggle.checked : true;
-    if (!isToggleOn || val === '-1') {
+    if (!isToggleOn) {
+      if (reminderDetailWrap) reminderDetailWrap.style.display = 'none';
       if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
-      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
       updateReminderToggleState(false);
       return;
     }
     updateReminderToggleState(true);
-    if (val === 'custom') {
-      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'flex';
-      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
+    if (reminderDetailWrap) reminderDetailWrap.style.display = 'flex';
+    if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'flex';
+  }
+
+  function setReminderSelectValue(warnDays) {
+    if (warnDays === -1 || warnDays === '-1') {
+      updateReminderToggleState(false);
     } else {
-      if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
-      if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'flex';
+      updateReminderToggleState(true);
+      if (itemEndDateInput && itemEndDateInput.value && itemReminderCustomDate) {
+        const days = parseInt(warnDays, 10);
+        itemReminderCustomDate.value = getOffsetDateString(itemEndDateInput.value, isNaN(days) ? -1 : -days);
+      }
     }
+    updateReminderSectionVisibility();
   }
 
   function populateReminderOptions(daysOrType) {
-    if (!itemWarnDaysSelect) return;
-    const val = (daysOrType !== undefined && daysOrType !== null) ? String(daysOrType) : '7';
-    itemWarnDaysSelect.innerHTML = '';
-    let hasMatch = false;
-
-    REMINDER_OPTIONS.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item.value;
-      opt.textContent = item.label;
-      if (item.value === val) {
-        opt.selected = true;
-        opt.setAttribute('selected', 'selected');
-        hasMatch = true;
+    if (daysOrType === '-1' || daysOrType === -1) {
+      updateReminderToggleState(false);
+    } else {
+      updateReminderToggleState(true);
+      if (daysOrType !== 'custom' && daysOrType !== undefined && daysOrType !== null) {
+        if (itemEndDateInput && itemEndDateInput.value && itemReminderCustomDate) {
+          const days = parseInt(daysOrType, 10);
+          if (!isNaN(days) && days >= 0) {
+            itemReminderCustomDate.value = getOffsetDateString(itemEndDateInput.value, -days);
+          }
+        }
       }
-      itemWarnDaysSelect.appendChild(opt);
-    });
-
-    if (!hasMatch && val !== '-1' && val !== 'custom') {
-      const customOpt = document.createElement('option');
-      customOpt.value = val;
-      customOpt.textContent = `到期 ${val} 天前提醒`;
-      customOpt.selected = true;
-      customOpt.setAttribute('selected', 'selected');
-      itemWarnDaysSelect.appendChild(customOpt);
     }
-
-    itemWarnDaysSelect.value = val;
-    updateReminderSectionVisibility(val);
-  }
-  const setReminderSelectValue = populateReminderOptions;
-
-  if (itemWarnDaysSelect) {
-    itemWarnDaysSelect.addEventListener('change', function () {
-      const val = this.value;
-      updateReminderSectionVisibility(val);
-      if (val === 'custom') {
-        if (itemReminderCustomDate && !itemReminderCustomDate.value) {
-          const endStr = (itemEndDateInput && itemEndDateInput.value) ? itemEndDateInput.value : getOffsetDateString(getTodayString(), 30);
-          itemReminderCustomDate.value = getOffsetDateString(endStr, -1);
-        }
-        if (itemReminderCustomTime && !itemReminderCustomTime.value) {
-          itemReminderCustomTime.value = '09:00';
-        }
-      }
-    });
+    updateReminderSectionVisibility();
   }
 
   if (customSubCategoryInput) {
@@ -11552,11 +12050,12 @@ var CapacitorBridgeBundle = (() => {
     itemDurationInput.value = '180';
     if (itemEndDateInput) itemEndDateInput.value = getOffsetDateString(today, 180);
 
+    const defaultEnd = (itemEndDateInput && itemEndDateInput.value) ? itemEndDateInput.value : getOffsetDateString(today, 180);
     if (itemPresetReminderTime) itemPresetReminderTime.value = '09:00';
-    if (itemReminderCustomDate) itemReminderCustomDate.value = '';
+    if (itemReminderCustomDate) itemReminderCustomDate.value = getOffsetDateString(defaultEnd, -1);
     if (itemReminderCustomTime) itemReminderCustomTime.value = '09:00';
     updateReminderToggleState(true);
-    populateReminderOptions('7');
+    updateReminderSectionVisibility();
 
     itemEmojiInput.value = '🪑';
     currentUploadedImage = null;
@@ -11567,6 +12066,10 @@ var CapacitorBridgeBundle = (() => {
 
     setModalMode('expiry');
     updateAvatarPreview();
+
+    const btnDuplicateFromModal = document.getElementById('btnDuplicateFromModal');
+    if (btnDuplicateFromModal) btnDuplicateFromModal.style.display = 'none';
+
     itemModal.style.display = 'flex';
     lockBodyScroll();
     if (itemNameInput) setTimeout(() => itemNameInput.focus(), 120);
@@ -11592,19 +12095,27 @@ var CapacitorBridgeBundle = (() => {
       itemEndDateInput.value = item.endDate || getOffsetDateString(startStr, parseInt(duration, 10) || 180);
     }
 
-    if (item.reminderType === 'custom' || item.reminderDate) {
-      if (itemReminderCustomDate) itemReminderCustomDate.value = item.reminderDate || '';
-      if (itemReminderCustomTime) itemReminderCustomTime.value = item.reminderTime || '09:00';
-      updateReminderToggleState(true);
-      populateReminderOptions('custom');
-    } else if (item.reminderType === 'none' || item.warnDays === -1 || item.warnDays === '-1') {
+    if (item.reminderType === 'none' || item.warnDays === -1 || item.warnDays === '-1') {
       updateReminderToggleState(false);
-      populateReminderOptions('-1');
+      if (itemReminderCustomDate) {
+        itemReminderCustomDate.value = item.endDate ? getOffsetDateString(item.endDate, -1) : '';
+      }
+      if (itemReminderCustomTime) itemReminderCustomTime.value = '09:00';
     } else {
-      if (itemPresetReminderTime) itemPresetReminderTime.value = item.reminderTime || '09:00';
       updateReminderToggleState(true);
-      populateReminderOptions(item.warnDays !== undefined ? item.warnDays : 7);
+      if (itemReminderCustomDate) {
+        if (item.reminderDate) {
+          itemReminderCustomDate.value = item.reminderDate;
+        } else if (item.endDate) {
+          const days = (typeof item.warnDays === 'number' && item.warnDays >= 0) ? item.warnDays : 1;
+          itemReminderCustomDate.value = getOffsetDateString(item.endDate, -days);
+        } else {
+          itemReminderCustomDate.value = '';
+        }
+      }
+      if (itemReminderCustomTime) itemReminderCustomTime.value = item.reminderTime || '09:00';
     }
+    updateReminderSectionVisibility();
 
     itemLocationInput.value = item.location || '';
     itemBrandInput.value = item.brand || '';
@@ -11620,6 +12131,15 @@ var CapacitorBridgeBundle = (() => {
     }
 
     updateAvatarPreview();
+
+    const btnDuplicateFromModal = document.getElementById('btnDuplicateFromModal');
+    if (btnDuplicateFromModal) {
+      btnDuplicateFromModal.style.display = 'inline-flex';
+      btnDuplicateFromModal.onclick = function () {
+        duplicateItem(item.id);
+      };
+    }
+
     itemModal.style.display = 'flex';
     lockBodyScroll();
   }
@@ -11665,22 +12185,20 @@ var CapacitorBridgeBundle = (() => {
       }
 
       const isReminderActive = itemReminderToggle ? itemReminderToggle.checked : true;
-      const reminderVal = isReminderActive ? (itemWarnDaysSelect ? itemWarnDaysSelect.value : '7') : '-1';
-      if (reminderVal === 'custom') {
-        reminderType = 'custom';
-        reminderDate = (itemReminderCustomDate && itemReminderCustomDate.value) ? itemReminderCustomDate.value : getOffsetDateString(endDate, -1);
-        reminderTime = (itemReminderCustomTime && itemReminderCustomTime.value) ? itemReminderCustomTime.value : '09:00';
-        warnDays = Math.max(0, diffDays(startDate, reminderDate));
-      } else if (reminderVal === '-1') {
+      if (!isReminderActive) {
         reminderType = 'none';
         warnDays = -1;
         reminderDate = null;
         reminderTime = null;
       } else {
-        reminderType = 'preset';
-        warnDays = parseInt(reminderVal, 10) || 0;
-        reminderTime = (itemPresetReminderTime && itemPresetReminderTime.value) ? itemPresetReminderTime.value : '09:00';
-        reminderDate = getOffsetDateString(endDate, -warnDays);
+        reminderType = 'custom';
+        reminderDate = (itemReminderCustomDate && itemReminderCustomDate.value)
+          ? itemReminderCustomDate.value
+          : getOffsetDateString(endDate, -1);
+        reminderTime = (itemReminderCustomTime && itemReminderCustomTime.value)
+          ? itemReminderCustomTime.value
+          : '09:00';
+        warnDays = Math.max(0, diffDays(reminderDate, endDate));
       }
     }
 
@@ -14643,10 +15161,10 @@ function extractCleanName(rawText) {
     const today = getTodayString();
     const diff = diffDays(startDateStr, today);
     if (diff >= 0) {
-      hintEl.textContent = `已使用 ${diff} 天（${startDateStr} 起算）`;
+      hintEl.textContent = `已使用 ${diff} 天 (${startDateStr} 起算)`;
       hintEl.style.color = 'var(--ios-text-secondary)';
     } else {
-      hintEl.textContent = `將於 ${Math.abs(diff)} 天後開始（${startDateStr}）`;
+      hintEl.textContent = `將於 ${Math.abs(diff)} 天後開始 (${startDateStr})`;
       hintEl.style.color = 'var(--ios-orange)';
     }
   }
@@ -14669,6 +15187,8 @@ function extractCleanName(rawText) {
       if (dateWrap) dateWrap.style.display = 'none';
       if (elapsedStartDateWrap) elapsedStartDateWrap.style.display = 'block';
       if (reminderWrap) reminderWrap.style.display = 'none';
+      const reminderSection = document.getElementById('nlpReminderScheduleTimeSection');
+      if (reminderSection) reminderSection.style.display = 'none';
       if (customRow) customRow.style.display = 'none';
       if (elapsedHint) elapsedHint.style.display = 'flex';
       if (startDateInput && !startDateInput.value) {
@@ -14683,6 +15203,8 @@ function extractCleanName(rawText) {
       if (dateWrap) dateWrap.style.display = 'block';
       if (elapsedStartDateWrap) elapsedStartDateWrap.style.display = 'none';
       if (reminderWrap) reminderWrap.style.display = 'block';
+      const reminderSection = document.getElementById('nlpReminderScheduleTimeSection');
+      if (reminderSection) reminderSection.style.display = 'block';
       if (elapsedHint) elapsedHint.style.display = 'none';
       const remindSelect = document.getElementById('nlpConfirmReminder');
       if (remindSelect && remindSelect.value === 'custom' && customRow) {
@@ -14715,13 +15237,13 @@ function extractCleanName(rawText) {
     const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
     const weekday = dayNames[target.getDay()];
     if (diff < 0) {
-      hintEl.textContent = `已過期 ${Math.abs(diff)} 天（${dateStr} · 星期${weekday}）`;
+      hintEl.textContent = `已過期 ${Math.abs(diff)} 天 (${dateStr} · 星期${weekday})`;
       hintEl.style.color = 'var(--ios-red)';
     } else if (diff === 0) {
-      hintEl.textContent = `今天到期（${dateStr} · 星期${weekday}）`;
+      hintEl.textContent = `今天到期 (${dateStr} · 星期${weekday})`;
       hintEl.style.color = 'var(--ios-orange)';
     } else {
-      hintEl.textContent = `還有 ${diff} 天到期（${dateStr} · 星期${weekday}）`;
+      hintEl.textContent = `還有 ${diff} 天到期 (${dateStr} · 星期${weekday})`;
       hintEl.style.color = 'var(--ios-text-secondary)';
     }
   }
@@ -14752,7 +15274,13 @@ function extractCleanName(rawText) {
         const opt = document.createElement('option');
         opt.value = scName;
         opt.textContent = `${subItem.emoji || catData.emoji || '🏷️'} ${scName}`;
-        if (activeSubCatName && (activeSubCatName === scName || activeSubCatName === subItem.name)) {
+        const isMilkAlias = (s) => /鮮乳|牛奶|鮮奶|milk/i.test(s || '');
+        const isMatch = activeSubCatName && (
+          activeSubCatName === scName || 
+          activeSubCatName === subItem.name ||
+          (isMilkAlias(activeSubCatName) && isMilkAlias(scName))
+        );
+        if (isMatch) {
           opt.selected = true;
           hasMatched = true;
         }
@@ -14882,37 +15410,239 @@ function extractCleanName(rawText) {
       updateNlpStartDateHint(startDateInput.value);
     }
 
-    // 提醒通知與自訂時間判定（嚴格兩位數補零與 15:00 預設）
-    const targetRemindDate = parsed.reminderDate || parsed.expiryDate || getTodayString();
-    const rawTime = parsed.remindTime || '15:00';
-    let hours = 15;
-    let minutes = 0;
-    if (rawTime.includes(':')) {
-      const t = rawTime.split(':');
-      hours = parseInt(t[0], 10);
-      minutes = parseInt(t[1], 10);
-      if (isNaN(hours)) hours = 15;
-      if (isNaN(minutes)) minutes = 0;
-    }
-    const dParts = targetRemindDate.split('-');
-    const year = dParts[0] || String(new Date().getFullYear());
-    const month = dParts[1] || String(new Date().getMonth() + 1);
-    const day = dParts[2] || String(new Date().getDate());
-    const formattedTime = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    // 常駐提醒時間與自訂日期判定 (v1.8.8 下拉式選單選擇12小時制/24小時制)
+    const timeRow = document.getElementById('nlpConfirmTimeRow');
+    const timeInput = document.getElementById('nlpConfirmReminderTime');
+    const customDateRow = document.getElementById('nlpCustomDateRow');
+    const customDateInput = document.getElementById('nlpConfirmCustomDate');
+    const pillsContainer = document.getElementById('nlpQuickTimePills');
+    const timeFormatSelect = document.getElementById('nlpTimeFormatSelect');
+    const timeModeSelector = document.getElementById('nlpTimeModeSelector');
+    const timeAdjustWrap = document.getElementById('nlpTimeAdjustWrap');
+    const reminderSection = document.getElementById('nlpReminderScheduleTimeSection');
 
-    if (customInput) {
-      customInput.value = formattedTime;
+    const TIME_MODE_PRESETS = {
+      am: [
+        { time: '07:00', label: '07:00 上午' },
+        { time: '08:30', label: '08:30 上午' },
+        { time: '09:00', label: '09:00 上午' },
+        { time: '10:30', label: '10:30 上午' },
+        { time: '11:45', label: '11:45 上午' }
+      ],
+      pm: [
+        { time: '12:00', label: '12:00 中午' },
+        { time: '13:30', label: '13:30 下午' },
+        { time: '15:00', label: '15:00 下午' },
+        { time: '18:00', label: '18:00 傍晚' },
+        { time: '20:00', label: '20:00 晚間' }
+      ],
+      '24h': [
+        { time: '09:00', label: '09:00 上午' },
+        { time: '12:00', label: '12:00 中午' },
+        { time: '15:00', label: '15:00 下午' },
+        { time: '20:00', label: '20:00 晚間' }
+      ]
+    };
+
+    let currentTimeFormat = '24h';
+    let currentTimeMode = 'am';
+
+    // 格式化為 24 小時制 HH:mm (00:00 ~ 23:59)
+    let initial24hTime = '09:00';
+    if (parsed.remindTime && parsed.remindTime.includes(':')) {
+      const tp = parsed.remindTime.split(':');
+      const h = String(parseInt(tp[0], 10) || 0).padStart(2, '0');
+      const m = String(parseInt(tp[1], 10) || 0).padStart(2, '0');
+      initial24hTime = `${h}:${m}`;
+    }
+
+    if (timeInput) {
+      timeInput.value = initial24hTime;
+    }
+
+    const initHour = parseInt(initial24hTime.split(':')[0], 10);
+    currentTimeMode = (initHour >= 12) ? 'pm' : 'am';
+
+    // 渲染對應模式的快捷時間膠囊
+    function renderTimePills(mode, activeTime) {
+      if (!pillsContainer) return;
+      const presets = TIME_MODE_PRESETS[mode] || TIME_MODE_PRESETS['24h'];
+      pillsContainer.innerHTML = presets.map(p => {
+        const isActive = (p.time === activeTime) ? ' active' : '';
+        return `<button type="button" class="nlp-time-pill${isActive}" data-time="${p.time}">${p.label}</button>`;
+      }).join('');
+    }
+
+    // 更新上午/下午按鈕 active 樣式
+    function updateTimeModeButtons(mode) {
+      if (!timeModeSelector) return;
+      timeModeSelector.querySelectorAll('.nlp-time-mode-btn').forEach(btn => {
+        if (btn.dataset.mode === mode) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // 更新膠囊按鈕 active 樣式
+    function updateActiveTimePill(curTime) {
+      if (!pillsContainer) return;
+      pillsContainer.querySelectorAll('.nlp-time-pill').forEach(pill => {
+        if (pill.dataset.time === curTime) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+    }
+
+    // 設定時段模式 (am / pm / 24h)
+    function setTimeMode(mode, adjustTime = true) {
+      currentTimeMode = mode;
+      updateTimeModeButtons(mode);
+
+      if (adjustTime && timeInput && timeInput.value) {
+        const parts = timeInput.value.split(':');
+        let h = parseInt(parts[0], 10) || 0;
+        const m = parts[1] || '00';
+
+        if (mode === 'am') {
+          if (h >= 12) {
+            h = (h - 12 >= 6 && h - 12 <= 11) ? (h - 12) : 9;
+            timeInput.value = `${String(h).padStart(2, '0')}:${m}`;
+          }
+        } else if (mode === 'pm') {
+          if (h < 12) {
+            h = (h + 12 >= 12 && h + 12 <= 21) ? (h + 12) : 15;
+            timeInput.value = `${String(h).padStart(2, '0')}:${m}`;
+          }
+        }
+      }
+
+      const activeTime = timeInput ? timeInput.value : initial24hTime;
+      const pillsMode = (currentTimeFormat === '12h') ? currentTimeMode : '24h';
+      renderTimePills(pillsMode, activeTime);
+    }
+
+    // 切換時間格式 (24h vs 12h)
+    function setTimeFormat(format) {
+      currentTimeFormat = format;
+      if (timeFormatSelect) {
+        timeFormatSelect.value = format;
+      }
+
+      if (format === '12h') {
+        // 選擇 12 小時制：跳出顯示上午/下午切換按鈕
+        if (timeModeSelector) {
+          timeModeSelector.style.display = 'grid';
+        }
+        const curH = timeInput ? (parseInt(timeInput.value.split(':')[0], 10) || 9) : initHour;
+        currentTimeMode = (curH >= 12) ? 'pm' : 'am';
+        updateTimeModeButtons(currentTimeMode);
+        renderTimePills(currentTimeMode, timeInput ? timeInput.value : initial24hTime);
+      } else {
+        // 選擇 24 小時制：隱藏上午/下午按鈕
+        if (timeModeSelector) {
+          timeModeSelector.style.display = 'none';
+        }
+        renderTimePills('24h', timeInput ? timeInput.value : initial24hTime);
+      }
+    }
+
+    // 初始化時間格式：預設 24 小時制
+    setTimeFormat('24h');
+
+    // 時間格式下拉選單事件綁定
+    if (timeFormatSelect && !timeFormatSelect.dataset.bound) {
+      timeFormatSelect.dataset.bound = 'true';
+      timeFormatSelect.addEventListener('change', (e) => {
+        setTimeFormat(e.target.value);
+      });
+    }
+
+    // 上午/下午時段選擇器事件綁定
+    if (timeModeSelector && !timeModeSelector.dataset.bound) {
+      timeModeSelector.dataset.bound = 'true';
+      timeModeSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('.nlp-time-mode-btn');
+        if (btn && btn.dataset.mode) {
+          setTimeMode(btn.dataset.mode, true);
+        }
+      });
+    }
+
+    // 快捷膠囊委派點擊事件綁定
+    if (pillsContainer && !pillsContainer.dataset.bound) {
+      pillsContainer.dataset.bound = 'true';
+      pillsContainer.addEventListener('click', (e) => {
+        const pill = e.target.closest('.nlp-time-pill');
+        if (pill && pill.dataset.time) {
+          if (timeInput) timeInput.value = pill.dataset.time;
+          updateActiveTimePill(pill.dataset.time);
+        }
+      });
+    }
+
+    // 時間手動輸入監聽
+    if (timeInput && !timeInput.dataset.bound) {
+      timeInput.dataset.bound = 'true';
+      timeInput.addEventListener('input', () => {
+        const curVal = timeInput.value;
+        if (curVal && curVal.includes(':') && currentTimeFormat === '12h') {
+          const curH = parseInt(curVal.split(':')[0], 10);
+          if (currentTimeMode === 'am' && curH >= 12) {
+            setTimeMode('pm', false);
+          } else if (currentTimeMode === 'pm' && curH < 12) {
+            setTimeMode('am', false);
+          }
+        }
+        updateActiveTimePill(curVal);
+      });
+    }
+
+    const targetCustomDate = parsed.reminderDate || (parsed.expiryDate ? getOffsetDateString(parsed.expiryDate, -1) : getTodayString());
+    if (customDateInput) {
+      customDateInput.value = targetCustomDate;
+    }
+
+    // 依據追蹤模式與提醒天數，控制常駐提醒時間與自訂日期的顯示
+    function updateNlpReminderDisplay() {
+      const isElapsedMode = (document.getElementById('btnNlpTrackElapsed') && document.getElementById('btnNlpTrackElapsed').classList.contains('active'));
+      const val = remindSelect ? remindSelect.value : '3';
+      if (isElapsedMode) {
+        if (reminderSection) reminderSection.style.display = 'none';
+        if (customDateRow) customDateRow.style.display = 'none';
+      } else {
+        if (reminderSection) reminderSection.style.display = 'block';
+        if (val === '-1') {
+          if (timeRow) timeRow.style.display = 'none';
+          if (timeAdjustWrap) timeAdjustWrap.style.display = 'none';
+          if (customDateRow) customDateRow.style.display = 'none';
+        } else if (val === 'custom') {
+          if (timeRow) timeRow.style.display = 'block';
+          if (timeAdjustWrap) timeAdjustWrap.style.display = 'block';
+          if (customDateRow) customDateRow.style.display = 'block';
+        } else {
+          if (timeRow) timeRow.style.display = 'block';
+          if (timeAdjustWrap) timeAdjustWrap.style.display = 'block';
+          if (customDateRow) customDateRow.style.display = 'none';
+        }
+      }
     }
 
     if (remindSelect) {
-      if (parsed.hasCustomTime) {
+      if (parsed.hasCustomTime || (parsed.reminderDate && parsed.reminderDate !== getOffsetDateString(parsed.expiryDate, -3))) {
         remindSelect.value = 'custom';
-        if (customRow) customRow.style.display = 'block';
       } else {
         const warnVal = typeof parsed.remindDaysBefore === 'number' ? parsed.remindDaysBefore : 3;
         remindSelect.value = String(warnVal);
-        if (customRow) customRow.style.display = 'none';
       }
+      if (!remindSelect.dataset.boundDisplay) {
+        remindSelect.dataset.boundDisplay = 'true';
+        remindSelect.addEventListener('change', updateNlpReminderDisplay);
+      }
+      updateNlpReminderDisplay();
     }
 
     // 縮圖照片預覽設定
@@ -14997,41 +15727,35 @@ function extractCleanName(rawText) {
       return;
     }
 
-    // 提醒時間處理（自訂時間 vs 預設天數 vs 僅記使用天數）
+    // 提醒時間處理（常駐 24 小時制時間 + 提前天數/自訂特定日期）
+    const timeInputEl = document.getElementById('nlpConfirmReminderTime');
+    const customDateInputEl = document.getElementById('nlpCustomDateRow') ? document.getElementById('nlpConfirmCustomDate') : null;
+
     let confirmedReminderType = 'preset';
     let confirmedReminderDate = null;
-    let confirmedReminderTime = '15:00';
+    let confirmedReminderTime = '09:00';
     let confirmedWarnDays = 3;
 
-    if (isElapsedMode) {
+    if (timeInputEl && timeInputEl.value) {
+      const tp = timeInputEl.value.split(':');
+      const h = String(parseInt(tp[0], 10) || 0).padStart(2, '0');
+      const m = String(parseInt(tp[1], 10) || 0).padStart(2, '0');
+      confirmedReminderTime = `${h}:${m}`;
+    }
+
+    if (isElapsedMode || (remindSelect && remindSelect.value === '-1')) {
       confirmedReminderType = 'none';
       confirmedReminderDate = null;
       confirmedReminderTime = null;
       confirmedWarnDays = -1;
     } else if (remindSelect && remindSelect.value === 'custom') {
-      const customVal = customInput ? customInput.value : '';
-      if (!customVal) {
-        showToast('請設定自訂提醒日期與時間');
-        if (customInput) customInput.focus();
-        return;
-      }
-      const parts = customVal.split('T');
-      confirmedReminderDate = parts[0];
-      if (parts[1]) {
-        const t = parts[1].split(':');
-        const h = String(parseInt(t[0], 10) || 0).padStart(2, '0');
-        const m = String(parseInt(t[1], 10) || 0).padStart(2, '0');
-        confirmedReminderTime = `${h}:${m}`;
-      } else {
-        confirmedReminderTime = '15:00';
-      }
       confirmedReminderType = 'custom';
+      confirmedReminderDate = (customDateInputEl && customDateInputEl.value) ? customDateInputEl.value : getOffsetDateString(confirmedDate, -1);
       confirmedWarnDays = Math.max(0, diffDays(confirmedReminderDate, confirmedDate));
     } else {
       confirmedWarnDays = remindSelect ? parseInt(remindSelect.value, 10) : 3;
       confirmedReminderType = (confirmedWarnDays >= 0) ? 'preset' : 'none';
       confirmedReminderDate = (confirmedWarnDays >= 0) ? getOffsetDateString(confirmedDate, -confirmedWarnDays) : null;
-      confirmedReminderTime = currentNlpParsed.remindTime || '15:00';
     }
 
     const subCatSelect = document.getElementById('nlpConfirmSubCategory');
@@ -15118,7 +15842,7 @@ function extractCleanName(rawText) {
       }
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
-      showToast(isElapsedMode ? `已更新「${target.name}」（謹記使用天數，${target.startDate} 起算）` : `已更新「${target.name}」`);
+      showToast(isElapsedMode ? `已更新「${target.name}」 (謹記使用天數，${target.startDate} 起算)` : `已更新「${target.name}」`);
     } else {
       const newItem = addItem({
         name: confirmedName,
@@ -15142,7 +15866,7 @@ function extractCleanName(rawText) {
       }
       if (clearBtn) clearBtn.style.display = 'none';
       closeNlpConfirmModal();
-      showToast(isElapsedMode ? `✨ 已加入「${newItem.name}」（謹記使用天數，${newItem.startDate} 起算）` : `✨ 已加入「${newItem.name}」（${newItem.endDate} 到期）`);
+      showToast(isElapsedMode ? `✨ 已加入「${newItem.name}」 (謹記使用天數，${newItem.startDate} 起算)` : `✨ 已加入「${newItem.name}」 (${newItem.endDate} 到期)`);
     }
   }
 
@@ -15458,7 +16182,7 @@ function extractCleanName(rawText) {
       }
 
       if (!parsed || !parsed.success) {
-        showToast('請輸入物品名稱（例如：鮮奶 下週三到期、慢跑鞋 謹記使用天數）');
+        showToast('請輸入物品名稱 (例如：鮮奶 下週三到期、慢跑鞋 謹記使用天數)');
         input.focus();
         return;
       }
@@ -15599,6 +16323,47 @@ function extractCleanName(rawText) {
     e.target.value = '';
   }
 
+  
+  // AI Scan Loading HUD 控制函式 (智慧鏡頭拍攝後載入動畫)
+  function showAiScanLoading(photoDataUrl) {
+    const hud = document.getElementById('aiScanLoadingModal');
+    const img = document.getElementById('aiScanPreviewImg');
+    const desc = document.getElementById('aiScanStatusText');
+    const stepVisual = document.getElementById('scanStepVisual');
+    const stepOcr = document.getElementById('scanStepOcr');
+    const stepFuse = document.getElementById('scanStepFuse');
+
+    if (img && photoDataUrl) img.src = photoDataUrl;
+    if (desc) desc.textContent = '雙軌並行分析中 (視覺外觀＋文字OCR)...';
+    if (stepVisual) { stepVisual.className = 'ai-scan-step-item active'; }
+    if (stepOcr) { stepOcr.className = 'ai-scan-step-item active'; }
+    if (stepFuse) { stepFuse.className = 'ai-scan-step-item'; }
+
+    if (hud) {
+      hud.style.display = 'flex';
+      lockBodyScroll();
+    }
+  }
+
+  function updateAiScanStep(stepId, state, descText) {
+    const stepEl = document.getElementById(stepId);
+    if (stepEl) {
+      stepEl.className = 'ai-scan-step-item ' + state;
+    }
+    const desc = document.getElementById('aiScanStatusText');
+    if (desc && descText) {
+      desc.textContent = descText;
+    }
+  }
+
+  function hideAiScanLoading() {
+    const hud = document.getElementById('aiScanLoadingModal');
+    if (hud) {
+      hud.style.display = 'none';
+      unlockBodyScroll();
+    }
+  }
+
   async function processCapturedImage(source) {
     const canvas = document.getElementById('cameraCanvas');
     if (!canvas) return;
@@ -15664,13 +16429,16 @@ function extractCleanName(rawText) {
       detectedDate = dateMatch[1].replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '-').replace(/\//g, '-');
     }
 
+    // 關閉相機取景，立即啟動 AI 雙軌智慧辨識載入動畫 (Loading HUD)
     closeCameraScanModal();
-    showToast('🔍 雙軌並行分析中（視覺外觀＋文字OCR）...');
+    showAiScanLoading(photoDataUrl);
 
     let parsed = null;
     if (typeof window.analyzeSmartCameraDualTrack === 'function') {
       try {
         parsed = await window.analyzeSmartCameraDualTrack(canvas, photoDataUrl);
+        updateAiScanStep('scanStepVisual', 'done', 'MobileNet 視覺特徵識別完成');
+        updateAiScanStep('scanStepOcr', 'done', 'Tesseract OCR 文字效期提取完成');
       } catch (err) {
         console.warn('analyzeSmartCameraDualTrack 異常，使用備援分析：', err);
       }
@@ -15684,9 +16452,13 @@ function extractCleanName(rawText) {
         subCategory: '',
         expiryDate: detectedDate || getOffsetDateString(getTodayString(), 7),
         hasEndDate: true,
-        remindDaysBefore: 3
+        remindDaysBefore: 3,
+        remindTime: '09:00'
       };
     }
+
+    if (!parsed.remindTime) parsed.remindTime = '09:00';
+    updateAiScanStep('scanStepFuse', 'done', '特徵校驗與排程計算完成！');
 
     // 自動附加相片作為物品縮圖
     parsed.image = photoDataUrl;
@@ -15702,7 +16474,11 @@ function extractCleanName(rawText) {
       if (clearBtn) clearBtn.style.display = 'flex';
     }
 
-    openNlpConfirmModal(parsed);
+    // 載入動畫平滑過渡至確認彈窗
+    setTimeout(() => {
+      hideAiScanLoading();
+      openNlpConfirmModal(parsed);
+    }, 420);
   }
 
   window.addItem = addItem;
@@ -15904,7 +16680,7 @@ function extractCleanName(rawText) {
 })();
 
 </script>
-  <!-- TensorFlow.js 與 MobileNet 視覺外觀分類模型 (v1.8.6 雙軌引擎) -->
+  <!-- TensorFlow.js 與 MobileNet 視覺外觀分類模型 (v1.8.8 雙軌引擎) -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
   <!-- Tesseract.js 本地/離線 OCR 文字辨識引擎 -->
@@ -15931,6 +16707,6 @@ function extractCleanName(rawText) {
     }
   </script>
   <!-- 本地自然語言實體抽取與速記控制器 -->
-  <script src="app.js?v=1.8.6"></script>
+  <script src="app.js?v=1.8.8"></script>
 </body>
 </html>
