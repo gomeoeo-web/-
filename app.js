@@ -249,11 +249,34 @@ const SMART_KEYWORD_MAP = [
   { keywords: ['樟木', '防蛀包', '防蟲包', '除蟲片', '衣櫃防潮'], emoji: '🌿', cat: 'fashion', subCat: '衣物防護' },
   { keywords: ['高跟鞋', '皮鞋', '皮靴', '精品鞋', '靴子'], emoji: '👠', cat: 'fashion', subCat: '精品鞋靴' },
 
+  // 動畫 (animation) - 書籍、漫畫、單行本、BD影音
+  { keywords: ['漫畫', '單行本', '漫畫書', '輕小說', '小說', '書籍', '書本', '圖書', '雜誌', '課本', '畫冊', '設定集', '同人誌', '角川', '東立', '尖端', '青文', '航海王', '海賊王', '鬼滅之刃', '鬼滅', '咒術迴戰', '咒術', '葬送的芙莉蓮', '芙莉蓮', '排球少年', '我推的孩子', '間諜家家酒', '鏈鋸人', '進擊的巨人', '柯南', '火影', '死神', '獵人', 'isbn'], emoji: '📚', cat: 'animation', subCat: '漫畫/單行本', duration: 365 },
+  { keywords: ['bd', 'blu-ray', 'dvd', '動漫影音', '動畫影音', '番劇'], emoji: '💿', cat: 'animation', subCat: 'BD/影音', duration: 180 },
+  { keywords: ['動漫特典', '周邊特典', '特典', '預購特典'], emoji: '🎁', cat: 'animation', subCat: '周邊特典', duration: 365 },
+
+  // 遊戲 (game) - 主機卡帶、光碟、周邊
+  { keywords: ['switch', 'switch卡帶', 'ns卡帶', '任天堂', '薩爾達', '瑪利歐', '寶可夢', '動森', '魔物獵人'], emoji: '🎮', cat: 'game', subCat: 'Switch 卡帶', duration: 365 },
+  { keywords: ['ps5', 'ps4', 'xbox', '遊戲光碟', 'ps光碟'], emoji: '💿', cat: 'game', subCat: 'PS/Xbox 光碟', duration: 365 },
+  { keywords: ['遊戲手把', '手把', 'joycon', 'pro手把', '搖桿'], emoji: '🕹️', cat: 'game', subCat: '主機/手把周邊', duration: 365 },
+  { keywords: ['點數卡', 'psn點數', 'eshop點數', 'steam點數', '遊戲點數', '序號'], emoji: '💳', cat: 'game', subCat: '點數卡/序號', duration: 365 },
+
+  // 二次元 (otaku) - 徽章、立牌、模型、玩偶
+  { keywords: ['徽章', '吧唧', '胸章', '馬口鐵徽章'], emoji: '🏅', cat: 'otaku', subCat: '徽章/吧唧', duration: 365 },
+  { keywords: ['壓克力立牌', '立牌', '壓克力磚', '壓克力牌', '立牌擺件'], emoji: '🪧', cat: 'otaku', subCat: '壓克力立牌/磚', duration: 365 },
+  { keywords: ['色紙', '相卡', '拍立得卡', '小卡', '透卡', '收藏卡'], emoji: '🖼️', cat: 'otaku', subCat: '色紙/相卡', duration: 365 },
+  { keywords: ['模型', '黏土人', '景品', '手辦', '公仔', '一番賞', '扭蛋', '轉蛋'], emoji: '🪀', cat: 'otaku', subCat: '模型/黏土人/景品', duration: 365 },
+  { keywords: ['棉花娃', '娃', '玩偶', '毛絨公仔', '趴趴'], emoji: '🧸', cat: 'otaku', subCat: '棉花娃/玩偶', duration: 365 },
+
+  // 票券/活動 (ticket) - 電影票、演唱會、展覽、兌換券
+  { keywords: ['電影票', '威秀', '國賓', '秀泰', '百老匯', '電影'], emoji: '🎬', cat: 'ticket', subCat: '電影票', duration: 7 },
+  { keywords: ['演唱會', '門票', '音樂會', '演場會門票', '拓元', '寬宏', '年代售票'], emoji: '🎤', cat: 'ticket', subCat: '演唱會/音樂會', duration: 30 },
+  { keywords: ['展覽門票', '動漫展', '漫畫博覽會', 'ff', 'cwt', '展覽'], emoji: '🖼️', cat: 'ticket', subCat: '動漫展覽門票', duration: 30 },
+  { keywords: ['兌換券', '餐券', '住宿券', '優惠券', '提貨券', '商品券'], emoji: '🔖', cat: 'ticket', subCat: '活動兌換券', duration: 365 },
+
   // 其他 (other)
   { keywords: ['球鞋', '慢跑鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
   { keywords: ['背包', '後背包', '公事包', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
   { keywords: ['衣服', '褲子', '襯衫', '外套', '洋裝'], emoji: '🧥', cat: 'other', subCat: '衣物' },
-  { keywords: ['小說', '書籍', '雜誌', '課本'], emoji: '📚', cat: 'other', subCat: '圖書' },
   { keywords: ['會議', '開會', '研討會', '週會', '月會', '晨會'], emoji: '📅', cat: 'other', subCat: '會議' },
   { keywords: ['備忘', '筆記', '代辦', '待辦', '雜項', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
 ];
@@ -600,6 +623,21 @@ function simplifyItemName(rawText) {
   let clean = rawText.trim()
     .replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
     .replace(/\u3000/g, ' ');
+
+  // 0. 特殊格式保護：ISBN 條碼格式保護與條碼商品保護
+  const isbnMatch = clean.match(/(?:ISBN[:\s]*)?(97[89]\d{9,10})/i);
+  if (isbnMatch) {
+    return `圖書/漫畫 (ISBN: ${isbnMatch[1]})`;
+  }
+  if (/^條碼商品/i.test(clean)) {
+    return '條碼商品';
+  }
+
+  // 0.5 移除 OCR 影像包裝雜訊（營養標示、成分、工廠、淨重、效期標籤等）
+  clean = clean.replace(/(?:有效日期|保存期限|有效期限|製造日期|到期日|賞味期限|EXP|MFG|BBD|LOT|NET\s*WT)[:：\s]*[\w\d\-./]*/gi, ' ');
+  clean = clean.replace(/條碼[:：\s]+[\w\d\-./]+/gi, ' ');
+  clean = clean.replace(/(?:營養標示|成份|成分|過敏原|原產地|淨重|內容量|保存條件|委託製造商|製造商|進口商|服務專線|服務電話|注意事項|台灣製造|MADE IN)[^]*$/gi, ' ');
+  clean = clean.replace(/^(?:品名|名稱|商品名稱|品項)[:：\s]*/gi, ' ');
 
   // 1. 移除時鐘與提醒修飾詞
   clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?)?\s*(?:提醒|通知)/g, ' ');
@@ -1488,7 +1526,7 @@ function getItemStatusConfig(item, todayStr) {
 
 
 // ==========================================
-// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗) v1.8.7
+// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗 + 原生條碼最優先) v1.8.9
 // ==========================================
 
 const CATEGORY_MAP_TO_KEY = {
@@ -1506,7 +1544,12 @@ const CATEGORY_MAP_TO_KEY = {
   '辦公': 'office', 'office': 'office',
   '戶外': 'outdoor', 'outdoor': 'outdoor',
   '居家': 'home', 'home': 'home',
-  '穿搭': 'fashion', 'fashion': 'fashion'
+  '穿搭': 'fashion', 'fashion': 'fashion',
+  '動畫': 'animation', 'animation': 'animation',
+  '漫畫': 'animation', 'comic': 'animation', '書籍': 'animation', '圖書': 'animation',
+  '遊戲': 'game', 'game': 'game',
+  '二次元': 'otaku', 'otaku': 'otaku',
+  '票券': 'ticket', 'ticket': 'ticket'
 };
 
 function normalizeCategoryKey(cat) {
@@ -1654,6 +1697,28 @@ const VISUAL_APPEARANCE_DICT = [
     defaultDays: 365,
     emoji: '☕',
     isContainer: false
+  },
+
+  // 4. 書籍、漫畫與文化娛樂（依靠外觀印刷與裝訂）
+  {
+    keywords: ['comic book', 'book jacket', 'book', 'packet', 'binder', 'envelope'],
+    name: '圖書/漫畫',
+    category: 'animation',
+    categoryLabel: '動畫',
+    subCategory: '漫畫/單行本',
+    defaultDays: 365,
+    emoji: '📚',
+    isContainer: false
+  },
+  {
+    keywords: ['joystick', 'game controller'],
+    name: '遊戲手把/周邊',
+    category: 'game',
+    categoryLabel: '遊戲',
+    subCategory: '主機/手把周邊',
+    defaultDays: 365,
+    emoji: '🎮',
+    isContainer: false
   }
 ];
 
@@ -1706,41 +1771,246 @@ async function classifyImageVisual(imgSource) {
 }
 
 /**
- * 從字串中精確提取有效日期格式 (YYYY-MM-DD)
+ * 【一、整合原生條碼掃描（最優先判定）】
+ * 在相機擷取影格後，先檢查 window.BarcodeDetector：
+ * 啟用格式：['ean_13', 'ean_8', 'qr_code', 'code_128', 'isbn']
+ * 若成功掃描到條碼：
+ *   - 檢查條碼是否為 978 或 979 開頭（國際標準書號 ISBN）：
+ *     直接自動鎖定分類為「動畫」，細項為「漫畫/單行本」，品名標註為「圖書/漫畫 (ISBN: 條碼號)」。
+ *   - 掃描到一般商品條碼時，將條碼號填入備註，品名若未抓到文字則先以「條碼商品」帶入。
+ */
+async function scanBarcodePriority(source) {
+  if (typeof window === 'undefined' || typeof window.BarcodeDetector !== 'function') {
+    return null;
+  }
+  try {
+    let formats = ['ean_13', 'ean_8', 'qr_code', 'code_128'];
+    if (typeof window.BarcodeDetector.getSupportedFormats === 'function') {
+      try {
+        const supported = await window.BarcodeDetector.getSupportedFormats();
+        const preferred = ['ean_13', 'ean_8', 'qr_code', 'code_128', 'isbn'];
+        formats = preferred.filter(f => supported.includes(f));
+        if (formats.length === 0) formats = supported;
+      } catch (e) {}
+    }
+
+    const detector = new window.BarcodeDetector({ formats });
+    const barcodes = await detector.detect(source);
+    if (!barcodes || barcodes.length === 0) return null;
+
+    const raw = String(barcodes[0].rawValue || '').trim();
+    if (!raw) return null;
+
+    const isIsbn = raw.startsWith('978') || raw.startsWith('979');
+    if (isIsbn) {
+      return {
+        barcode: raw,
+        isIsbn: true,
+        category: 'animation',
+        subCategory: '漫畫/單行本',
+        name: `圖書/漫畫 (ISBN: ${raw})`,
+        notes: `ISBN: ${raw}`,
+        emoji: '📚'
+      };
+    }
+
+    return {
+      barcode: raw,
+      isIsbn: false,
+      notes: `條碼: ${raw}`,
+      fallbackName: '條碼商品'
+    };
+  } catch (err) {
+    console.warn('[Barcode] 原生條碼掃描略過或不支援：', err);
+    return null;
+  }
+}
+
+/**
+ * 【二、OCR 影像前處理管線（解決包裝反光與雜訊）】
+ * 採用 Canvas 進行標準化三道處理：
+ * 1. 影像縮放：將圖片最大寬/高限制在 1200px 內，避免 WebAssembly 記憶體崩潰。
+ * 2. 中央區域對焦：預設以中央 75% 範圍為主分析區，過濾背景桌面與持握手指。
+ * 3. 影像二值化與對比強化：
+ *    - 遍歷像素進行灰階化：Gray = 0.299*R + 0.587*G + 0.114*B。
+ *    - 套用 Otsu 動態閾值與對比拉伸，加強黑色印刷字體與淺色背景反差，徹底濾除透明塑膠包裝的反光折射。
+ */
+function preprocessImageForOcr(source) {
+  if (!source) return null;
+  const sw = source.videoWidth || source.naturalWidth || source.width || 800;
+  const sh = source.videoHeight || source.naturalHeight || source.height || 600;
+
+  // 1. 影像縮放：將圖片最大寬/高限制在 1200px 內
+  const maxDim = 1200;
+  let scale = 1;
+  if (sw > maxDim || sh > maxDim) {
+    scale = maxDim / Math.max(sw, sh);
+  }
+  const dw = Math.round(sw * scale);
+  const dh = Math.round(sh * scale);
+
+  // 2. 中央區域對焦：預設以中央 75% 範圍為主分析區
+  const cropW = Math.round(dw * 0.75);
+  const cropH = Math.round(dh * 0.75);
+  const cropX = Math.round((dw - cropW) / 2);
+  const cropY = Math.round((dh - cropH) / 2);
+
+  let canvas = null;
+  if (typeof document !== 'undefined') {
+    canvas = document.createElement('canvas');
+  }
+  if (!canvas) return source;
+
+  canvas.width = cropW;
+  canvas.height = cropH;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return source;
+
+  // 映射回原始影像座標
+  const srcCropX = cropX / scale;
+  const srcCropY = cropY / scale;
+  const srcCropW = cropW / scale;
+  const srcCropH = cropH / scale;
+  ctx.drawImage(source, srcCropX, srcCropY, srcCropW, srcCropH, 0, 0, cropW, cropH);
+
+  // 3. 影像二值化與對比強化 (灰階化 Gray = 0.299*R + 0.587*G + 0.114*B + Otsu 動態閾值)
+  try {
+    const imgData = ctx.getImageData(0, 0, cropW, cropH);
+    const data = imgData.data;
+    const totalPixels = cropW * cropH;
+    const grays = new Uint8ClampedArray(totalPixels);
+    const hist = new Uint32Array(256);
+
+    let minG = 255;
+    let maxG = 0;
+    let sumG = 0;
+
+    for (let i = 0, p = 0; p < totalPixels; i += 4, p++) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+      grays[p] = gray;
+      hist[gray]++;
+      if (gray < minG) minG = gray;
+      if (gray > maxG) maxG = gray;
+      sumG += gray;
+    }
+
+    const avgG = sumG / totalPixels;
+    const range = maxG - minG;
+
+    // Otsu 演算法計算最佳動態二值化切割閾值
+    let sumB = 0;
+    let wB = 0;
+    let maximum = 0;
+    let threshold = avgG;
+    let sum1 = 0;
+    for (let i = 0; i < 256; i++) sum1 += i * hist[i];
+
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t];
+      if (wB === 0) continue;
+      const wF = totalPixels - wB;
+      if (wF === 0) break;
+      sumB += t * hist[t];
+      const mB = sumB / wB;
+      const mF = (sum1 - sumB) / wF;
+      const between = wB * wF * (mB - mF) * (mB - mF);
+      if (between > maximum) {
+        maximum = between;
+        threshold = t;
+      }
+    }
+
+    // 對比拉伸與自適應二值化 (黑色印刷字體與淺色背景反差加強，徹底濾除透明塑膠包裝反光折射)
+    for (let i = 0, p = 0; p < totalPixels; i += 4, p++) {
+      const g = grays[p];
+      const stretched = (range > 20) ? ((g - minG) / range) * 255 : g;
+      const binarized = (stretched < threshold) ? 0 : 255;
+      data[i] = binarized;
+      data[i + 1] = binarized;
+      data[i + 2] = binarized;
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+  } catch (err) {
+    console.warn('[Vision] 影像前處理二值化略過：', err);
+  }
+
+  return canvas;
+}
+
+/**
+ * 【三、台灣在地化效期日期解析正規庫（RegEx）】
+ * 擴充 Tesseract 辨識結果的正則解析器，支援以下台灣常見格式：
+ * 1. 民國年格式：115/09/16、115.09.16、115-09-16、民國115年9月16日 -> 自動換算西元年（+1911）為 2026-09-16。
+ * 2. 西元常用格式：2026/09/16、2026.09.16、260916（YYMMDD 連號）、EXP 2026-09-16。
+ * 3. 日月年倒序：16-09-2026、16/09/26。
+ * 4. 抓取到有效期限後，自動轉換為 YYYY-MM-DD 填入彈窗的 expiryDate 欄位。
  */
 function extractDateFromText(text) {
   if (!text || typeof text !== 'string') return null;
 
-  // 1. 標準日期格式：YYYY[-/.年]MM[-/.月]DD[日]?
-  const stdDateRegex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|USE\s*BY)?\s*[:.]?\s*(202\d[-/.年]\d{1,2}[-/.月]\d{1,2}日?)/i;
-  const match1 = text.match(stdDateRegex);
-  if (match1) {
-    const raw = match1[1].replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '-').replace(/\//g, '-').trim();
-    const parts = raw.split('-');
-    if (parts.length === 3) {
-      const y = parts[0];
-      const m = String(parseInt(parts[1], 10)).padStart(2, '0');
-      const d = String(parseInt(parts[2], 10)).padStart(2, '0');
+  // 全形轉半形並清理
+  const clean = text
+    .replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/\u3000/g, ' ')
+    .trim();
+
+  // 1. 民國年格式：民國115年9月16日、115/09/16、115.09.16、115-09-16 (支援 90~150 年)
+  const rocRegex = /(?:民國|ROC)?\s*([1-9]\d{1,2})\s*[-/.年]\s*(1[0-2]|0?[1-9])\s*[-/.月]\s*([12]\d|3[01]|0?[1-9])\s*日?/i;
+  const rocMatch = clean.match(rocRegex);
+  if (rocMatch) {
+    const rocYear = parseInt(rocMatch[1], 10);
+    if (rocYear >= 90 && rocYear <= 150) {
+      const y = rocYear + 1911;
+      const m = String(parseInt(rocMatch[2], 10)).padStart(2, '0');
+      const d = String(parseInt(rocMatch[3], 10)).padStart(2, '0');
       return `${y}-${m}-${d}`;
     }
   }
 
-  // 2. 8位連號格式 (如 20260920)
-  const num8Match = text.match(/(?:EXP|有效|到期|保存)?\s*[:.]?\s*(202\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/i);
+  // 2. 西元常用標準格式：2026/09/16、2026.09.16、2026-09-16、2026年9月16日、EXP 2026-09-16
+  const ceStdRegex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|USE\s*BY|MFG|BBD)?\s*[:.]?\s*(20[2-3]\d)\s*[-/.年]\s*(1[0-2]|0?[1-9])\s*[-/.月]\s*([12]\d|3[01]|0?[1-9])\s*日?/i;
+  const ceStdMatch = clean.match(ceStdRegex);
+  if (ceStdMatch) {
+    const y = ceStdMatch[1];
+    const m = String(parseInt(ceStdMatch[2], 10)).padStart(2, '0');
+    const d = String(parseInt(ceStdMatch[3], 10)).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // 3. 日月年倒序 (4位西元年)：16-09-2026、16/09/2026、16.09.2026
+  const dmy4Regex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE)?\s*[:.]?\s*([12]\d|3[01]|0?[1-9])\s*[-/.]\s*(1[0-2]|0?[1-9])\s*[-/.]\s*(20[2-3]\d)/i;
+  const dmy4Match = clean.match(dmy4Regex);
+  if (dmy4Match) {
+    const y = dmy4Match[3];
+    const m = String(parseInt(dmy4Match[2], 10)).padStart(2, '0');
+    const d = String(parseInt(dmy4Match[1], 10)).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // 4. 日月年倒序 (雙位西元年)：16-09-26、16/09/26、16.09.26
+  const dmy2Regex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE)?\s*[:.]?\s*([12]\d|3[01]|0?[1-9])\s*[-/.]\s*(1[0-2]|0?[1-9])\s*[-/.]\s*([2-3]\d)(?!\d)/i;
+  const dmy2Match = clean.match(dmy2Regex);
+  if (dmy2Match) {
+    const y = '20' + dmy2Match[3];
+    const m = String(parseInt(dmy2Match[2], 10)).padStart(2, '0');
+    const d = String(parseInt(dmy2Match[1], 10)).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // 5. 西元 8 位連號格式 (如 20260916)
+  const num8Match = clean.match(/(?:EXP|有效|到期|保存)?\s*[:.]?\s*(20[2-3]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/i);
   if (num8Match) {
     return `${num8Match[1]}-${num8Match[2]}-${num8Match[3]}`;
   }
 
-  // 3. 雙位數年日月 (如 26.10.15, 26/10/15)
-  const shortYearMatch = text.match(/(?:EXP|有效|到期)?\s*[:.]?\s*([2-3]\d)[-/.](0[1-9]|1[0-2])[-/.](0[1-9]|[12]\d|3[01])/i);
-  if (shortYearMatch) {
-    return `20${shortYearMatch[1]}-${shortYearMatch[2]}-${shortYearMatch[3]}`;
-  }
-
-  // 4. 日/月/年格式 (如 15/10/2026, 15-10-2026)
-  const dmyMatch = text.match(/([0-2]\d|3[01])[-/.](0[1-9]|1[0-2])[-/.](202\d)/);
-  if (dmyMatch) {
-    return `${dmyMatch[3]}-${dmyMatch[2]}-${dmyMatch[1]}`;
+  // 6. 西元 6 位連號格式 (YYMMDD 如 260916)
+  const num6Match = clean.match(/(?:EXP|有效|到期|保存|BBD)?\s*[:.]?\s*(?:^|[^\d])([2-3]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)/i);
+  if (num6Match) {
+    return `20${num6Match[1]}-${num6Match[2]}-${num6Match[3]}`;
   }
 
   return null;
@@ -1748,16 +2018,29 @@ function extractDateFromText(text) {
 
 /**
  * 軌道二：文字與效期掃描引擎 (Tesseract OCR + 原生 TextDetector/BarcodeDetector)
+ * 整合 Canvas 三道前處理 (縮放限制 1200px + 中央 75% 裁切對焦 + 灰階二值化)
  */
 async function runTextAndDateOcr(imgSource) {
   let text = '';
-  let barcode = null;
+  let barcodeData = null;
 
-  // 1. Tesseract.js OCR (支援離線與中英雙語)
+  // 1. 原生條碼掃描最優先判定
+  barcodeData = await scanBarcodePriority(imgSource);
+
+  // 2. 進行 Canvas 標準化三道前處理 (縮放、中央對焦、灰階二值化)
+  const preprocessedCanvas = preprocessImageForOcr(imgSource);
+
+  // 若原圖未掃到條碼，嘗試在二值化後之中心畫布再檢測一次
+  if (!barcodeData && preprocessedCanvas) {
+    barcodeData = await scanBarcodePriority(preprocessedCanvas);
+  }
+
+  // 3. Tesseract.js OCR (支援離線與中英雙語，使用前處理後之優質影像)
   if (typeof window !== 'undefined' && window.Tesseract) {
     try {
-      console.log('[OCR] 正在執行 Tesseract OCR 文字辨識...');
-      const ocrResult = await window.Tesseract.recognize(imgSource, 'chi_tra+eng', {
+      console.log('[OCR] 正在以前處理優化影像執行 Tesseract OCR 文字辨識...');
+      const targetInput = preprocessedCanvas || imgSource;
+      const ocrResult = await window.Tesseract.recognize(targetInput, 'chi_tra+eng', {
         logger: () => {}
       });
       if (ocrResult && ocrResult.data && ocrResult.data.text) {
@@ -1768,11 +2051,11 @@ async function runTextAndDateOcr(imgSource) {
     }
   }
 
-  // 2. 原生 TextDetector (若環境支援)
+  // 4. 原生 TextDetector (若環境支援)
   if (typeof window !== 'undefined' && typeof window.TextDetector === 'function') {
     try {
       const textDetector = new window.TextDetector();
-      const detected = await textDetector.detect(imgSource);
+      const detected = await textDetector.detect(preprocessedCanvas || imgSource);
       if (detected && detected.length > 0) {
         text += ' ' + detected.map(t => t.rawValue).join(' ');
       }
@@ -1781,25 +2064,17 @@ async function runTextAndDateOcr(imgSource) {
     }
   }
 
-  // 3. 原生 BarcodeDetector (條碼/QR Code 輔助)
-  if (typeof window !== 'undefined' && typeof window.BarcodeDetector === 'function') {
-    try {
-      const barcodeDetector = new window.BarcodeDetector({
-        formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'data_matrix']
-      });
-      const barcodes = await barcodeDetector.detect(imgSource);
-      if (barcodes && barcodes.length > 0) {
-        barcode = barcodes[0].rawValue;
-      }
-    } catch (bcErr) {
-      console.warn('[Barcode] 原生 BarcodeDetector 異常：', bcErr);
-    }
-  }
-
   text = text.trim();
-  const detectedDate = extractDateFromText(text + (barcode ? ' ' + barcode : ''));
+  const rawBarcode = barcodeData ? barcodeData.barcode : null;
+  const detectedDate = extractDateFromText(text + (rawBarcode ? ' ' + rawBarcode : ''));
 
-  return { text, date: detectedDate, barcode };
+  return {
+    text,
+    date: detectedDate,
+    barcode: rawBarcode,
+    barcodeData: barcodeData,
+    preprocessedCanvas: preprocessedCanvas
+  };
 }
 
 /**
@@ -1809,6 +2084,32 @@ async function runTextAndDateOcr(imgSource) {
 function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const ocrText = (ocrData && ocrData.text) ? String(ocrData.text).trim() : '';
+  const ocrBarcode = (ocrData && ocrData.barcode) ? String(ocrData.barcode).trim() : '';
+
+  // 【最優先分支 0】：若原生條碼掃描到 ISBN (978 或 979 開頭)
+  if (ocrData && ocrData.barcodeData && ocrData.barcodeData.isIsbn) {
+    const isbnVal = ocrData.barcodeData.barcode;
+    const finalDate = (ocrData && ocrData.date) ? ocrData.date : formatDate(offsetDays(today, 365));
+    return {
+      success: true,
+      name: `圖書/漫畫 (ISBN: ${isbnVal})`,
+      category: 'animation',
+      subCategory: '漫畫/單行本',
+      emoji: '📚',
+      expiryDate: finalDate,
+      hasEndDate: true,
+      remindDaysBefore: 30,
+      remindTime: '09:00',
+      confidence: 1.0,
+      visualMatch: 'ISBN條碼直鎖',
+      fusionMode: 'isbn_priority',
+      visualPredictions: visualPredictions || [],
+      ocrText: ocrText,
+      notes: `ISBN: ${isbnVal}`
+    };
+  }
 
   // 1. 檢視視覺辨識前 5 大結果命中外觀特徵庫的情況
   let topVisualMatch = null;
@@ -1824,7 +2125,6 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
         for (const kw of dictItem.keywords) {
           const kwLower = kw.toLowerCase();
           if (clsName.includes(kwLower)) {
-            // 優先考慮信心度較高者；同等/接近信心度下以最長特徵關鍵字為準 (如 pill bottle 優於 generic bottle)
             if (prob > topVisualConfidence || (Math.abs(prob - topVisualConfidence) < 0.05 && kwLower.length > bestKwLength)) {
               topVisualConfidence = prob;
               bestKwLength = kwLower.length;
@@ -1838,8 +2138,6 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
   }
 
   // 2. 檢視 OCR 掃描到的文字中是否含有特定商品、品牌或中文關鍵字
-  const ocrText = (ocrData && ocrData.text) ? String(ocrData.text).trim() : '';
-  const ocrBarcode = (ocrData && ocrData.barcode) ? String(ocrData.barcode).trim() : '';
   let ocrKeywordMatch = null;
   let ocrMatchedWord = '';
 
@@ -1887,12 +2185,11 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
   let defaultDays = 7;
   let fusionMode = 'fallback';
 
-  // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle / carton），且 OCR 同步掃到品牌或產品字樣（如「milk」、「洗髮精」、「醬油」）
+  // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle / carton），且 OCR 同步掃到品牌或產品字樣
   if (topVisualMatch && topVisualMatch.isContainer && ocrMatchedWord) {
     fusionMode = 'container_ocr_fusion';
     finalName = OCR_NAME_TRANSLATIONS[ocrMatchedWord.toLowerCase()] || ocrMatchedWord;
 
-    // 若 OCR 掃描到明確關鍵字，以 OCR 的品項分類為最優先！（容器形狀不可顛覆內容物種類）
     if (ocrKeywordMatch && ocrKeywordMatch.cat) {
       finalCategory = ocrKeywordMatch.cat;
       finalSubCategory = ocrKeywordMatch.subCat || topVisualMatch.subCategory;
@@ -1901,12 +2198,12 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     } else if (topVisualMatch.category === 'cleaning') {
       finalCategory = 'cleaning';
       finalSubCategory = topVisualMatch.subCategory || '衛浴保養';
-      defaultDays = topVisualMatch.defaultDays; // 180
+      defaultDays = topVisualMatch.defaultDays;
       finalEmoji = topVisualMatch.emoji;
     } else if (topVisualMatch.category === 'medicine') {
       finalCategory = 'medicine';
       finalSubCategory = topVisualMatch.subCategory || '常備藥品';
-      defaultDays = topVisualMatch.defaultDays; // 180
+      defaultDays = topVisualMatch.defaultDays;
       finalEmoji = topVisualMatch.emoji;
     } else {
       finalCategory = topVisualMatch.category;
@@ -1953,7 +2250,7 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
       finalEmoji = existing.emoji || '📦';
       defaultDays = 14;
     } else {
-      finalName = `物品 ${ocrBarcode}`;
+      finalName = '條碼商品';
       finalCategory = 'food';
       defaultDays = 30;
     }
@@ -1979,12 +2276,24 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     defaultDays = 12;
   }
 
-  // 期限判定：若無印刷日期，自動採用外觀特徵庫指定的預設保存天數（如麵包 +3 天、水果 +7 天、保養瓶罐 +180 天）
+  // 期限判定：若無印刷日期，自動採用預設保存天數
   if (!finalDate) {
     finalDate = formatDate(offsetDays(today, defaultDays));
   }
 
   finalCategory = normalizeCategoryKey(finalCategory);
+
+  // 品名進一步精簡化
+  if (finalName === '條碼商品') {
+    // 保持條碼商品不變
+  } else {
+    finalName = simplifyItemName(finalName);
+  }
+  if (!finalName || finalName === '未命名物品') {
+    finalName = ocrBarcode ? '條碼商品' : '拍攝物品';
+  }
+
+  const resultNotes = ocrBarcode ? ((ocrData && ocrData.barcodeData && ocrData.barcodeData.isIsbn) ? `ISBN: ${ocrBarcode}` : `條碼: ${ocrBarcode}`) : undefined;
 
   return {
     success: true,
@@ -1995,11 +2304,13 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     expiryDate: finalDate,
     hasEndDate: true,
     remindDaysBefore: 3,
+    remindTime: '09:00',
     confidence: topVisualConfidence,
     visualMatch: topVisualMatch ? topVisualMatch.name : null,
     fusionMode,
     visualPredictions: visualPredictions || [],
-    ocrText: ocrText
+    ocrText: ocrText,
+    notes: resultNotes
   };
 }
 
@@ -2008,10 +2319,41 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
  * 使用 Promise.all 同步啟動視覺外觀 (MobileNet) 與 文字效期 (Tesseract OCR)
  */
 async function analyzeSmartCameraDualTrack(imageSource, photoDataUrl) {
+  // 1. 最優先判定原生條碼 (ISBN 或一般條碼)
+  const barcodeImmediate = await scanBarcodePriority(imageSource);
+  if (barcodeImmediate && barcodeImmediate.isIsbn) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return {
+      success: true,
+      name: barcodeImmediate.name,
+      category: 'animation',
+      subCategory: '漫畫/單行本',
+      emoji: '📚',
+      expiryDate: formatDate(offsetDays(today, 365)),
+      hasEndDate: true,
+      remindDaysBefore: 30,
+      remindTime: '09:00',
+      confidence: 1.0,
+      visualMatch: 'ISBN條碼直鎖',
+      fusionMode: 'isbn_priority',
+      notes: barcodeImmediate.notes,
+      image: photoDataUrl || null
+    };
+  }
+
+  // 2. 雙軌並行分析：視覺外觀分類 + 前處理文字效期 OCR
   const [visualPredictions, ocrData] = await Promise.all([
     classifyImageVisual(imageSource),
     runTextAndDateOcr(imageSource)
   ]);
+
+  if (barcodeImmediate && (!ocrData || !ocrData.barcodeData)) {
+    if (ocrData) {
+      ocrData.barcodeData = barcodeImmediate;
+      ocrData.barcode = barcodeImmediate.barcode;
+    }
+  }
 
   const itemsList = (typeof window !== 'undefined' && window.getItems) ? window.getItems() : [];
   const fused = fuseVisualAndOcrDecision(visualPredictions, ocrData, itemsList);
@@ -2020,7 +2362,7 @@ async function analyzeSmartCameraDualTrack(imageSource, photoDataUrl) {
     fused.image = photoDataUrl;
   }
   if (ocrData && ocrData.barcode && !fused.notes) {
-    fused.notes = `條碼: ${ocrData.barcode}`;
+    fused.notes = (ocrData.barcodeData && ocrData.barcodeData.isIsbn) ? `ISBN: ${ocrData.barcode}` : `條碼: ${ocrData.barcode}`;
   }
 
   return fused;
@@ -2053,6 +2395,8 @@ if (typeof window !== 'undefined') {
   window.normalizeCategoryKey = normalizeCategoryKey;
   window.initMobileNet = initMobileNet;
   window.classifyImageVisual = classifyImageVisual;
+  window.scanBarcodePriority = scanBarcodePriority;
+  window.preprocessImageForOcr = preprocessImageForOcr;
   window.extractDateFromText = extractDateFromText;
   window.runTextAndDateOcr = runTextAndDateOcr;
   window.fuseVisualAndOcrDecision = fuseVisualAndOcrDecision;
@@ -2094,6 +2438,8 @@ if (typeof module !== 'undefined' && module.exports) {
     normalizeCategoryKey,
     initMobileNet,
     classifyImageVisual,
+    scanBarcodePriority,
+    preprocessImageForOcr,
     extractDateFromText,
     runTextAndDateOcr,
     fuseVisualAndOcrDecision,

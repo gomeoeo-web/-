@@ -678,6 +678,122 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 
+/* ==========================================================================
+   Camera Focus Reticle & Zoom Controls (v1.8.9)
+   ========================================================================== */
+.camera-focus-reticle {
+  position: absolute;
+  width: 68px;
+  height: 68px;
+  border: 2px solid #ffd60a;
+  border-radius: 8px;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1.2);
+  opacity: 0;
+  z-index: 12;
+  box-shadow: 0 0 10px rgba(255, 214, 10, 0.45);
+  transition: opacity 0.15s ease, transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.camera-focus-reticle.pulsing {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  animation: reticlePulse 1.2s ease-out forwards;
+}
+
+@keyframes reticlePulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0.9;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+.camera-zoom-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 4px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 15;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  user-select: none;
+}
+
+.camera-zoom-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camera-zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.camera-zoom-btn:active {
+  transform: scale(0.9);
+}
+
+.camera-zoom-btn.active {
+  background: #ffd60a;
+  color: #000000;
+  box-shadow: 0 2px 8px rgba(255, 214, 10, 0.4);
+}
+
+/* 辨識遮罩 (Recognition Overlay) */
+.camera-recognition-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.camera-recognition-overlay.active {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
 .camera-flash-overlay {
   position: absolute;
   inset: 0;
@@ -6041,7 +6157,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   color: #000000;
 }
 
-/* 提醒通知排程與提醒時間橫向排列樣式 (v1.8.8) */
+/* 提醒通知排程與提醒時間橫向排列樣式 (v1.8.9) */
 .nlp-reminder-time-grid {
   display: flex;
   gap: 10px;
