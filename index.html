@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.8.9">
+  <link rel="stylesheet" href="style.css?v=1.8.14">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -694,7 +694,193 @@ body {
   box-shadow: 0 0 6px #30d158;
 }
 
-/* 提醒通知排程與提醒時間橫向排列樣式 (v1.8.9) */
+/* ==========================================================================
+   VLM On-Device Model Loading & Progress Bar Card (端側視覺大模型提示卡片)
+   ========================================================================== */
+.vlm-loading-card {
+  width: 100%;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.vlm-loading-card.fade-out {
+  opacity: 0 !important;
+  transform: translateY(-8px) scale(0.96) !important;
+  pointer-events: none !important;
+}
+
+.vlm-loading-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.vlm-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vlm-badge-icon {
+  font-size: 0.95rem;
+  display: inline-block;
+  animation: vlmPulse 1.6s infinite alternate ease-in-out;
+}
+
+@keyframes vlmPulse {
+  0% { transform: scale(0.95); opacity: 0.85; }
+  100% { transform: scale(1.1); opacity: 1; }
+}
+
+.vlm-title-text {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.vlm-badge-webgpu {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(10, 132, 255, 0.2);
+  color: #0a84ff;
+  border: 1px solid rgba(10, 132, 255, 0.35);
+}
+
+.vlm-offline-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(48, 209, 88, 0.16);
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.3);
+}
+
+.vlm-status-text {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.vlm-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.6rem 0 0.45rem 0;
+  position: relative;
+}
+
+.vlm-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #0a84ff, #5e5ce6, #30d158);
+  border-radius: 999px;
+  transition: width 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.vlm-progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: vlmShimmerAnim 1.8s infinite;
+}
+
+@keyframes vlmShimmerAnim {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.vlm-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.vlm-progress-percent {
+  font-weight: 700;
+  color: #0a84ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.vlm-progress-detail {
+  font-size: 0.7rem;
+  max-width: 72%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vlm-hint-note {
+  margin-top: 0.55rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.35;
+}
+
+.vlm-hint-icon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+[data-theme="light"] .vlm-loading-card {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .vlm-title-text {
+  color: #000000;
+}
+
+[data-theme="light"] .vlm-status-text {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] .vlm-progress-track {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .vlm-progress-footer {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .vlm-hint-note {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* 提醒通知排程與提醒時間橫向排列樣式 (v1.8.14) */
 .nlp-reminder-time-grid {
   display: flex;
   gap: 10px;
@@ -6636,8 +6822,8 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
           <!-- Name (物品名稱為最上層) -->
           <div class="ios-form-row">
             <div class="ios-field">
-              <label for="itemName">物品名稱</label>
-              <input type="text" id="itemName" placeholder="例如：汽車機油、Netflix 訂閱、眼藥水..." required>
+              <label for="itemNameInput">物品名稱</label>
+              <input type="text" id="itemNameInput" name="itemName" placeholder="例如：汽車機油、Netflix 訂閱、眼藥水..." required>
             </div>
           </div>
 
@@ -6690,7 +6876,8 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
                     <option value="filter">🔄 耗材</option>
                     <option value="food">🥛 食品</option>
                     <option value="pao">🧴 日用</option>
-                    <option value="other">📌 其他</option>
+                    <option value="other">📦 其他</option>
+                    <option value="其他" style="display:none;">📦 其他</option>
                     <option value="animation">🎬 動畫</option>
                     <option value="game">🎮 遊戲</option>
                     <option value="otaku">✨ 二次元</option>
@@ -7036,7 +7223,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.9</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.8.14</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -7088,6 +7275,31 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
         </div>
         <!-- Flash animation overlay on shutter -->
         <div id="cameraFlashOverlay" class="camera-flash-overlay"></div>
+        <!-- AI 模型載入 / 快取進度浮層 (v1.8.14 首次載入自動喚起) -->
+        <div id="modelLoadingOverlay" class="model-loading-overlay" style="display: none;">
+          <div class="model-loading-card">
+            <div class="model-loading-header">
+              <div class="model-loading-badge">
+                <span class="model-icon">⚡</span>
+                <span class="model-name">AI 視覺模型載入中 (v1.8.14)</span>
+              </div>
+              <span class="model-cache-tag">本地快取</span>
+            </div>
+            <div class="model-status-row">
+              <p id="modelStatusText" class="model-status-text">首次載入 AI 視覺模型 0%... 之後離線免下載</p>
+              <span id="modelProgressPercent" class="model-progress-percent">0%</span>
+            </div>
+            <div class="model-progress-track">
+              <div id="modelProgressBar" class="model-progress-bar" style="width: 0%;">
+                <div class="model-progress-shimmer"></div>
+              </div>
+            </div>
+            <div class="model-detail-row">
+              <span id="modelProgressDetail" class="model-progress-detail">正在自 IndexedDB 快取加載...</span>
+              <span class="model-subhint">首次下載後永久離線可用</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Camera Bottom Controls Bar -->
@@ -7128,7 +7340,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
   <!-- Modal: AI Camera Scanning & Recognition Loading HUD (智慧鏡頭拍攝後雙軌分析載入動畫) -->
   <div id="aiScanLoadingModal" class="ios-modal-backdrop ai-scan-loading-backdrop camera-recognition-overlay" style="display: none;">
-    <div class="ai-scan-loading-card">
+    <div class="ai-scan-loading-card" id="cameraRecognitionOverlay">
       <div class="ai-scan-preview-container">
         <img id="aiScanPreviewImg" src="" alt="拍攝影像預覽" class="ai-scan-preview-img">
         <div class="ai-scan-laser-line"></div>
@@ -7145,20 +7357,54 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
         <div class="ai-scan-title-group">
           <div class="ai-scan-title-row">
             <span class="ai-scan-title">AI 智慧分析辨識中</span>
-            <span class="ai-scan-tag">雙軌並行</span>
+            <span class="ai-scan-tag" id="aiScanEngineTag">端側 VLM / 雙軌</span>
           </div>
-          <p id="aiScanStatusText" class="ai-scan-desc">正在啟動 MobileNet 視覺與 OCR 效期解析...</p>
+          <p id="aiScanStatusText" class="ai-scan-desc">正在啟動端側視覺大模型推論...</p>
+        </div>
+      </div>
+
+      <!-- VLM 首次載入 / 下載進度提示卡片 -->
+      <div id="vlmModelLoadingCard" class="vlm-loading-card" style="display: none;">
+        <div class="vlm-loading-header">
+          <div class="vlm-header-title">
+            <span class="vlm-badge-icon">⚡</span>
+            <span class="vlm-title-text">端側 VLM 視覺大模型</span>
+            <span class="vlm-badge-webgpu">WebGPU INT4</span>
+          </div>
+          <span class="vlm-offline-tag">永久離線</span>
+        </div>
+        
+        <p id="vlmStatusText" class="vlm-status-text">首次載入 AI 視覺模型 0%... 之後離線免下載</p>
+        
+        <div class="vlm-progress-track">
+          <div id="vlmProgressBar" class="vlm-progress-bar" style="width: 0%;">
+            <div class="vlm-progress-shimmer"></div>
+          </div>
+        </div>
+        
+        <div class="vlm-progress-footer">
+          <span id="vlmProgressPercent" class="vlm-progress-percent">0%</span>
+          <span id="vlmProgressDetail" class="vlm-progress-detail">正在自 IndexedDB 快取加載...</span>
+        </div>
+
+        <div class="vlm-hint-note">
+          <span class="vlm-hint-icon">💡</span>
+          <span>模型僅需首次下載一次，日後完全離線免連網秒速辨識！</span>
         </div>
       </div>
 
       <div class="ai-scan-steps">
+        <div class="ai-scan-step-item active" id="scanStepVlm">
+          <span class="step-dot"></span>
+          <span class="step-text">SmolVLM 端側多模態大模型視覺理解</span>
+        </div>
         <div class="ai-scan-step-item active" id="scanStepVisual">
           <span class="step-dot"></span>
-          <span class="step-text">MobileNet 物品外觀特徵分類</span>
+          <span class="step-text">物品特徵分類與結構化屬性提取</span>
         </div>
         <div class="ai-scan-step-item active" id="scanStepOcr">
           <span class="step-dot"></span>
-          <span class="step-text">Tesseract OCR 效期文字提取</span>
+          <span class="step-text">效期文字提取與到期日推算</span>
         </div>
         <div class="ai-scan-step-item" id="scanStepFuse">
           <span class="step-dot"></span>
@@ -8568,7 +8814,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.8.9';
+  const APP_VERSION = '1.8.14';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -8653,7 +8899,7 @@ var CapacitorBridgeBundle = (() => {
   { keywords: ['洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '漂白水'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
   { keywords: ['洗碗精', '洗潔精', '洗碗機洗碗粉', '光潔劑', '洗碗錠', '洗碗塊'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
   { keywords: ['抹布', '拖把', '除塵拖', '除塵紙', '靜電拖'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
-  { keywords: ['潔廁劑', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '洗手乳', '洗手液', '小蘇打', '過碳酸鈉', '除霉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
+  { keywords: ['潔廁劑', '清潔劑', '漂白水', '洗碗精', '洗潔精', '洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '除黴', '除霉', '去漬', '洗手乳', '洗手液', '地板清潔', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '小蘇打', '過碳酸鈉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
   { keywords: ['酒精', '消毒水', '乾洗手', '次氯酸'], emoji: '🧴', cat: 'cleaning', subCat: '酒精' },
   { keywords: ['除蟎', '防蟎噴霧', '防塵蟎'], emoji: '💨', cat: 'cleaning', subCat: '除蟎' },
 
@@ -8807,44 +9053,59 @@ var CapacitorBridgeBundle = (() => {
   { keywords: ['高跟鞋', '皮鞋', '皮靴', '精品鞋', '靴子'], emoji: '👠', cat: 'fashion', subCat: '精品鞋靴' },
 
   // 其他 (other)
+  { keywords: ['一般雜項', '雜項', '雜物', '日用品', '生活用品'], emoji: '📦', cat: 'other', subCat: '一般雜項' },
+  { keywords: ['眼鏡', '墨鏡', '太陽眼鏡', '抗藍光', '鏡框', '鏡片', '老花眼鏡', '護目鏡'], emoji: '👓', cat: 'other', subCat: '配件小物', duration: 365 },
+  { keywords: ['配件小物', '飾品小物', '隨身配件', '小物'], emoji: '👓', cat: 'other', subCat: '配件小物' },
+  { keywords: ['未分類', '其他物品', '待整理'], emoji: '📦', cat: 'other', subCat: '未分類' },
   { keywords: ['球鞋', '慢跑鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
   { keywords: ['背包', '後背包', '公事包', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
   { keywords: ['衣服', '褲子', '襯衫', '外套', '洋裝'], emoji: '🧥', cat: 'other', subCat: '衣物' },
-  { keywords: ['小說', '書籍', '雜誌', '課本'], emoji: '📚', cat: 'other', subCat: '圖書' },
   { keywords: ['會議', '開會', '研討會', '週會', '月會', '晨會'], emoji: '📅', cat: 'other', subCat: '會議' },
-  { keywords: ['備忘', '筆記', '代辦', '待辦', '雜項', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
+  { keywords: ['備忘', '筆記', '代辦', '待辦', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
 ];
 
   function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
-    if (!text || typeof text !== 'string') {
-      return { category: fallbackCat, subCategory: '', emoji: '📌' };
-    }
-    const lower = text.toLowerCase();
-    let bestMatch = null;
-    let bestLen = 0;
+  if (!text || typeof text !== 'string') {
+    return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
+  }
 
-    for (const item of SMART_KEYWORD_MAP) {
-      for (const kw of item.keywords) {
-        const kwLower = kw.toLowerCase();
-        if (lower.includes(kwLower)) {
-          if (kwLower.length > bestLen) {
-            bestLen = kwLower.length;
-            bestMatch = item;
-          }
+  // 【最優先判定 1】：乳製品/鮮乳 Priority 1 優先攔截 (防止「超高溫瞬間殺菌」或白瓶被誤殺成清潔用品)
+  const DAIRY_REGEX = /(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脫脂|保久乳|調味乳|優酪乳|優格|純鮮乳|光泉|瑞穗|義美|林鳳營|福樂|初鹿|高大)/i;
+  if (DAIRY_REGEX.test(text)) {
+    return { category: 'food', subCategory: '鮮乳', emoji: '🥛' };
+  }
+
+  // 【配件小物判定】：眼鏡與個人配件 (比對包含眼鏡/墨鏡等，排除隱形眼鏡與保養液，絕不可進入食品)
+  const GLASSES_REGEX = /(眼鏡|墨鏡|太陽眼鏡|抗藍光|鏡框|鏡片|老花眼鏡|護目鏡)/i;
+  if (GLASSES_REGEX.test(text) && !text.includes('隱形眼鏡') && !text.includes('保養液')) {
+    return { category: 'other', subCategory: '配件小物', emoji: '👓' };
+  }
+
+  const lower = text.toLowerCase();
+  let bestMatch = null;
+  let bestLen = 0;
+
+  for (const item of SMART_KEYWORD_MAP) {
+    for (const kw of item.keywords) {
+      const kwLower = kw.toLowerCase();
+      if (lower.includes(kwLower)) {
+        if (kwLower.length > bestLen) {
+          bestLen = kwLower.length;
+          bestMatch = item;
         }
       }
     }
-
-    if (bestMatch) {
-      return {
-        category: bestMatch.cat || fallbackCat,
-        subCategory: bestMatch.subCat || '',
-        emoji: bestMatch.emoji || '📌'
-      };
-    }
-    return { category: fallbackCat, subCategory: '', emoji: '📌' };
   }
 
+  if (bestMatch) {
+    return {
+      category: bestMatch.cat || fallbackCat,
+      subCategory: bestMatch.subCat || '',
+      emoji: bestMatch.emoji || (fallbackCat === 'other' ? '📦' : '📌')
+    };
+  }
+  return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
+}
   // 一級與細項分類預設辭典
   const DEFAULT_CATEGORIES = {
     vehicle: {
@@ -9200,6 +9461,31 @@ var CapacitorBridgeBundle = (() => {
     }
     showToast(`⭐️ 已將「${allCats[catKey].label}」設為第一頁預設分類！`);
   }
+
+  // 細項配置字典 (SUB_CATEGORY_CONFIG)
+  const SUB_CATEGORY_CONFIG = {
+    vehicle: ['機油', '齒輪油', '輪胎', '電瓶', '雨刷', '煞車', '驗車', '車險'],
+    subscription: ['影音', '音樂', '雲端', '軟體', '健身', '電信', '租約', '訂閱服務'],
+    medicine: ['眼藥水', '維他命', '魚油', '藥膏', '成藥', '醫療', '保養液'],
+    cleaning: ['菜瓜布', '洗衣精', '洗碗精', '抹布', '潔廁劑', '酒精', '除蟎'],
+    warranty: ['家具', '電腦', '手機', '耳機', '家電', '手錶', '遊戲機'],
+    filter: ['濾網', '濾芯', '牙刷', '除濕盒', '掃地耗材', '咖啡保養'],
+    food: ['青菜', '水果', '鮮乳', '咖啡', '雞蛋', '茶包', '調味料', '零食', '生鮮肉品', '麵包烘焙'],
+    pao: ['洗沐', '防曬', '保養', '護手霜', '牙膏', '刮鬍刀', '香水', '彩妝'],
+    pet: ['乾糧', '罐頭', '驅蟲藥', '疫苗健檢', '貓砂尿墊', '零食凍乾', '寵物保健'],
+    baby: ['配方奶', '尿布', '濕紙巾', '副食品', '奶嘴用品', '幼兒疫苗'],
+    office: ['耗材墨水', '碳粉匣', '電池', '筆記文具', '證件合約', '專業證照'],
+    outdoor: ['高蛋白', '露營裝備', '登山裝備', '水壺配件', '補給品', '球拍線路'],
+    home: ['植栽綠化', '花草肥料', '燈具照明', '寢具家飾', '居家安全', '修繕保養'],
+    fashion: ['換季送洗', '皮革保養', '珠寶飾品', '衣物防護', '精品鞋靴'],
+    animation: ['漫畫/單行本', '輕小說', 'BD/影音', '畫冊/設定集', '周邊特典'],
+    game: ['Switch 卡帶', 'PS/Xbox 光碟', '主機/手把周邊', '點數卡/序號', '特典周邊'],
+    otaku: ['徽章/吧唧', '壓克力立牌/磚', '色紙/相卡', '模型/黏土人/景品', '棉花娃/玩偶', '一番賞'],
+    ticket: ['電影票', '演唱會/音樂會', '動漫展覽門票', '活動兌換券'],
+    other: ['一般雜項', '配件小物', '未分類', '球鞋', '包袋', '會議', '備忘']
+  };
+  window.SUB_CATEGORY_CONFIG = SUB_CATEGORY_CONFIG;
+  window.DEFAULT_CATEGORIES = DEFAULT_CATEGORIES;
 
   // 相容別名
   const SUBCATEGORY_MAP = DEFAULT_CATEGORIES;
@@ -10217,19 +10503,27 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function getCategoryShortLabel(cat) {
-    const allCats = getAllCategories();
-    if (allCats[cat]) {
-      return allCats[cat].label;
+    try {
+      const allCats = getAllCategories();
+      if (allCats && allCats[cat] && allCats[cat].label) {
+        return allCats[cat].label;
+      }
+      return (typeof cat === 'string' && cat) ? cat : '其他';
+    } catch (e) {
+      return '其他';
     }
-    return '其他';
   }
 
   function getCategoryEmoji(cat) {
-    const allCats = getAllCategories();
-    if (allCats[cat] && allCats[cat].emoji) {
-      return allCats[cat].emoji;
+    try {
+      const allCats = getAllCategories();
+      if (allCats && allCats[cat] && allCats[cat].emoji) {
+        return allCats[cat].emoji;
+      }
+      return '📦';
+    } catch (e) {
+      return '📦';
     }
-    return '🏷️';
   }
 
   // ==========================================
@@ -10254,39 +10548,50 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function updateNoticeCardAndPillCounts() {
-    let total = items.length;
-    let urgent = 0;
-    let expired = 0;
-    let dueToday = 0;
+    try {
+      let total = Array.isArray(items) ? items.length : 0;
+      let urgent = 0;
+      let expired = 0;
+      let dueToday = 0;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    items.forEach(item => {
-      const expDateStr = item.expiryDate || item.endDate;
-      const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
-      // 排除無到期日／僅記使用天數的項目：不參與任何過期/即將到期的計數
-      if (isCountUp) return;
+      (Array.isArray(items) ? items : []).forEach(item => {
+        try {
+          if (!item) return;
+          // 安全檢查分類，若缺失則默認其他
+          if (!item.category) item.category = 'other';
+          if (!item.subCategory) item.subCategory = '';
 
-      const exp = new Date(expDateStr);
-      exp.setHours(0, 0, 0, 0);
-      const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+          const expDateStr = item.expiryDate || item.endDate;
+          const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
+          // 排除無到期日／僅記使用天數的項目：不參與任何過期/即將到期的計數
+          if (isCountUp) return;
 
-      if (diffDays < 0) {
-        expired++;
-      } else if (diffDays >= 0 && diffDays <= 3) {
-        urgent++;
-        if (diffDays === 0) {
-          dueToday++;
+          const exp = new Date(expDateStr);
+          if (isNaN(exp.getTime())) return;
+          exp.setHours(0, 0, 0, 0);
+          const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+          if (diffDays < 0) {
+            expired++;
+          } else if (diffDays >= 0 && diffDays <= 3) {
+            urgent++;
+            if (diffDays === 0) {
+              dueToday++;
+            }
+          }
+        } catch (itemErr) {
+          console.warn('[updateNoticeCardAndPillCounts] Error on item:', item, itemErr);
         }
-      }
-    });
+      });
 
-    const upcoming = urgent - dueToday;
+      const upcoming = Math.max(0, urgent - dueToday);
 
-    pillCountAll.textContent = total;
-    pillCountUrgent.textContent = urgent;
-    pillCountExpired.textContent = expired;
+      if (pillCountAll) pillCountAll.textContent = total;
+      if (pillCountUrgent) pillCountUrgent.textContent = urgent;
+      if (pillCountExpired) pillCountExpired.textContent = expired;
 
     const noticeStatusTag = document.getElementById('noticeStatusTag');
     const noticeStatusText = document.getElementById('noticeStatusText');
@@ -10361,6 +10666,9 @@ var CapacitorBridgeBundle = (() => {
       } else {
         btnCleanExpired.style.display = 'none';
       }
+    }
+    } catch (err) {
+      console.error('[updateNoticeCardAndPillCounts] Error:', err);
     }
   }
 
@@ -10585,10 +10893,14 @@ var CapacitorBridgeBundle = (() => {
   window.applyProgressBarStatus = renderProgressBar;
 
   function createCardElement(item, isInventory = false) {
-    const m = calculateMetrics(item);
-    const card = document.createElement('div');
-    card.className = 'ios-item-card';
-    card.dataset.id = item.id;
+    if (!item) return null;
+    try {
+      const itemCategory = item.category || 'other';
+      const itemSubCategory = item.subCategory || '';
+      const m = calculateMetrics(item);
+      const card = document.createElement('div');
+      card.className = 'ios-item-card';
+      card.dataset.id = item.id || '';
 
     // 縮圖：優先顯示相片，無相片則顯示 emoji
     let iconContent = '';
@@ -10735,6 +11047,14 @@ var CapacitorBridgeBundle = (() => {
     });
 
     return card;
+    } catch (createErr) {
+      console.error('[createCardElement] Error rendering card for item:', item, createErr);
+      const fallbackDiv = document.createElement('div');
+      fallbackDiv.className = 'ios-item-card';
+      fallbackDiv.innerHTML = `<div class="card-item-title">${escapeHtml((item && item.name) || '物品')}</div>`;
+      fallbackDiv.onclick = () => { if (item && item.id) openActionSheet(item.id); };
+      return fallbackDiv;
+    }
   }
 
   function renderCards() {
@@ -10780,7 +11100,12 @@ var CapacitorBridgeBundle = (() => {
       } else {
         emptyState.style.display = 'none';
         todayList.forEach(item => {
-          itemsGrid.appendChild(createCardElement(item));
+          try {
+            const cardEl = createCardElement(item);
+            if (cardEl) itemsGrid.appendChild(cardEl);
+          } catch (cardErr) {
+            console.error('[renderCards] Failed to create card for item:', item, cardErr);
+          }
         });
       }
     }
@@ -10844,7 +11169,12 @@ var CapacitorBridgeBundle = (() => {
         if (emptyStateInventory) emptyStateInventory.style.display = 'none';
         if (btnEmptyAddItemsToCat) btnEmptyAddItemsToCat.style.display = 'none';
         invList.forEach(item => {
-          inventoryItemsGrid.appendChild(createCardElement(item, true));
+          try {
+            const cardEl = createCardElement(item, true);
+            if (cardEl) inventoryItemsGrid.appendChild(cardEl);
+          } catch (cardErr) {
+            console.error('[renderCards inventory] Failed to create card for item:', item, cardErr);
+          }
         });
       }
     }
@@ -11279,14 +11609,18 @@ var CapacitorBridgeBundle = (() => {
   const btnCloseModal = document.getElementById('btnCloseModal');
   const itemForm = document.getElementById('itemForm');
   const itemIdInput = document.getElementById('itemId');
-  const itemNameInput = document.getElementById('itemName');
+  const itemNameInput = document.getElementById('itemNameInput') || document.getElementById('itemName');
+  const itemName = itemNameInput;
   const itemEmojiInput = document.getElementById('itemEmoji');
   const itemStartDateInput = document.getElementById('itemStartDate');
   const itemEndDateInput = document.getElementById('itemEndDate');
   const fieldEndDateWrap = document.getElementById('fieldEndDateWrap');
   const itemDurationInput = document.getElementById('itemDuration');
   const fieldDurationWrap = document.getElementById('fieldDurationWrap');
-  const itemWarnDaysSelect = null; // dropdown removed
+  const itemWarnDaysSelect = document.getElementById('itemWarnDaysSelect');
+  if (itemWarnDaysSelect) {
+    itemWarnDaysSelect.addEventListener('change', autoSaveCurrentItem);
+  }
   const fieldReminderWrap = document.getElementById('fieldReminderWrap');
   const itemReminderToggle = document.getElementById('itemReminderToggle');
   const reminderDetailWrap = document.getElementById('reminderDetailWrap');
@@ -11302,6 +11636,7 @@ var CapacitorBridgeBundle = (() => {
   const itemBrandInput = document.getElementById('itemBrand');
   const itemNotesInput = document.getElementById('itemNotes');
   const previewEndDateText = document.getElementById('previewEndDateText');
+  const previewDaysText = document.getElementById('previewDaysText');
   const itemCategorySelect = document.getElementById('itemCategorySelect');
   const itemSubCategorySelect = document.getElementById('itemSubCategorySelect');
   const customSubCatRow = document.getElementById('customSubCatRow');
@@ -12015,6 +12350,10 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function setReminderSelectValue(warnDays) {
+    const warnSelect = document.getElementById('itemWarnDaysSelect');
+    if (warnSelect) {
+      warnSelect.value = String(warnDays);
+    }
     if (warnDays === -1 || warnDays === '-1') {
       updateReminderToggleState(false);
     } else {
@@ -12028,6 +12367,10 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function populateReminderOptions(daysOrType) {
+    const warnSelect = document.getElementById('itemWarnDaysSelect');
+    if (warnSelect && daysOrType !== undefined && daysOrType !== null && daysOrType !== 'custom') {
+      warnSelect.value = String(daysOrType);
+    }
     if (daysOrType === '-1' || daysOrType === -1) {
       updateReminderToggleState(false);
     } else {
@@ -12065,6 +12408,8 @@ var CapacitorBridgeBundle = (() => {
     if (itemPresetReminderTime) itemPresetReminderTime.value = '09:00';
     if (itemReminderCustomDate) itemReminderCustomDate.value = getOffsetDateString(defaultEnd, -1);
     if (itemReminderCustomTime) itemReminderCustomTime.value = '09:00';
+    const warnSelectAdd = document.getElementById('itemWarnDaysSelect');
+    if (warnSelectAdd) warnSelectAdd.value = '7';
     updateReminderToggleState(true);
     updateReminderSectionVisibility();
 
@@ -12126,6 +12471,8 @@ var CapacitorBridgeBundle = (() => {
       }
       if (itemReminderCustomTime) itemReminderCustomTime.value = item.reminderTime || '09:00';
     }
+    const warnSelectEdit = document.getElementById('itemWarnDaysSelect');
+    if (warnSelectEdit) warnSelectEdit.value = (item && item.warnDays !== undefined) ? String(item.warnDays) : '7';
     updateReminderSectionVisibility();
 
     itemLocationInput.value = item.location || '';
@@ -12209,7 +12556,13 @@ var CapacitorBridgeBundle = (() => {
         reminderTime = (itemReminderCustomTime && itemReminderCustomTime.value)
           ? itemReminderCustomTime.value
           : '09:00';
-        warnDays = Math.max(0, diffDays(reminderDate, endDate));
+        const warnSelectSave = document.getElementById('itemWarnDaysSelect');
+        if (warnSelectSave && warnSelectSave.value) {
+          const parsed = parseInt(warnSelectSave.value, 10);
+          warnDays = !isNaN(parsed) ? parsed : Math.max(0, diffDays(reminderDate, endDate));
+        } else {
+          warnDays = Math.max(0, diffDays(reminderDate, endDate));
+        }
       }
     }
 
@@ -12337,13 +12690,15 @@ var CapacitorBridgeBundle = (() => {
     const today = getTodayString();
     const remain = diffDays(today, endStr);
 
-    previewEndDateText.textContent = endStr;
-    if (remain < 0) {
-      previewDaysText.textContent = `已過期 ${Math.abs(remain)} 天`;
-      previewDaysText.style.color = 'var(--ios-red)';
-    } else {
-      previewDaysText.textContent = `剩餘 ${remain} 天 • 週期 ${duration} 天`;
-      previewDaysText.style.color = 'var(--ios-green)';
+    if (previewEndDateText) previewEndDateText.textContent = endStr;
+    if (previewDaysText) {
+      if (remain < 0) {
+        previewDaysText.textContent = `已過期 ${Math.abs(remain)} 天`;
+        previewDaysText.style.color = 'var(--ios-red)';
+      } else {
+        previewDaysText.textContent = `剩餘 ${remain} 天 • 週期 ${duration} 天`;
+        previewDaysText.style.color = 'var(--ios-green)';
+      }
     }
   }
 
@@ -13378,7 +13733,7 @@ var CapacitorBridgeBundle = (() => {
 
   function updateCategoryActionBar() {
     const allCats = getAllCategories();
-    const catObj = allCats[currentCategoryChip] || { emoji: '📌', label: '其他' };
+    const catObj = allCats[currentCategoryChip] || { emoji: '📦', label: '其他' };
     const countInCat = items.filter(it => it.category === currentCategoryChip).length;
     if (catActiveEmoji) catActiveEmoji.textContent = catObj.emoji;
     if (catActiveName) catActiveName.textContent = `${catObj.label}群組`;
@@ -13435,7 +13790,7 @@ var CapacitorBridgeBundle = (() => {
   function openAddItemsToCategoryModal() {
     if (!addItemsToCategoryModal) return;
     const allCats = getAllCategories();
-    const catObj = allCats[currentCategoryChip] || { emoji: '📌', label: '其他' };
+    const catObj = allCats[currentCategoryChip] || { emoji: '📦', label: '其他' };
     if (addItemsToCategoryModalTitle) {
       addItemsToCategoryModalTitle.textContent = `加入物品至「${catObj.label}」`;
     }
@@ -15266,7 +15621,7 @@ function extractCleanName(rawText) {
 
     subCatSelect.innerHTML = '';
     const allCats = (typeof getAllCategories === 'function') ? getAllCategories() : DEFAULT_CATEGORIES;
-    const catData = allCats[category] || allCats['other'] || { label: '其他', emoji: '📌', items: [] };
+    const catData = allCats[category] || allCats['other'] || { label: '其他', emoji: '📦', items: [] };
 
     // 預設/無細項選項
     const defaultOpt = document.createElement('option');
@@ -15353,9 +15708,9 @@ function extractCleanName(rawText) {
       }
       const targetCat = (typeof window.normalizeCategoryKey === 'function')
         ? window.normalizeCategoryKey(parsed.category)
-        : (parsed.category || 'food');
+        : (parsed.category || 'other');
       catSelect.value = targetCat;
-      if (!catSelect.value) catSelect.value = 'food'; // 禁止留空
+      if (!catSelect.value) catSelect.value = 'other'; // 禁止留空
       populateNlpSubCategoryDropdown(catSelect.value, parsed.subCategory || '');
     }
 
@@ -15421,7 +15776,7 @@ function extractCleanName(rawText) {
       updateNlpStartDateHint(startDateInput.value);
     }
 
-    // 常駐提醒時間與自訂日期判定 (v1.8.9 下拉式選單選擇12小時制/24小時制)
+    // 常駐提醒時間與自訂日期判定 (v1.8.14 下拉式選單選擇12小時制/24小時制)
     const timeRow = document.getElementById('nlpConfirmTimeRow');
     const timeInput = document.getElementById('nlpConfirmReminderTime');
     const customDateRow = document.getElementById('nlpCustomDateRow');
@@ -16213,7 +16568,7 @@ function extractCleanName(rawText) {
   }
 
   // ==========================================
-  // Camera & Photo Local Offline Scanner (相機取景與本地離線辨識 v1.8.9)
+  // Camera & Photo Local Offline Scanner (相機取景與本地離線辨識 v1.8.14)
   // ==========================================
   let cameraStream = null;
   let currentCameraFacing = 'environment';
@@ -16305,7 +16660,12 @@ function extractCleanName(rawText) {
       btnFlip.addEventListener('click', flipCamera);
     }
     if (btnAlbum && fileInput) {
-      btnAlbum.addEventListener('click', () => fileInput.click());
+      btnAlbum.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && typeof window.initVisionModel === 'function') {
+          window.initVisionModel().catch(err => console.warn('[AutoDownload] 預載視覺模型通知:', err));
+        }
+        fileInput.click();
+      });
       fileInput.addEventListener('change', handleAlbumFileSelect);
     }
     if (btnShutter) {
@@ -16359,6 +16719,11 @@ function extractCleanName(rawText) {
     modal.style.display = 'flex';
     lockBodyScroll();
     setCameraZoom(1);
+    // 自動預先觸發下載（無感快取）：
+    // 使用者一「點擊開啟相機」或進入辨識畫面時，立即於背景靜默或以進度條觸發 initVisionModel()，不要等到拍照按下的瞬間才卡住下載。
+    if (typeof window !== 'undefined' && typeof window.initVisionModel === 'function') {
+      window.initVisionModel().catch(err => console.warn('[AutoDownload] 預載視覺模型通知:', err));
+    }
     await startCameraStream(currentCameraFacing);
   }
 
@@ -16366,6 +16731,9 @@ function extractCleanName(rawText) {
     stopCameraStream();
     const modal = document.getElementById('cameraScanModal');
     if (modal) modal.style.display = 'none';
+    if (typeof hideModelLoadingOverlay === 'function') {
+      hideModelLoadingOverlay(false);
+    }
     unlockBodyScroll();
   }
 
@@ -16451,12 +16819,18 @@ function extractCleanName(rawText) {
     const hud = document.getElementById('aiScanLoadingModal');
     const img = document.getElementById('aiScanPreviewImg');
     const desc = document.getElementById('aiScanStatusText');
+    const stepVlm = document.getElementById('scanStepVlm');
     const stepVisual = document.getElementById('scanStepVisual');
     const stepOcr = document.getElementById('scanStepOcr');
     const stepFuse = document.getElementById('scanStepFuse');
 
     if (img && photoDataUrl) img.src = photoDataUrl;
-    if (desc) desc.textContent = '雙軌並行分析中 (視覺外觀＋文字OCR)...';
+    if (desc) {
+      desc.textContent = (typeof navigator !== 'undefined' && navigator.gpu)
+        ? '正在啟動端側 SmolVLM 視覺多模態大模型...'
+        : '正在啟動輕量相機雙軌辨識管線...';
+    }
+    if (stepVlm) { stepVlm.className = 'ai-scan-step-item active'; }
     if (stepVisual) { stepVisual.className = 'ai-scan-step-item active'; }
     if (stepOcr) { stepOcr.className = 'ai-scan-step-item active'; }
     if (stepFuse) { stepFuse.className = 'ai-scan-step-item'; }
@@ -16537,12 +16911,15 @@ function extractCleanName(rawText) {
 
     let parsed = null;
     try {
-      // 呼叫雙軌並行分析 (含原生條碼最優先、Canvas三道前處理、Tesseract OCR、在地化效期解析)
-      if (typeof window.analyzeSmartCameraDualTrack === 'function') {
+      // 最優先呼叫端側視覺語言大模型 (VLM)，若環境不支援、推論超時或異常則無縫降級
+      if (typeof window.analyzeSmartCameraWithVlm === 'function') {
+        parsed = await window.analyzeSmartCameraWithVlm(canvas, photoDataUrl);
+      } else if (typeof window.analyzeSmartCameraDualTrack === 'function') {
         parsed = await window.analyzeSmartCameraDualTrack(canvas, photoDataUrl);
-        updateAiScanStep('scanStepVisual', 'done', '物品外觀特徵分類完成');
-        updateAiScanStep('scanStepOcr', 'done', '文字效期提取解析完成');
       }
+      updateAiScanStep('scanStepVlm', 'done', '端側多模態視覺理解完成');
+      updateAiScanStep('scanStepVisual', 'done', '物品特徵分類與提取完成');
+      updateAiScanStep('scanStepOcr', 'done', '文字效期提取解析完成');
     } catch (err) {
       console.warn('[Camera] 辨識流程異常：', err);
     } finally {
@@ -16555,14 +16932,22 @@ function extractCleanName(rawText) {
       if (!parsed) {
         parsed = {
           success: true,
-          name: '拍攝物品',
-          category: 'food',
-          subCategory: '',
-          expiryDate: getOffsetDateString(getTodayString(), 7),
-          hasEndDate: true,
+          name: '新收錄物品',
+          category: 'other',
+          subCategory: '未分類',
+          emoji: '📦',
+          expiryDate: getOffsetDateString(getTodayString(), 30),
+          hasEndDate: false,
           remindDaysBefore: 3,
           remindTime: '09:00'
         };
+      } else {
+        if (!parsed.name || parsed.name.trim() === '') {
+          parsed.name = '新收錄物品';
+        }
+      }
+      if (typeof window.applyVlmDomValues === 'function') {
+        window.applyVlmDomValues(parsed.name, parsed.category, parsed.expiryDate);
       }
 
       if (!parsed.remindTime) parsed.remindTime = '09:00';
@@ -16632,10 +17017,89 @@ function extractCleanName(rawText) {
   const savedScreenFit = localStorage.getItem(SCREEN_FIT_KEY) || 'plus';
   setScreenFit(savedScreenFit, false);
 
-  renderApp();
-  initSmartQuickAdd();
-  initNlpConfirmModal();
-  initCameraScanner();
+  // Global rendering and display aliases
+  window.renderItems = renderCards;
+  window.displayItems = renderCards;
+  window.renderApp = renderApp;
+
+  function ensureButtonListeners() {
+    try {
+      // 1. 頂部選單按鈕（全部 / 將到期 / 已過期）
+      const homeFilterBtns = document.querySelectorAll('.home-filter-btn');
+      homeFilterBtns.forEach(btn => {
+        btn.onclick = function () {
+          currentPillFilter = this.dataset.filter || 'all';
+          homeFilterBtns.forEach(b => b.classList.toggle('active', b === btn));
+          renderCards();
+        };
+      });
+
+      // 2. 懸浮新增按鈕 (FAB) 與相關新增按鈕
+      const fabAddBtn = document.getElementById('fabAddBtn') || document.getElementById('btnAddItem') || document.getElementById('btnOpenAddModal');
+      if (fabAddBtn) {
+        fabAddBtn.onclick = function (e) {
+          e.preventDefault();
+          openAddModal();
+        };
+      }
+      const btnHeaderAdd = document.getElementById('btnHeaderAdd');
+      if (btnHeaderAdd) {
+        btnHeaderAdd.onclick = function (e) {
+          e.preventDefault();
+          openAddModal();
+        };
+      }
+
+      // 3. 設定按鈕
+      const btnOpenSettings = document.getElementById('btnOpenSettings') || document.getElementById('btnSettings');
+      if (btnOpenSettings) {
+        btnOpenSettings.onclick = function (e) {
+          e.preventDefault();
+          openSettingsModal();
+        };
+      }
+
+      // 4. 相機按鈕
+      const btnCameraScan = document.getElementById('btnCameraScan');
+      if (btnCameraScan) {
+        btnCameraScan.onclick = function (e) {
+          e.preventDefault();
+          openCameraScanModal();
+        };
+      }
+    } catch (btnErr) {
+      console.warn('[ensureButtonListeners] error:', btnErr);
+    }
+  }
+
+  function initApp() {
+    try { renderCategoryChips(); } catch (e) { console.error(e); }
+    try { populateCategorySelect(); } catch (e) { console.error(e); }
+    try { populateFirstPageCategorySelect(); } catch (e) { console.error(e); }
+    try {
+      const savedScreenFit = localStorage.getItem(SCREEN_FIT_KEY) || 'plus';
+      setScreenFit(savedScreenFit, false);
+    } catch (e) {}
+    try { renderApp(); } catch (e) { console.error(e); }
+    try { initSmartQuickAdd(); } catch (e) { console.error(e); }
+    try { initNlpConfirmModal(); } catch (e) { console.error(e); }
+    try { initCameraScanner(); } catch (e) { console.error(e); }
+    try { ensureButtonListeners(); } catch (e) { console.error(e); }
+  }
+    window.initApp = initApp;
+  window.renderItems = renderCards;
+
+  try {
+    initApp();
+  } catch (initErr) {
+    console.error('[initApp Priority Error]:', initErr);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      try { initApp(); } catch (e) { console.error(e); }
+    });
+  }
 
   // 初始化 Capacitor 系統通知頻道與排程檢查
   ensureNotificationChannel();
@@ -16782,33 +17246,12 @@ function extractCleanName(rawText) {
 })();
 
 </script>
-  <!-- TensorFlow.js 與 MobileNet 視覺外觀分類模型 (v1.8.9 雙軌引擎) -->
+  <!-- TensorFlow.js 與 MobileNet 視覺外觀分類模型 (v1.8.14 雙軌引擎) -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
   <!-- Tesseract.js 本地/離線 OCR 文字辨識引擎 -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
-  <!-- Transformers.js 本地微型模型推論庫 (RoBERTa-Tiny / BERT-Tiny 中文實體辨識) -->
-  <script type="module">
-    try {
-      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
-      window.pipeline = pipeline;
-      window.transformersEnv = env;
-      if (env) {
-        env.allowLocalModels = false;
-        env.useBrowserCache = true;
-      }
-      window.dispatchEvent(new CustomEvent('transformers-ready'));
-      if (typeof window.initModel === 'function') {
-        window.initModel();
-      }
-    } catch (err) {
-      console.warn('[Transformers.js] CDN 載入失敗或處於離線環境，將降級使用純本地正則解析器：', err);
-      if (typeof window.updateNerStatus === 'function') {
-        window.updateNerStatus('fallback');
-      }
-    }
-  </script>
   <!-- 本地自然語言實體抽取與速記控制器 -->
-  <script src="app.js?v=1.8.9"></script>
+  <script type="module" src="app.js?v=1.8.14"></script>
 </body>
 </html>

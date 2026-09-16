@@ -794,6 +794,192 @@ body {
   pointer-events: auto !important;
 }
 
+/* ==========================================================================
+   VLM On-Device Model Loading & Progress Bar Card (端側視覺大模型提示卡片)
+   ========================================================================== */
+.vlm-loading-card {
+  width: 100%;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.vlm-loading-card.fade-out {
+  opacity: 0 !important;
+  transform: translateY(-8px) scale(0.96) !important;
+  pointer-events: none !important;
+}
+
+.vlm-loading-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.vlm-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vlm-badge-icon {
+  font-size: 0.95rem;
+  display: inline-block;
+  animation: vlmPulse 1.6s infinite alternate ease-in-out;
+}
+
+@keyframes vlmPulse {
+  0% { transform: scale(0.95); opacity: 0.85; }
+  100% { transform: scale(1.1); opacity: 1; }
+}
+
+.vlm-title-text {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.vlm-badge-webgpu {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(10, 132, 255, 0.2);
+  color: #0a84ff;
+  border: 1px solid rgba(10, 132, 255, 0.35);
+}
+
+.vlm-offline-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(48, 209, 88, 0.16);
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.3);
+}
+
+.vlm-status-text {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.vlm-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.6rem 0 0.45rem 0;
+  position: relative;
+}
+
+.vlm-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #0a84ff, #5e5ce6, #30d158);
+  border-radius: 999px;
+  transition: width 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.vlm-progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: vlmShimmerAnim 1.8s infinite;
+}
+
+@keyframes vlmShimmerAnim {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.vlm-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.vlm-progress-percent {
+  font-weight: 700;
+  color: #0a84ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.vlm-progress-detail {
+  font-size: 0.7rem;
+  max-width: 72%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vlm-hint-note {
+  margin-top: 0.55rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.35;
+}
+
+.vlm-hint-icon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+[data-theme="light"] .vlm-loading-card {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .vlm-title-text {
+  color: #000000;
+}
+
+[data-theme="light"] .vlm-status-text {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] .vlm-progress-track {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .vlm-progress-footer {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .vlm-hint-note {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+}
+
 .camera-flash-overlay {
   position: absolute;
   inset: 0;
@@ -6332,3 +6518,161 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   font-weight: 600 !important;
   text-align: center !important;
 }
+
+/* ==========================================================================
+   Model Loading Overlay (首次載入 AI 視覺模型進度面板 v1.8.14)
+   ========================================================================== */
+.model-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 99;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.model-loading-overlay.fade-out {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.model-loading-card {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(26, 26, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  padding: 1.25rem 1.4rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-sizing: border-box;
+  animation: modelOverlayPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modelOverlayPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.model-loading-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.model-loading-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.model-icon {
+  font-size: 1.15rem;
+  animation: vlmPulse 1.6s infinite alternate ease-in-out;
+}
+
+.model-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.model-cache-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(48, 209, 88, 0.2);
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.4);
+}
+
+.model-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.model-status-text {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.model-progress-percent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0a84ff;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.model-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.model-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #0a84ff 0%, #30d158 100%);
+  border-radius: 999px;
+  transition: width 0.25s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.model-progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: modelShimmer 1.5s infinite;
+}
+
+@keyframes modelShimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.model-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.model-progress-detail {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+
+.model-subhint {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+

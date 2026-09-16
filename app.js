@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.9.0
+ * Smart Quick Add & On-Device NER Parser v1.8.14
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -58,6 +58,65 @@ function offsetDays(d, numDays) {
 }
 
 // ==========================================
+// 1.4 一級分類與細項項目設定 (DEFAULT_CATEGORIES & SUB_CATEGORY_CONFIG)
+// ==========================================
+const DEFAULT_CATEGORIES = {
+  vehicle: { label: '車輛', emoji: '🚗' },
+  subscription: { label: '訂閱', emoji: '📅' },
+  medicine: { label: '藥品', emoji: '💊' },
+  cleaning: { label: '清潔', emoji: '🧼' },
+  warranty: { label: '保固', emoji: '🛡️' },
+  filter: { label: '耗材', emoji: '🔄' },
+  food: { label: '食品', emoji: '🥦' },
+  pao: { label: '日用', emoji: '🧴' },
+  pet: { label: '寵物', emoji: '🐾' },
+  baby: { label: '母嬰', emoji: '🍼' },
+  office: { label: '辦公', emoji: '💼' },
+  outdoor: { label: '戶外', emoji: '⛺' },
+  home: { label: '居家', emoji: '🪴' },
+  fashion: { label: '穿搭', emoji: '👗' },
+  animation: { label: '動畫', emoji: '🎬' },
+  game: { label: '遊戲', emoji: '🎮' },
+  otaku: { label: '二次元', emoji: '✨' },
+  ticket: { label: '票券/活動', emoji: '🎟️' },
+  other: {
+    label: '其他',
+    emoji: '📦',
+    items: [
+      { name: '日常生活用品', subCat: '一般雜項', emoji: '📦' },
+      { name: '隨身配件眼鏡', subCat: '配件小物', emoji: '👓' },
+      { name: '未分類備忘物品', subCat: '未分類', emoji: '📦' },
+      { name: '慢跑球鞋', subCat: '球鞋', emoji: '👟' },
+      { name: '商務背包', subCat: '包袋', emoji: '🎒' },
+      { name: '日常工作會議', subCat: '會議', emoji: '📅' },
+      { name: '各類生活備忘', subCat: '備忘', emoji: '📌' }
+    ]
+  }
+};
+
+const SUB_CATEGORY_CONFIG = {
+  vehicle: ['機油', '齒輪油', '輪胎', '電瓶', '雨刷', '煞車', '驗車', '車險'],
+  subscription: ['影音', '音樂', '雲端', '軟體', '健身', '電信', '租約', '訂閱服務'],
+  medicine: ['眼藥水', '維他命', '魚油', '藥膏', '成藥', '醫療', '保養液'],
+  cleaning: ['菜瓜布', '洗衣精', '洗碗精', '抹布', '潔廁劑', '酒精', '除蟎'],
+  warranty: ['家具', '電腦', '手機', '耳機', '家電', '手錶', '遊戲機'],
+  filter: ['濾網', '濾芯', '牙刷', '除濕盒', '掃地耗材', '咖啡保養'],
+  food: ['青菜', '水果', '鮮乳', '咖啡', '雞蛋', '茶包', '調味料', '零食', '生鮮肉品', '麵包烘焙'],
+  pao: ['洗沐', '防曬', '保養', '護手霜', '牙膏', '刮鬍刀', '香水', '彩妝'],
+  pet: ['乾糧', '罐頭', '驅蟲藥', '疫苗健檢', '貓砂尿墊', '零食凍乾', '寵物保健'],
+  baby: ['配方奶', '尿布', '濕紙巾', '副食品', '奶嘴用品', '幼兒疫苗'],
+  office: ['耗材墨水', '碳粉匣', '電池', '筆記文具', '證件合約', '專業證照'],
+  outdoor: ['高蛋白', '露營裝備', '登山裝備', '水壺配件', '補給品', '球拍線路'],
+  home: ['植栽綠化', '花草肥料', '燈具照明', '寢具家飾', '居家安全', '修繕保養'],
+  fashion: ['換季送洗', '皮革保養', '珠寶飾品', '衣物防護', '精品鞋靴'],
+  animation: ['漫畫/單行本', '輕小說', 'BD/影音', '畫冊/設定集', '周邊特典'],
+  game: ['Switch 卡帶', 'PS/Xbox 光碟', '主機/手把周邊', '點数卡/序號', '特典周邊'],
+  otaku: ['徽章/吧唧', '壓克力立牌/磚', '色紙/相卡', '模型/黏土人/景品', '棉花娃/玩偶', '一番賞'],
+  ticket: ['電影票', '演唱會/音樂會', '動漫展覽門票', '活動兌換券'],
+  other: ['一般雜項', '配件小物', '未分類', '球鞋', '包袋', '會議', '備忘']
+};
+
+// ==========================================
 // 1.5 智慧分類與細項對應辭典 (SMART_KEYWORD_MAP)
 // ==========================================
 const SMART_KEYWORD_MAP = [
@@ -96,7 +155,7 @@ const SMART_KEYWORD_MAP = [
   { keywords: ['洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '漂白水'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
   { keywords: ['洗碗精', '洗潔精', '洗碗機洗碗粉', '光潔劑', '洗碗錠', '洗碗塊'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
   { keywords: ['抹布', '拖把', '除塵拖', '除塵紙', '靜電拖'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
-  { keywords: ['潔廁劑', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '洗手乳', '洗手液', '小蘇打', '過碳酸鈉', '除霉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
+  { keywords: ['潔廁劑', '清潔劑', '漂白水', '洗碗精', '洗潔精', '洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '除黴', '除霉', '去漬', '洗手乳', '洗手液', '地板清潔', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '小蘇打', '過碳酸鈉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
   { keywords: ['酒精', '消毒水', '乾洗手', '次氯酸'], emoji: '🧴', cat: 'cleaning', subCat: '酒精' },
   { keywords: ['除蟎', '防蟎噴霧', '防塵蟎'], emoji: '💨', cat: 'cleaning', subCat: '除蟎' },
 
@@ -274,11 +333,15 @@ const SMART_KEYWORD_MAP = [
   { keywords: ['兌換券', '餐券', '住宿券', '優惠券', '提貨券', '商品券'], emoji: '🔖', cat: 'ticket', subCat: '活動兌換券', duration: 365 },
 
   // 其他 (other)
+  { keywords: ['一般雜項', '雜項', '雜物', '日用品', '生活用品'], emoji: '📦', cat: 'other', subCat: '一般雜項' },
+  { keywords: ['眼鏡', '墨鏡', '太陽眼鏡', '抗藍光', '鏡框', '鏡片', '老花眼鏡', '護目鏡'], emoji: '👓', cat: 'other', subCat: '配件小物', duration: 365 },
+  { keywords: ['配件小物', '飾品小物', '隨身配件', '小物'], emoji: '👓', cat: 'other', subCat: '配件小物' },
+  { keywords: ['未分類', '其他物品', '待整理'], emoji: '📦', cat: 'other', subCat: '未分類' },
   { keywords: ['球鞋', '慢跑鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
   { keywords: ['背包', '後背包', '公事包', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
   { keywords: ['衣服', '褲子', '襯衫', '外套', '洋裝'], emoji: '🧥', cat: 'other', subCat: '衣物' },
   { keywords: ['會議', '開會', '研討會', '週會', '月會', '晨會'], emoji: '📅', cat: 'other', subCat: '會議' },
-  { keywords: ['備忘', '筆記', '代辦', '待辦', '雜項', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
+  { keywords: ['備忘', '筆記', '代辦', '待辦', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
 ];
 
 /**
@@ -287,8 +350,21 @@ const SMART_KEYWORD_MAP = [
  */
 function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
   if (!text || typeof text !== 'string') {
-    return { category: fallbackCat, subCategory: '', emoji: '📌' };
+    return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
   }
+
+  // 【最優先判定 1】：乳製品/鮮乳 Priority 1 優先攔截 (包含中英日關鍵字，防止「超高溫瞬間殺菌」或白瓶被誤殺成清潔用品)
+  const DAIRY_REGEX = /(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脱脂|脫脂|保久乳|純鮮乳|瑞穗|光泉|義美|林鳳營|初鹿|milk|乳飲品)/i;
+  if (DAIRY_REGEX.test(text)) {
+    return { category: 'food', subCategory: '鮮乳', emoji: '🥛' };
+  }
+
+  // 【配件小物判定】：眼鏡與個人配件 (包含中英日關鍵字，排除隱形眼鏡與保養液，嚴禁進入食品)
+  const GLASSES_REGEX = /(眼鏡|墨鏡|太陽眼鏡|メガネ|glasses|sunglasses|spectacles|鏡框|抗藍光|鏡片|老花眼鏡|護目鏡)/i;
+  if (GLASSES_REGEX.test(text) && !text.includes('隱形眼鏡') && !text.includes('保養液')) {
+    return { category: 'other', subCategory: '配件小物', emoji: '👓' };
+  }
+
   const lower = text.toLowerCase();
   let bestMatch = null;
   let bestLen = 0;
@@ -309,11 +385,12 @@ function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
     return {
       category: bestMatch.cat || fallbackCat,
       subCategory: bestMatch.subCat || '',
-      emoji: bestMatch.emoji || '📌'
+      emoji: bestMatch.emoji || (fallbackCat === 'other' ? '📦' : '📌')
     };
   }
-  return { category: fallbackCat, subCategory: '', emoji: '📌' };
+  return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
 }
+
 
 // ==========================================
 // 2. UI 狀態指示器 (輸入框 Placeholder)
@@ -343,6 +420,47 @@ function updateNerStatus(status) {
 }
 
 // ==========================================
+// 2.9 AI 模型防護載入引擎 (getVisionEngine - 僅於使用者點擊相機時觸發)
+// ==========================================
+async function getVisionEngine() {
+  try {
+    if (typeof window !== 'undefined' && window.pipeline) {
+      return window.pipeline;
+    }
+    const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3');
+    if (typeof window !== 'undefined') {
+      window.pipeline = pipeline;
+      if (env) {
+        env.useBrowserCache = true;
+        env.allowLocalModels = false;
+        window.transformersEnv = env;
+      }
+    }
+    return pipeline;
+  } catch (err) {
+    console.warn('AI 模型載入失敗，降級使用本機 OCR / MobileNet:', err);
+    return null;
+  }
+}
+
+let transformersModule = null;
+async function loadTransformers() {
+  try {
+    const pipe = await getVisionEngine();
+    if (pipe) {
+      transformersModule = {
+        pipeline: pipe,
+        env: (typeof window !== 'undefined' && window.transformersEnv) ? window.transformersEnv : { useBrowserCache: true, allowLocalModels: false }
+      };
+      return transformersModule;
+    }
+    return null;
+  } catch (err) {
+    console.warn('[loadTransformers] 載入失敗，降級備援:', err);
+    return null;
+  }
+}
+
 // 3. 非同步初始化微型中文命名實體模型 (initModel)
 // ==========================================
 async function initModel() {
@@ -352,27 +470,25 @@ async function initModel() {
   updateNerStatus('loading');
 
   try {
-    // 檢查 window.pipeline 是否已由 Transformers.js CDN 模組注入
-    if (typeof window !== 'undefined' && !window.pipeline) {
-      await new Promise((resolve) => {
-        let done = false;
-        const timer = setTimeout(() => {
-          if (!done) { done = true; resolve(); }
-        }, 3500);
-
-        window.addEventListener('transformers-ready', () => {
-          if (!done) {
-            done = true;
-            clearTimeout(timer);
-            resolve();
-          }
-        }, { once: true });
-      });
+    let pipelineFn = null;
+    try {
+      const tf = await loadTransformers();
+      if (tf && tf.pipeline) {
+        pipelineFn = tf.pipeline;
+        if (typeof window !== 'undefined') {
+          window.pipeline = tf.pipeline;
+          if (tf.env) window.transformersEnv = tf.env;
+        }
+      }
+    } catch (tfErr) {
+      if (typeof window !== 'undefined' && typeof window.pipeline === 'function') {
+        pipelineFn = window.pipeline;
+      }
     }
 
-    if (typeof window !== 'undefined' && typeof window.pipeline === 'function') {
+    if (typeof pipelineFn === 'function') {
       console.log('[NLP] 正在初始化本地微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner)...');
-      nerPipeline = await window.pipeline('token-classification', 'Xenova/bert-tiny-chinese-ner', {
+      nerPipeline = await pipelineFn('token-classification', 'Xenova/bert-tiny-chinese-ner', {
         aggregation_strategy: 'simple'
       });
       isModelLoading = false;
@@ -1526,7 +1642,7 @@ function getItemStatusConfig(item, todayStr) {
 
 
 // ==========================================
-// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗 + 原生條碼最優先) v1.8.9
+// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗 + 原生條碼最優先) v1.8.14
 // ==========================================
 
 const CATEGORY_MAP_TO_KEY = {
@@ -1539,6 +1655,7 @@ const CATEGORY_MAP_TO_KEY = {
   '車輛': 'vehicle', 'vehicle': 'vehicle',
   '訂閱': 'subscription', 'subscription': 'subscription',
   '日化開封': 'pao', 'pao': 'pao',
+  '日用品': 'cleaning',
   '寵物': 'pet', 'pet': 'pet',
   '母嬰': 'baby', 'baby': 'baby',
   '辦公': 'office', 'office': 'office',
@@ -1549,13 +1666,14 @@ const CATEGORY_MAP_TO_KEY = {
   '漫畫': 'animation', 'comic': 'animation', '書籍': 'animation', '圖書': 'animation',
   '遊戲': 'game', 'game': 'game',
   '二次元': 'otaku', 'otaku': 'otaku',
-  '票券': 'ticket', 'ticket': 'ticket'
+  '票券': 'ticket', 'ticket': 'ticket',
+  '票券/活動': 'ticket'
 };
 
 function normalizeCategoryKey(cat) {
-  if (!cat) return 'food';
+  if (!cat) return 'other';
   const str = String(cat).trim().toLowerCase();
-  return CATEGORY_MAP_TO_KEY[str] || CATEGORY_MAP_TO_KEY[cat] || 'food';
+  return CATEGORY_MAP_TO_KEY[str] || CATEGORY_MAP_TO_KEY[cat] || 'other';
 }
 
 /**
@@ -1616,6 +1734,26 @@ const VISUAL_APPEARANCE_DICT = [
   },
 
   // 2. 瓶罐容器與清潔用品（依靠瓶身外觀）
+  {
+    keywords: ['carton', 'milk carton'],
+    name: '紙盒包裝/鮮乳',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '鮮乳',
+    defaultDays: 12,
+    emoji: '🥛',
+    isContainer: true
+  },
+  {
+    keywords: ['jug', 'pitcher', 'water jug', 'milk can'],
+    name: '瓶罐/乳品飲品',
+    category: 'food',
+    categoryLabel: '食品',
+    subCategory: '飲品',
+    defaultDays: 14,
+    emoji: '🥛',
+    isContainer: true
+  },
   {
     keywords: ['lotion', 'soap dispenser', 'sunscreen', 'lotion bottle', 'spray'],
     name: '瓶裝洗劑/保養品',
@@ -1718,6 +1856,18 @@ const VISUAL_APPEARANCE_DICT = [
     subCategory: '主機/手把周邊',
     defaultDays: 365,
     emoji: '🎮',
+    isContainer: false
+  }
+,
+  // 5. 個人配件與眼鏡小物（MobileNet 標籤映射至「其他 / 配件小物」）
+  {
+    keywords: ['sunglasses', 'sunglass', 'spectacles', 'goggles', 'eyeglass', 'glasses', 'loupe'],
+    name: '眼鏡/配件小物',
+    category: 'other',
+    categoryLabel: '其他',
+    subCategory: '配件小物',
+    defaultDays: 365,
+    emoji: '👓',
     isContainer: false
   }
 ];
@@ -1873,7 +2023,7 @@ function preprocessImageForOcr(source) {
   const srcCropH = cropH / scale;
   ctx.drawImage(source, srcCropX, srcCropY, srcCropW, srcCropH, 0, 0, cropW, cropH);
 
-  // 3. 影像二值化與對比強化 (灰階化 Gray = 0.299*R + 0.587*G + 0.114*B + Otsu 動態閾值)
+  // 3. 影像前處理強化：灰階化與動態對比拉伸 (Dynamic Contrast Stretching，濾除塑膠包裝反光與雜訊，提高微小字體與日文假名識別率)
   try {
     const imgData = ctx.getImageData(0, 0, cropW, cropH);
     const data = imgData.data;
@@ -1883,7 +2033,6 @@ function preprocessImageForOcr(source) {
 
     let minG = 255;
     let maxG = 0;
-    let sumG = 0;
 
     for (let i = 0, p = 0; p < totalPixels; i += 4, p++) {
       const r = data[i];
@@ -1894,48 +2043,42 @@ function preprocessImageForOcr(source) {
       hist[gray]++;
       if (gray < minG) minG = gray;
       if (gray > maxG) maxG = gray;
-      sumG += gray;
     }
 
-    const avgG = sumG / totalPixels;
-    const range = maxG - minG;
+    // 計算 2% 與 98% 累積百分位數，濾除塑膠反光折射眩光並保留假名微小字體
+    let pLow = minG;
+    let pHigh = maxG;
+    let acc = 0;
+    const lowCount = Math.round(totalPixels * 0.02);
+    const highCount = Math.round(totalPixels * 0.98);
 
-    // Otsu 演算法計算最佳動態二值化切割閾值
-    let sumB = 0;
-    let wB = 0;
-    let maximum = 0;
-    let threshold = avgG;
-    let sum1 = 0;
-    for (let i = 0; i < 256; i++) sum1 += i * hist[i];
-
-    for (let t = 0; t < 256; t++) {
-      wB += hist[t];
-      if (wB === 0) continue;
-      const wF = totalPixels - wB;
-      if (wF === 0) break;
-      sumB += t * hist[t];
-      const mB = sumB / wB;
-      const mF = (sum1 - sumB) / wF;
-      const between = wB * wF * (mB - mF) * (mB - mF);
-      if (between > maximum) {
-        maximum = between;
-        threshold = t;
-      }
+    for (let i = 0; i < 256; i++) {
+      acc += hist[i];
+      if (acc >= lowCount && pLow === minG) pLow = i;
+      if (acc >= highCount) { pHigh = i; break; }
     }
 
-    // 對比拉伸與自適應二值化 (黑色印刷字體與淺色背景反差加強，徹底濾除透明塑膠包裝反光折射)
+    const range = Math.max(1, pHigh - pLow);
+
+    // 動態對比拉伸：高光眩光截斷為 255，字體漸層與細節保留以供 Tesseract 最佳識別
     for (let i = 0, p = 0; p < totalPixels; i += 4, p++) {
       const g = grays[p];
-      const stretched = (range > 20) ? ((g - minG) / range) * 255 : g;
-      const binarized = (stretched < threshold) ? 0 : 255;
-      data[i] = binarized;
-      data[i + 1] = binarized;
-      data[i + 2] = binarized;
+      let stretched = g;
+      if (g <= pLow) {
+        stretched = 0;
+      } else if (g >= pHigh) {
+        stretched = 255;
+      } else {
+        stretched = Math.round(((g - pLow) / range) * 255);
+      }
+      data[i] = stretched;
+      data[i + 1] = stretched;
+      data[i + 2] = stretched;
     }
 
     ctx.putImageData(imgData, 0, 0);
   } catch (err) {
-    console.warn('[Vision] 影像前處理二值化略過：', err);
+    console.warn('[Vision] 影像前處理動態對比拉伸略過：', err);
   }
 
   return canvas;
@@ -1971,8 +2114,8 @@ function extractDateFromText(text) {
     }
   }
 
-  // 2. 西元常用標準格式：2026/09/16、2026.09.16、2026-09-16、2026年9月16日、EXP 2026-09-16
-  const ceStdRegex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|USE\s*BY|MFG|BBD)?\s*[:.]?\s*(20[2-3]\d)\s*[-/.年]\s*(1[0-2]|0?[1-9])\s*[-/.月]\s*([12]\d|3[01]|0?[1-9])\s*日?/i;
+  // 2. 西元常用標準格式 (支援日文定錨詞：賞味期限、消費期限、有効期限)
+  const ceStdRegex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|USE\s*BY|MFG|BBD|賞味期限|消費期限|有効期限|期限)?\s*[:.]?\s*(20[2-3]\d)\s*[-/.年]\s*(1[0-2]|0?[1-9])\s*[-/.月]\s*([12]\d|3[01]|0?[1-9])\s*日?/i;
   const ceStdMatch = clean.match(ceStdRegex);
   if (ceStdMatch) {
     const y = ceStdMatch[1];
@@ -1981,8 +2124,18 @@ function extractDateFromText(text) {
     return `${y}-${m}-${d}`;
   }
 
-  // 3. 日月年倒序 (4位西元年)：16-09-2026、16/09/2026、16.09.2026
-  const dmy4Regex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE)?\s*[:.]?\s*([12]\d|3[01]|0?[1-9])\s*[-/.]\s*(1[0-2]|0?[1-9])\s*[-/.]\s*(20[2-3]\d)/i;
+  // 3. 日文定錨詞搭配雙位西元年 (例如 賞味期限 26.09.16 或 26-09-16)
+  const jp2Regex = /(?:賞味期限|消費期限|有効期限|期限)\s*[:.]?\s*([2-3]\d)\s*[-/.年]\s*(1[0-2]|0?[1-9])\s*[-/.月]\s*([12]\d|3[01]|0?[1-9])\s*日?/i;
+  const jp2Match = clean.match(jp2Regex);
+  if (jp2Match) {
+    const y = '20' + jp2Match[1];
+    const m = String(parseInt(jp2Match[2], 10)).padStart(2, '0');
+    const d = String(parseInt(jp2Match[3], 10)).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // 4. 日月年倒序 (4位西元年)：16-09-2026、16/09/2026、16.09.2026
+  const dmy4Regex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|賞味期限|消費期限|有効期限)?\s*[:.]?\s*([12]\d|3[01]|0?[1-9])\s*[-/.]\s*(1[0-2]|0?[1-9])\s*[-/.]\s*(20[2-3]\d)/i;
   const dmy4Match = clean.match(dmy4Regex);
   if (dmy4Match) {
     const y = dmy4Match[3];
@@ -1991,8 +2144,8 @@ function extractDateFromText(text) {
     return `${y}-${m}-${d}`;
   }
 
-  // 4. 日月年倒序 (雙位西元年)：16-09-26、16/09/26、16.09.26
-  const dmy2Regex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE)?\s*[:.]?\s*([12]\d|3[01]|0?[1-9])\s*[-/.]\s*(1[0-2]|0?[1-9])\s*[-/.]\s*([2-3]\d)(?!\d)/i;
+  // 5. 日月年倒序 (雙位西元年)：16-09-26、16/09/26、16.09.26
+  const dmy2Regex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|賞味期限|消費期限|有効期限)?\s*[:.]?\s*([12]\d|3[01]|0?[1-9])\s*[-/.]\s*(1[0-2]|0?[1-9])\s*[-/.]\s*([2-3]\d)(?!\d)/i;
   const dmy2Match = clean.match(dmy2Regex);
   if (dmy2Match) {
     const y = '20' + dmy2Match[3];
@@ -2001,14 +2154,14 @@ function extractDateFromText(text) {
     return `${y}-${m}-${d}`;
   }
 
-  // 5. 西元 8 位連號格式 (如 20260916)
-  const num8Match = clean.match(/(?:EXP|有效|到期|保存)?\s*[:.]?\s*(20[2-3]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/i);
+  // 6. 西元 8 位連號格式 (如 20260916 或 賞味期限 20260916)
+  const num8Match = clean.match(/(?:EXP|有效|到期|保存|賞味期限|消費期限|有効期限)?\s*[:.]?\s*(20[2-3]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/i);
   if (num8Match) {
     return `${num8Match[1]}-${num8Match[2]}-${num8Match[3]}`;
   }
 
-  // 6. 西元 6 位連號格式 (YYMMDD 如 260916)
-  const num6Match = clean.match(/(?:EXP|有效|到期|保存|BBD)?\s*[:.]?\s*(?:^|[^\d])([2-3]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)/i);
+  // 7. 西元 6 位連號格式 (YYMMDD 如 260916 或 消費期限 260916)
+  const num6Match = clean.match(/(?:EXP|有效|到期|保存|BBD|賞味期限|消費期限|有効期限)?\s*[:.]?\s*(?:^|[^\d])([2-3]\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)/i);
   if (num6Match) {
     return `20${num6Match[1]}-${num6Match[2]}-${num6Match[3]}`;
   }
@@ -2035,14 +2188,22 @@ async function runTextAndDateOcr(imgSource) {
     barcodeData = await scanBarcodePriority(preprocessedCanvas);
   }
 
-  // 3. Tesseract.js OCR (支援離線與中英雙語，使用前處理後之優質影像)
+  // 3. Tesseract.js OCR (支援離線與多國語言：繁中 + 英文 + 日文 'chi_tra+eng+jpn'，使用前處理後之優質影像)
   if (typeof window !== 'undefined' && window.Tesseract) {
     try {
       console.log('[OCR] 正在以前處理優化影像執行 Tesseract OCR 文字辨識...');
       const targetInput = preprocessedCanvas || imgSource;
-      const ocrResult = await window.Tesseract.recognize(targetInput, 'chi_tra+eng', {
-        logger: () => {}
-      });
+      let ocrResult = null;
+      try {
+        ocrResult = await window.Tesseract.recognize(targetInput, 'chi_tra+eng+jpn', {
+          logger: () => {}
+        });
+      } catch (multiLangErr) {
+        console.warn('[OCR] chi_tra+eng+jpn 載入異常，自動降級 chi_tra+eng：', multiLangErr);
+        ocrResult = await window.Tesseract.recognize(targetInput, 'chi_tra+eng', {
+          logger: () => {}
+        });
+      }
       if (ocrResult && ocrResult.data && ocrResult.data.text) {
         text += ' ' + ocrResult.data.text;
       }
@@ -2075,6 +2236,214 @@ async function runTextAndDateOcr(imgSource) {
     barcodeData: barcodeData,
     preprocessedCanvas: preprocessedCanvas
   };
+}
+
+/**
+ * 【一、日文常用商品/動漫辭彙繁體中文對照表（JP_TO_TC_DICT）】
+ */
+const JP_TO_TC_DICT = {
+  // 食品/飲品
+  '牛乳': '鮮乳',
+  'ミルク': '鮮乳',
+  '生乳': '生乳',
+  'ヨーグルト': '優酪乳',
+  'お茶': '茶飲',
+  '菓子': '零食',
+  'スナック': '零食',
+
+  // 收藏/動漫
+  'アクリルスタンド': '壓克力立牌',
+  'アクスタ': '壓克力立牌',
+  '缶バッジ': '徽章',
+  'フィギュア': '公仔模型',
+  'ねんどろいど': '黏土人',
+  'キーホルダー': '吊飾',
+  'コミック': '漫畫',
+  '漫画': '漫畫',
+  '同人誌': '同人誌',
+  'イラスト集': '畫冊',
+  '画集': '畫冊',
+
+  // 遊戲/配件
+  'ゲーム': '遊戲卡帶',
+  'カセット': '遊戲卡帶',
+  'コントローラー': '遊戲手把',
+  'メガネ': '眼鏡',
+  '眼鏡': '眼鏡',
+
+  // 票券
+  'チケット': '票券',
+  '入場券': '票券',
+  '引換券': '兌換券'
+};
+
+/**
+ * 文本自動本地化：將日文字詞依長度優先自動轉換為繁體中文
+ */
+function localizeJapaneseText(text) {
+  if (!text || typeof text !== 'string') return text || '';
+  let result = text;
+  const sortedKeys = Object.keys(JP_TO_TC_DICT).sort((a, b) => b.length - a.length);
+  for (const jpWord of sortedKeys) {
+    if (result.includes(jpWord)) {
+      result = result.split(jpWord).join(JP_TO_TC_DICT[jpWord]);
+    }
+  }
+  return result;
+}
+
+/**
+ * 【二、階梯式保底品名提取（針對「其他」類別）】
+ * 視覺標籤英文至中文映射表 (MobileNet 類別轉中文常用生活物品)
+ */
+const VISUAL_LABEL_TRANSLATIONS = {
+  'sunglasses': '墨鏡/眼鏡配件',
+  'sunglass': '墨鏡/眼鏡配件',
+  'glasses': '眼鏡配件',
+  'spectacles': '眼鏡配件',
+  'device': '電子配件',
+  'electronic': '電子配件',
+  'bottle': '瓶罐容器',
+  'water bottle': '水瓶/水壺',
+  'wine bottle': '酒瓶/飲品',
+  'beer bottle': '瓶裝飲品',
+  'pill bottle': '藥瓶容器',
+  'cup': '水杯/容器',
+  'coffee mug': '馬克杯',
+  'mug': '馬克杯',
+  'box': '收納外盒',
+  'carton': '包裝紙盒',
+  'packet': '袋裝食品',
+  'packet, packet': '袋裝物品',
+  'bag': '提袋/包包',
+  'backpack': '後背包',
+  'book': '書籍',
+  'notebook': '筆記本',
+  'pencil': '文具筆類',
+  'pen': '文具筆類',
+  'mouse': '電腦滑鼠',
+  'keyboard': '電腦鍵盤',
+  'remote': '遙控器',
+  'clock': '時鐘鐘錶',
+  'watch': '手錶',
+  'soap': '肥皂清潔品',
+  'cleanser': '洗劑清潔品',
+  'spray': '噴霧罐',
+  'umbrella': '雨傘',
+  'shoe': '休閒鞋',
+  'sneaker': '運動球鞋',
+  'sandal': '涼鞋/拖鞋',
+  'toothbrush': '牙刷清潔品',
+  'hair spray': '美髮造型品',
+  'lotion': '乳液保養品',
+  'cream': '乳霜保養品'
+};
+
+/**
+ * 階梯式品名自動填入（絕不留白）
+ * 1. 第一階：過濾成分、熱量、電話等雜訊，取 OCR 最靠上方 2～15 字的中英日品名（日文轉繁中）
+ * 2. 第二階：命中特定品類詞庫（如漫畫/Switch/立牌/鮮乳）直接套用標準繁中品名
+ * 3. 第三階：若無文字，以視覺特徵標籤翻譯中文保底，最低限度維持「新收錄物品」，嚴禁留空
+ */
+function extractFallbackItemName(ocrText = '', visualPredictions = []) {
+  // 第一階（OCR 文字優先）：過濾成分、熱量、電話等雜訊，取 OCR 最靠上方 2～15 字的中英日品名（日文轉繁中）
+  if (ocrText && typeof ocrText === 'string') {
+    const lines = ocrText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    for (const rawLine of lines) {
+      if (/(?:成分|原料|配料|熱量|卡路里|營養標示|蛋白質|脂肪|碳水化合物|糖|鈉|電話|tel|phone|地址|address|客服|工廠|產地|原產地|淨重|容量|毫升|ml|公克|g\b|批號|batch|lot|no\.|sn\b|www|http|\.com)/i.test(rawLine)) {
+        continue;
+      }
+      let cleaned = rawLine.replace(/(?:exp|mfg|best\s*before|use\s*by|賞味期限|消費期限|有効期限|有效期限|保存期限|到期日|有效日期|製造日期)[:：\s]*/gi, '');
+      cleaned = cleaned.replace(/\d{2,4}[-\/.年]\d{1,2}[-\/.月]\d{1,2}日?/g, '');
+      cleaned = cleaned.replace(/\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4}/g, '');
+      cleaned = cleaned.replace(/\b\d{4,12}\b/g, '');
+      // 自動將日文詞彙轉化為繁體中文
+      cleaned = localizeJapaneseText(cleaned);
+      // 保留中文字、英文字母、日文假名、數字與空格
+      cleaned = cleaned.replace(/[^\p{L}\p{N}\u4e00-\u9fa5\u3040-\u30ff\s]/gu, '').trim();
+
+      if (cleaned.length >= 2 && cleaned.length <= 15) {
+        if (!/^\d+$/.test(cleaned) && !/^(batch|lot|no|tel|sn|exp|mfg|date|time)$/i.test(cleaned)) {
+          return cleaned;
+        }
+      }
+    }
+  }
+
+  // 第二階：命中特定品類詞庫（如漫畫/Switch/立牌/鮮乳）直接套用標準繁中品名
+  if (ocrText && typeof ocrText === 'string' && ocrText.trim()) {
+    const ocrCandidate = ocrText.trim();
+    if (/(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脱脂|脫脂|保久乳|純鮮乳|瑞穗|光泉|義美|林鳳營|初鹿|milk|乳飲品)/i.test(ocrCandidate)) {
+      const brands = ['光泉', '瑞穗', '義美', '林鳳營', '福樂', '初鹿', '高大', '好市多', '柳營', '萬丹', '六甲'];
+      const b = brands.find(brand => ocrCandidate.includes(brand));
+      return b ? `${b}鮮乳` : '鮮乳';
+    }
+    if (/(漫畫|コミック|単行本|同人誌)/i.test(ocrCandidate)) {
+      return '漫畫';
+    }
+    if (/(壓克力立牌|アクリルスタンド|アクスタ|立牌)/i.test(ocrCandidate)) {
+      return '壓克力立牌';
+    }
+    if (/(switch|任天堂|遊戲卡帶|ゲーム|カセット)/i.test(ocrCandidate)) {
+      return 'Switch遊戲';
+    }
+    if (/(コントローラー|遊戲手把|手把)/i.test(ocrCandidate)) {
+      return '遊戲手把';
+    }
+    if (/(缶バッジ|徽章|胸章)/i.test(ocrCandidate)) {
+      return '徽章';
+    }
+    if (/(ねんどろいど|黏土人)/i.test(ocrCandidate)) {
+      return '黏土人';
+    }
+    if (/(フィギュア|公仔模型|公仔|模型)/i.test(ocrCandidate)) {
+      return '公仔模型';
+    }
+    if (/(キーホルダー|吊飾|鑰匙圈)/i.test(ocrCandidate)) {
+      return '吊飾';
+    }
+    if (/(イラスト集|画集|畫冊)/i.test(ocrCandidate)) {
+      return '畫冊';
+    }
+    if (/(眼鏡|墨鏡|太陽眼鏡|メガネ|glasses|sunglasses|spectacles|鏡框)/i.test(ocrCandidate) && !ocrCandidate.includes('隱形眼鏡')) {
+      if (/墨鏡|太陽眼鏡|sunglasses/i.test(ocrCandidate)) return '太陽眼鏡';
+      return '眼鏡';
+    }
+    if (/(お茶|綠茶|紅茶|烏龍茶|茶飲)/i.test(ocrCandidate)) {
+      return '茶飲';
+    }
+    if (/(菓子|スナック|零食|餅乾)/i.test(ocrCandidate)) {
+      return '零食';
+    }
+    if (/(チケット|入場券|票券)/i.test(ocrCandidate)) {
+      return '票券';
+    }
+    if (/(引換券|兌換券)/i.test(ocrCandidate)) {
+      return '兌換券';
+    }
+  }
+
+  // 第三階：若無文字，以視覺特徵標籤翻譯中文保底，最低限度維持「新收錄物品」，嚴禁留空
+  if (Array.isArray(visualPredictions) && visualPredictions.length > 0) {
+    for (const pred of visualPredictions) {
+      const cls = (pred && pred.className ? String(pred.className) : '').toLowerCase();
+      if (!cls) continue;
+      const words = cls.split(',').map(w => w.trim());
+      for (const w of words) {
+        if (VISUAL_LABEL_TRANSLATIONS[w]) {
+          return VISUAL_LABEL_TRANSLATIONS[w];
+        }
+      }
+      for (const [engKey, zhVal] of Object.entries(VISUAL_LABEL_TRANSLATIONS)) {
+        if (cls.includes(engKey)) {
+          return zhVal;
+        }
+      }
+    }
+  }
+
+  // 最低限度維持「新收錄物品」，嚴禁留空
+  return '新收錄物品';
 }
 
 /**
@@ -2178,11 +2547,93 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     'eggs': '雞蛋'
   };
 
+  // 【最優先分支 1】：乳製品/鮮乳 Priority 1 優先攔截
+  // 包含中英日關鍵字：/(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脱脂|脫脂|保久乳|純鮮乳|瑞穗|光泉|義美|林鳳營|初鹿|milk|乳飲品)/i
+  // 清潔用品規則嚴格排除單獨的「殺菌/消毒/除菌」，避免牛奶包裝字樣觸發清潔劑。
+  // 命中乳品時：分類強制鎖定「食品」，品名自動代入品牌鮮乳或「鮮乳」，未讀取到效期時自動推算「今天 + 7 天」。
+  const DAIRY_REGEX = /(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脱脂|脫脂|保久乳|純鮮乳|瑞穗|光泉|義美|林鳳營|初鹿|milk|乳飲品)/i;
+  if (DAIRY_REGEX.test(ocrText) || DAIRY_REGEX.test(ocrMatchedWord || '')) {
+    const brands = ['光泉', '瑞穗', '義美', '林鳳營', '福樂', '初鹿', '高大', '好市多', '柳營', '萬丹', '六甲', '東海', '四方', '崙背'];
+    const foundBrand = brands.find(b => ocrText.includes(b)) || '';
+    let suggestedName = '鮮乳';
+    if (foundBrand) {
+      if (/全脂/i.test(ocrText)) suggestedName = `${foundBrand}全脂鮮乳`;
+      else if (/低脂/i.test(ocrText)) suggestedName = `${foundBrand}低脂鮮乳`;
+      else if (/脱脂|脫脂/i.test(ocrText)) suggestedName = `${foundBrand}脫脂鮮乳`;
+      else if (/優酪乳/i.test(ocrText)) suggestedName = `${foundBrand}優酪乳`;
+      else if (/優格/i.test(ocrText)) suggestedName = `${foundBrand}優格`;
+      else if (/保久乳/i.test(ocrText)) suggestedName = `${foundBrand}保久乳`;
+      else if (/鮮奶/i.test(ocrText)) suggestedName = `${foundBrand}鮮奶`;
+      else suggestedName = `${foundBrand}鮮乳`;
+    } else {
+      const match = ocrText.match(/(純鮮乳|全脂鮮乳|低脂鮮乳|全脂鮮奶|低脂鮮奶|脱脂牛乳|脫脂牛乳|保久乳|調味乳|優酪乳|優格|鮮乳|鮮奶|牛乳|生乳)/i);
+      if (match) {
+        suggestedName = localizeJapaneseText(match[1]);
+      } else {
+        suggestedName = '鮮乳';
+      }
+    }
+    const detectedDate = (ocrData && ocrData.date) ? ocrData.date : extractDateFromText(ocrText + ' ' + ocrBarcode);
+    // 未讀取到效期時自動推算「今天 + 7 天」
+    const finalDate = detectedDate || formatDate(offsetDays(today, 7));
+
+    return {
+      success: true,
+      name: suggestedName,
+      category: 'food',
+      subCategory: '鮮乳',
+      emoji: '🥛',
+      expiryDate: finalDate,
+      hasEndDate: true,
+      remindDaysBefore: 3,
+      remindTime: '09:00',
+      confidence: Math.max(topVisualConfidence, 0.95),
+      visualMatch: topVisualMatch ? topVisualMatch.name : '鮮乳',
+      fusionMode: 'dairy_priority',
+      visualPredictions: visualPredictions || [],
+      ocrText: ocrText,
+      notes: ocrBarcode ? `條碼: ${ocrBarcode}` : undefined
+    };
+  }
+
+  // 【配件小物分支】：眼鏡與個人配件判定 (包含中英日關鍵字：/(眼鏡|墨鏡|太陽眼鏡|メガネ|glasses|sunglasses|spectacles|鏡框)/i)
+  // 分類強制選中「其他」（若無配件分類），追蹤模式設為無到期日或僅記天數，嚴禁進入「食品」。
+  const GLASSES_REGEX = /(眼鏡|墨鏡|太陽眼鏡|メガネ|glasses|sunglasses|spectacles|鏡框)/i;
+  if (GLASSES_REGEX.test(ocrText) && !ocrText.includes('隱形眼鏡') && !ocrText.includes('保養液')) {
+    const glassesMatch = ocrText.match(/(太陽眼鏡|抗藍光眼鏡|墨鏡|眼鏡|老花眼鏡|護目鏡|メガネ|glasses|sunglasses|spectacles|鏡框)/i);
+    let glassesName = '眼鏡';
+    if (glassesMatch) {
+      const matched = glassesMatch[1].toLowerCase();
+      if (/sunglasses|墨鏡|太陽眼鏡/.test(matched)) glassesName = '太陽眼鏡';
+      else if (/メガネ|glasses|spectacles|眼鏡/.test(matched)) glassesName = '眼鏡';
+      else if (/鏡框/.test(matched)) glassesName = '眼鏡鏡框';
+      else glassesName = glassesMatch[1];
+    }
+    const detectedDate = (ocrData && ocrData.date) ? ocrData.date : extractDateFromText(ocrText + ' ' + ocrBarcode);
+    return {
+      success: true,
+      name: glassesName,
+      category: 'other',
+      subCategory: '配件小物',
+      emoji: '👓',
+      expiryDate: detectedDate || formatDate(offsetDays(today, 365)),
+      hasEndDate: false, // 追蹤模式設為無到期日或僅記天數，嚴禁進入食品
+      remindDaysBefore: 30,
+      remindTime: '09:00',
+      confidence: Math.max(topVisualConfidence, 0.9),
+      visualMatch: topVisualMatch ? topVisualMatch.name : '眼鏡/配件小物',
+      fusionMode: 'glasses_priority',
+      visualPredictions: visualPredictions || [],
+      ocrText: ocrText,
+      notes: ocrBarcode ? `條碼: ${ocrBarcode}` : undefined
+    };
+  }
+
   let finalName = '';
-  let finalCategory = 'food';
+  let finalCategory = 'other';
   let finalSubCategory = '';
-  let finalEmoji = '📌';
-  let defaultDays = 7;
+  let finalEmoji = '📦';
+  let defaultDays = 30;
   let fusionMode = 'fallback';
 
   // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle / carton），且 OCR 同步掃到品牌或產品字樣
@@ -2196,10 +2647,19 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
       defaultDays = (ocrKeywordMatch.duration && ocrKeywordMatch.duration > 0) ? ocrKeywordMatch.duration : (topVisualMatch.defaultDays || 12);
       finalEmoji = ocrKeywordMatch.emoji;
     } else if (topVisualMatch.category === 'cleaning') {
-      finalCategory = 'cleaning';
-      finalSubCategory = topVisualMatch.subCategory || '衛浴保養';
-      defaultDays = topVisualMatch.defaultDays;
-      finalEmoji = topVisualMatch.emoji;
+      // 嚴防 carton, jug, bottle, pitcher 誤入清潔
+      const isFoodContainer = topVisualMatch.keywords && topVisualMatch.keywords.some(k => ['carton', 'milk carton', 'jug', 'pitcher', 'bottle', 'water bottle'].includes(k.toLowerCase()));
+      if (isFoodContainer) {
+        finalCategory = 'food';
+        finalSubCategory = '飲品';
+        finalEmoji = '🥛';
+        defaultDays = 14;
+      } else {
+        finalCategory = 'cleaning';
+        finalSubCategory = topVisualMatch.subCategory || '衛浴保養';
+        defaultDays = topVisualMatch.defaultDays;
+        finalEmoji = topVisualMatch.emoji;
+      }
     } else if (topVisualMatch.category === 'medicine') {
       finalCategory = 'medicine';
       finalSubCategory = topVisualMatch.subCategory || '常備藥品';
@@ -2213,7 +2673,7 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
     }
   }
   // 【決策分支 1】：若外觀特徵命中率高（置信度 > 0.35），且圖片中無明顯中文品名
-  else if (topVisualMatch && topVisualConfidence > 0.35 && !ocrMatchedWord) {
+  else if (topVisualMatch && topVisualConfidence >= 0.25 && !ocrMatchedWord) {
     fusionMode = 'visual_priority';
     finalName = topVisualMatch.name;
     finalCategory = topVisualMatch.category;
@@ -2225,19 +2685,28 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
   else if (ocrMatchedWord) {
     fusionMode = 'ocr_priority';
     finalName = OCR_NAME_TRANSLATIONS[ocrMatchedWord.toLowerCase()] || ocrMatchedWord;
-    finalCategory = ocrKeywordMatch ? ocrKeywordMatch.cat : 'food';
+    finalCategory = ocrKeywordMatch ? ocrKeywordMatch.cat : 'other';
     finalSubCategory = ocrKeywordMatch ? ocrKeywordMatch.subCat : '';
-    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : '📌';
+    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : '📦';
     defaultDays = (ocrKeywordMatch && ocrKeywordMatch.duration) ? ocrKeywordMatch.duration : 14;
   }
-  // 【決策分支 4】：外觀特徵有命中但置信度 <= 0.35 且無 OCR 品名
-  else if (topVisualMatch) {
+  // 【決策分支 4】：外觀特徵有命中且置信度在 [0.25, 0.35] 且無 OCR 品名
+  else if (topVisualMatch && topVisualConfidence >= 0.25) {
     fusionMode = 'visual_low_confidence';
     finalName = topVisualMatch.name;
     finalCategory = topVisualMatch.category;
     finalSubCategory = topVisualMatch.subCategory;
     finalEmoji = topVisualMatch.emoji;
     defaultDays = topVisualMatch.defaultDays;
+  }
+  // 【低信心度防呆】：當 MobileNet 信心度過低（< 0.25）或無可靠標籤時，分類統一選中「其他」，品名保持空白
+  else if ((!topVisualMatch || topVisualConfidence < 0.25) && !ocrMatchedWord && !ocrBarcode) {
+    fusionMode = 'low_confidence_fallback';
+    finalName = '';
+    finalCategory = 'other';
+    finalSubCategory = '未分類';
+    finalEmoji = '📦';
+    defaultDays = 30;
   }
   // 【決策分支 5】：檢查條碼比對現有庫存
   else if (ocrBarcode) {
@@ -2251,29 +2720,32 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
       defaultDays = 14;
     } else {
       finalName = '條碼商品';
-      finalCategory = 'food';
+      finalCategory = 'other';
+      finalSubCategory = '一般雜項';
+      finalEmoji = '📦';
       defaultDays = 30;
     }
   }
-  // 【決策分支 6】：完全無特徵之預設降級
+  // 【決策分支 6】：無特徵之階梯式保底（第一階 OCR 2~10字、第二階 MobileNet 視覺標籤翻譯、第三階 生活物品）
   else {
     fusionMode = 'default_fallback';
-    finalName = '拍攝物品';
-    finalCategory = 'food';
-    defaultDays = 7;
-    finalEmoji = '📷';
+    finalName = extractFallbackItemName(ocrText, visualPredictions);
+    finalCategory = 'other';
+    finalSubCategory = '未分類';
+    defaultDays = 30;
+    finalEmoji = '📦';
   }
 
-  // 關鍵防呆保護：嚴禁將乳品/食品誤歸類為清潔用品 (防止 milk / 牛奶辨識成清潔液)
-  const isFoodOrDairy = /milk|牛奶|鮮奶|鮮乳|牛乳|優格|豆漿|起司|飲料|乳品/i.test(finalName + ' ' + (ocrMatchedWord || '') + ' ' + (ocrText || ''));
+  // 關鍵防呆保護：嚴禁將乳品/食品誤歸類為清潔用品 (防止 milk / 牛奶辨識成清潔液，嚴格排除單獨殺菌/消毒/除菌)
+  const isFoodOrDairy = /milk|牛奶|鮮奶|鮮乳|牛乳|生乳|脱脂|脫脂|優格|豆漿|起司|飲料|乳品/i.test(finalName + ' ' + (ocrMatchedWord || '') + ' ' + (ocrText || ''));
   if (isFoodOrDairy && (finalCategory === 'cleaning' || finalCategory === 'pao')) {
     finalCategory = 'food';
     finalSubCategory = '鮮乳';
     finalEmoji = '🥛';
     if (!finalName || finalName === '瓶裝洗劑/保養品' || finalName.includes('洗劑') || finalName === '拍攝物品') {
-      finalName = '牛奶';
+      finalName = '鮮乳';
     }
-    defaultDays = 12;
+    defaultDays = 7;
   }
 
   // 期限判定：若無印刷日期，自動採用預設保存天數
@@ -2289,8 +2761,11 @@ function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []
   } else {
     finalName = simplifyItemName(finalName);
   }
-  if (!finalName || finalName === '未命名物品') {
-    finalName = ocrBarcode ? '條碼商品' : '拍攝物品';
+  if (!finalName || finalName === '未命名物品' || finalName === '拍攝物品' || finalName.trim() === '') {
+    finalName = ocrBarcode ? '條碼商品' : extractFallbackItemName(ocrText, visualPredictions);
+  }
+  if (!finalName || finalName.trim() === '') {
+    finalName = '新收錄物品';
   }
 
   const resultNotes = ocrBarcode ? ((ocrData && ocrData.barcodeData && ocrData.barcodeData.isIsbn) ? `ISBN: ${ocrBarcode}` : `條碼: ${ocrBarcode}`) : undefined;
@@ -2365,7 +2840,706 @@ async function analyzeSmartCameraDualTrack(imageSource, photoDataUrl) {
     fused.notes = (ocrData.barcodeData && ocrData.barcodeData.isIsbn) ? `ISBN: ${ocrData.barcode}` : `條碼: ${ocrData.barcode}`;
   }
 
+  // 表單強制賦值與事件派發 (確保「其他」分類或未命中詞庫時品名絕對不留空)
+  applyVlmDomValues(fused.name, fused.category, fused.expiryDate);
+
   return fused;
+}
+
+// ==========================================
+// 7.7 端側視覺語言大模型 (VLM - SmolVLM WebGPU / INT4 Q4) v1.8.14
+// ==========================================
+let vlmPipeline = null;
+let isVlmLoading = false;
+let vlmStatus = 'idle'; // 'idle' | 'loading' | 'ready' | 'fallback'
+const vlmFileProgress = {};
+
+/**
+ * 智慧鏡頭 VLM 與通用模型載入進度面板控制函式 (#modelLoadingOverlay & #vlmModelLoadingCard)
+ */
+function showModelLoadingOverlay(statusText, percent = 0, detail = '正在自快取加載...') {
+  if (typeof document === 'undefined') return;
+  const overlay = document.getElementById('modelLoadingOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    overlay.classList.remove('fade-out');
+  }
+  const card = document.getElementById('vlmModelLoadingCard');
+  if (card) {
+    card.style.display = 'block';
+    card.classList.remove('fade-out');
+  }
+  updateModelLoadingProgress(percent, statusText, detail);
+}
+
+function updateModelLoadingProgress(percent, statusText, detail) {
+  if (typeof document === 'undefined') return;
+  const p = Math.max(0, Math.min(100, Math.round(percent)));
+
+  const overlay = document.getElementById('modelLoadingOverlay');
+  if (overlay) {
+    const bar = overlay.querySelector('#modelProgressBar') || overlay.querySelector('.model-progress-bar');
+    const textEl = overlay.querySelector('#modelStatusText') || overlay.querySelector('.model-status-text');
+    const percentEl = overlay.querySelector('#modelProgressPercent') || overlay.querySelector('.model-progress-percent');
+    const detailEl = overlay.querySelector('#modelProgressDetail') || overlay.querySelector('.model-progress-detail');
+
+    if (bar) bar.style.width = `${p}%`;
+    if (percentEl) percentEl.textContent = `${p}%`;
+    if (textEl && statusText) textEl.textContent = statusText;
+    if (detailEl && detail) detailEl.textContent = detail;
+  }
+
+  updateVlmProgress(percent, statusText, detail);
+}
+
+function hideModelLoadingOverlay(withFadeOut = true) {
+  if (typeof document === 'undefined') return;
+  const overlay = document.getElementById('modelLoadingOverlay');
+  if (overlay) {
+    if (withFadeOut) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('fade-out');
+      }, 650);
+    } else {
+      overlay.style.display = 'none';
+      overlay.classList.remove('fade-out');
+    }
+  }
+  hideVlmLoadingCard(withFadeOut);
+}
+
+function showVlmLoadingCard(statusText, percent = 0, detail = '正在自 IndexedDB 快取加載...') {
+  showModelLoadingOverlay(statusText, percent, detail);
+}
+
+function updateVlmProgress(percent, statusText, detail) {
+  if (typeof document === 'undefined') return;
+  const card = document.getElementById('vlmModelLoadingCard');
+  if (!card) return;
+
+  const bar = document.getElementById('vlmProgressBar');
+  const textEl = document.getElementById('vlmStatusText');
+  const percentEl = document.getElementById('vlmProgressPercent');
+  const detailEl = document.getElementById('vlmProgressDetail');
+
+  const p = Math.max(0, Math.min(100, Math.round(percent)));
+  if (bar) bar.style.width = `${p}%`;
+  if (percentEl) percentEl.textContent = `${p}%`;
+  if (textEl && statusText) textEl.textContent = statusText;
+  if (detailEl && detail) detailEl.textContent = detail;
+}
+
+function hideVlmLoadingCard(withFadeOut = true) {
+  if (typeof document === 'undefined') return;
+  const card = document.getElementById('vlmModelLoadingCard');
+  if (!card) return;
+
+  if (withFadeOut) {
+    card.classList.add('fade-out');
+    setTimeout(() => {
+      card.style.display = 'none';
+      card.classList.remove('fade-out');
+    }, 650);
+  } else {
+    card.style.display = 'none';
+    card.classList.remove('fade-out');
+  }
+}
+
+/**
+ * 非同步載入端側視覺語言大模型 (SmolVLM-Instruct INT4/Q4 with WebGPU)
+ * 透過 loadTransformers() 原生動態 import，並更新 #modelLoadingOverlay 進度
+ */
+async function initVlmModel(onProgress) {
+  if (vlmPipeline) return vlmPipeline;
+  if (isVlmLoading) {
+    while (isVlmLoading) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return vlmPipeline;
+  }
+
+  isVlmLoading = true;
+  vlmStatus = 'loading';
+
+  showModelLoadingOverlay('首次載入 AI 視覺模型 0%... 之後離線免下載', 0, '正在連線模型儲存庫...');
+
+  try {
+    const tf = await loadTransformers();
+    const pipelineFn = (tf && tf.pipeline)
+      ? tf.pipeline
+      : (typeof window !== 'undefined' && window.pipeline ? window.pipeline : null);
+
+    if (!pipelineFn) {
+      throw new Error('Transformers.js pipeline is not available');
+    }
+
+    if (typeof window !== 'undefined') {
+      window.pipeline = pipelineFn;
+      if (tf && tf.env) window.transformersEnv = tf.env;
+    }
+
+    const progressCallback = (p) => {
+      if (!p) return;
+      if (p.status === 'progress' && p.file) {
+        vlmFileProgress[p.file] = {
+          loaded: p.loaded || 0,
+          total: p.total || 0,
+          progress: p.progress !== undefined ? p.progress : (p.total ? (p.loaded / p.total) * 100 : 0)
+        };
+      } else if (p.status === 'done' && p.file) {
+        vlmFileProgress[p.file] = { loaded: 100, total: 100, progress: 100 };
+      }
+
+      let totalLoaded = 0;
+      let totalSize = 0;
+      let hasTotals = false;
+      for (const f in vlmFileProgress) {
+        if (vlmFileProgress[f].total > 0) {
+          hasTotals = true;
+          totalLoaded += vlmFileProgress[f].loaded;
+          totalSize += vlmFileProgress[f].total;
+        }
+      }
+
+      let percent = 0;
+      if (hasTotals && totalSize > 0) {
+        percent = Math.min(100, Math.round((totalLoaded / totalSize) * 100));
+      } else if (p.progress !== undefined) {
+        percent = Math.min(100, Math.round(p.progress));
+      }
+
+      const statusMsg = `首次載入 AI 視覺模型 ${percent}%... 之後離線免下載`;
+      const fileName = p.file ? p.file.split('/').pop() : '離線快取儲存中';
+      updateModelLoadingProgress(percent, statusMsg, `下載進度: ${fileName}`);
+      if (typeof onProgress === 'function') {
+        onProgress(percent, statusMsg);
+      }
+    };
+
+    console.log('[VLM] 正在透過 WebGPU 初始化 SmolVLM-Instruct (INT4/Q4)...');
+
+    vlmPipeline = await pipelineFn('image-text-to-text', 'onnx-community/SmolVLM-Instruct', {
+      dtype: 'q4',
+      device: 'webgpu',
+      progress_callback: progressCallback
+    });
+
+    vlmStatus = 'ready';
+    updateModelLoadingProgress(100, '首次載入 AI 視覺模型 100%... 之後離線免下載', '✅ 模型快取完成，已就緒！');
+    setTimeout(() => {
+      hideModelLoadingOverlay(true);
+    }, 700);
+
+    console.log('[VLM] ✅ SmolVLM 端側多模態大模型加載完成！');
+    return vlmPipeline;
+  } catch (err) {
+    console.warn('[VLM] SmolVLM 模型載入失敗或 WebGPU 異常：', err);
+    vlmStatus = 'fallback';
+    hideModelLoadingOverlay(false);
+    throw err;
+  } finally {
+    isVlmLoading = false;
+  }
+}
+
+/**
+ * 預先觸發視覺模型初始化 (initVisionModel)
+ * 使用者開啟相機或進入畫面時自動在背景靜默預載，首次下載喚起 #modelLoadingOverlay
+ */
+async function initVisionModel(onProgress) {
+  const hasWebGpu = typeof navigator !== 'undefined' && !!navigator.gpu;
+  if (!hasWebGpu) {
+    console.log('[VisionModel] 裝置環境不支援 WebGPU，切換為輕量 MobileNet 視覺模型');
+    return await initMobileNet();
+  }
+
+  showModelLoadingOverlay('首次載入 AI 視覺模型 0%... 之後離線免下載', 0, '正在連線模型快取庫...');
+
+  try {
+    // 設置 15 秒安全超時，若連線不順自動無縫降級
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('VLM 模型載入超時 (15s)，自動平滑降級')), 15000);
+    });
+    const loadPromise = initVlmModel((percent, statusMsg) => {
+      updateModelLoadingProgress(percent, statusMsg, `模型快取進行中... ${percent}%`);
+      if (typeof onProgress === 'function') {
+        onProgress(percent, statusMsg);
+      }
+    });
+
+    const pipeline = await Promise.race([loadPromise, timeoutPromise]);
+    setTimeout(() => {
+      hideModelLoadingOverlay(true);
+    }, 600);
+    return pipeline;
+  } catch (err) {
+    console.warn('[VisionModel] 視覺模型預載失敗或超時，平滑降級至輕量相機辨識：', err);
+    hideModelLoadingOverlay(false);
+    return await initMobileNet();
+  }
+}
+
+/**
+ * 壓縮輸入影像 (限制寬高最大 768px 以提升生成速度與降低顯存佔用)
+ */
+function compressImageForVlm(imageSource, maxDim = 768) {
+  if (typeof document === 'undefined') return imageSource;
+  let sw = imageSource.videoWidth || imageSource.naturalWidth || imageSource.width || 800;
+  let sh = imageSource.videoHeight || imageSource.naturalHeight || imageSource.height || 600;
+  let dw = sw;
+  let dh = sh;
+  if (dw > maxDim || dh > maxDim) {
+    if (dw > dh) {
+      dh = Math.round((dh * maxDim) / dw);
+      dw = maxDim;
+    } else {
+      dw = Math.round((dw * maxDim) / dh);
+      dh = maxDim;
+    }
+  }
+  const vlmCanvas = document.createElement('canvas');
+  vlmCanvas.width = dw;
+  vlmCanvas.height = dh;
+  const ctx = vlmCanvas.getContext('2d');
+  ctx.drawImage(imageSource, 0, 0, dw, dh);
+  return vlmCanvas.toDataURL('image/jpeg', 0.85);
+}
+
+/**
+ * 嚴格 Prompt 指令 (結構化 JSON 輸出要求)
+ */
+const VLM_PROMPT = `Analyze this item photo for an inventory management app. Extract the exact product name, assign the best category from ["食品", "飲料", "日用品", "動畫", "遊戲", "二次元", "票券/活動", "其他"], and find the expiration date (EXP/Best Before).
+Respond ONLY with a valid JSON object in this format:
+{"name": "string", "category": "string", "expiry": "YYYY-MM-DD or null", "shelf_life_days": number}`;
+
+function extractTextFromOutput(out) {
+  if (!out) return '';
+  if (typeof out === 'string') return out;
+  if (Array.isArray(out)) {
+    const last = out[out.length - 1];
+    if (typeof last === 'string') return last;
+    if (last && typeof last.generated_text === 'string') return last.generated_text;
+    if (last && Array.isArray(last.generated_text)) {
+      const msg = last.generated_text[last.generated_text.length - 1];
+      return (msg && (msg.content || msg.text)) || JSON.stringify(msg);
+    }
+    if (last && last.text) return last.text;
+    return JSON.stringify(last);
+  }
+  if (typeof out.generated_text === 'string') return out.generated_text;
+  if (out.text) return out.text;
+  return JSON.stringify(out);
+}
+
+/**
+ * 執行 VLM 視覺推論
+ */
+async function runVlmInference(pipe, imgDataUrl, promptText = VLM_PROMPT) {
+  let out;
+  try {
+    const messages = [
+      {
+        role: 'user',
+        content: [
+          { type: 'image', url: imgDataUrl },
+          { type: 'text', text: promptText }
+        ]
+      }
+    ];
+    out = await pipe(messages, { max_new_tokens: 160, temperature: 0.1 });
+  } catch (chatErr) {
+    try {
+      out = await pipe(imgDataUrl, promptText, { max_new_tokens: 160 });
+    } catch (e2) {
+      out = await pipe({ image: imgDataUrl, prompt: promptText }, { max_new_tokens: 160 });
+    }
+  }
+  return extractTextFromOutput(out);
+}
+
+/**
+ * 【一、容錯式 VLM 輸出解析器（解決 JSON.parse 報錯空白）】
+ * VLM 生成的文字常夾雜 Markdown 標記或對話前綴，健壯抽取函式 parseVLMResponse(rawText)
+ * 1. 去除 Markdown 標籤：先過濾掉 ```json 與 ``` 等標記。
+ * 2. 正規表達式提取 JSON 區塊：使用 /\{[\s\S]*?\}/ 擷取最外層的大括號內容。
+ * 3. 雙重解析機制：
+ *    - 優先嘗試 JSON.parse(extractedJson)。
+ *    - 若解析失敗（如字串未閉合），改用寬鬆的正規表達式逐欄抓取：
+ *      * 品名：rawText.match(/(?:name|品名|物品名稱|商品名稱)["':\s]+["']?([^"'\n,}]+)/i)?.[1]?.trim()
+ *      * 分類：rawText.match(/(?:category|分類|類別)["':\s]+["']?([^"'\n,}]+)/i)?.[1]?.trim()
+ *      * 效期：rawText.match(/(?:expiry|到期日|有效期限)["':\s]+["']?(\d{4}[-\/]\d{2}[-\/]\d{2})/i)?.[1]?.trim()
+ */
+function parseVLMResponse(rawText) {
+  if (!rawText || typeof rawText !== 'string') {
+    return { name: '', category: '', expiry: null, parsedName: '', parsedCategory: '', parsedExpiry: null };
+  }
+
+  // 1. 去除 Markdown 標籤：先過濾掉 ```json 與 ``` 等標記。
+  const cleanedText = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+
+  // 2. 正規表達式提取 JSON 區塊：使用 /\{[\s\S]*?\}/ 擷取最外層的大括號內容。
+  let extractedJson = null;
+  const jsonMatch = cleanedText.match(/\{[\s\S]*?\}/);
+  if (jsonMatch) {
+    extractedJson = jsonMatch[0];
+  }
+
+  let parsedName = '';
+  let parsedCategory = '';
+  let parsedExpiry = null;
+  let parsedObject = null;
+
+  // 3. 雙重解析機制：
+  // - 優先嘗試 JSON.parse(extractedJson)。
+  if (extractedJson) {
+    try {
+      parsedObject = JSON.parse(extractedJson);
+      if (parsedObject && typeof parsedObject === 'object') {
+        parsedName = parsedObject.name || parsedObject['品名'] || parsedObject['物品名稱'] || parsedObject['商品名稱'] || '';
+        parsedCategory = parsedObject.category || parsedObject['分類'] || parsedObject['類別'] || '';
+        parsedExpiry = parsedObject.expiry || parsedObject['到期日'] || parsedObject['有效期限'] || null;
+      }
+    } catch (parseErr) {
+      try {
+        const sanitized = extractedJson.replace(/,\s*([}\]])/g, '$1');
+        parsedObject = JSON.parse(sanitized);
+        if (parsedObject && typeof parsedObject === 'object') {
+          parsedName = parsedObject.name || parsedObject['品名'] || parsedObject['物品名稱'] || parsedObject['商品名稱'] || '';
+          parsedCategory = parsedObject.category || parsedObject['分類'] || parsedObject['類別'] || '';
+          parsedExpiry = parsedObject.expiry || parsedObject['到期日'] || parsedObject['有效期限'] || null;
+        }
+      } catch (e2) {
+        parsedObject = null;
+      }
+    }
+  }
+
+  // - 若解析失敗（如字串未閉合），改用寬鬆的正規表達式逐欄抓取：
+  if (!parsedName) {
+    parsedName = rawText.match(/(?:name|品名|物品名稱|商品名稱)["':\s]+["']?([^"'\n,}]+)/i)?.[1]?.trim() || '';
+  }
+  if (!parsedCategory) {
+    parsedCategory = rawText.match(/(?:category|分類|類別)["':\s]+["']?([^"'\n,}]+)/i)?.[1]?.trim() || '';
+  }
+  if (!parsedExpiry) {
+    parsedExpiry = rawText.match(/(?:expiry|到期日|有效期限)["':\s]+["']?(\d{4}[-\/]\d{2}[-\/]\d{2})/i)?.[1]?.trim() || null;
+  }
+
+  return {
+    ...(parsedObject || {}),
+    name: parsedName,
+    category: parsedCategory,
+    expiry: parsedExpiry,
+    parsedName,
+    parsedCategory,
+    parsedExpiry
+  };
+}
+
+/**
+ * 相容性舊函式別名
+ */
+function parseVlmJsonResponse(rawText) {
+  return parseVLMResponse(rawText);
+}
+
+/**
+ * 【二、分類語意標準化對照表（Category Normalizer）】
+ * VLM 回傳的分類可能使用英文或同義詞，建立標準化函式將其映射至系統現有的 8 大合法類別：
+ */
+function normalizeCategory(rawCat) {
+  if (!rawCat) return '其他';
+  const c = rawCat.toLowerCase();
+  if (/食品|food|snack|dairy|milk|鮮奶|鮮乳|乳品|牛奶|食物|飲料|drink|beverage/.test(c)) return '食品';
+  if (/動畫|anime|comic|manga|漫畫|輕小說/.test(c)) return '動畫';
+  if (/遊戲|game|console|switch|playstation|xbox/.test(c)) return '遊戲';
+  if (/二次元|figure|toy|谷子|立牌|徽章|模型|黏土人/.test(c)) return '二次元';
+  if (/票券|ticket|門票|電影票|展覽/.test(c)) return '票券/活動';
+  if (/日用|清潔|cleaning|detergent|shampoo|日常/.test(c)) return '日用品';
+  return '其他';
+}
+
+/**
+ * 【二、表單強制賦值與事件派發】
+ * 即使物品屬於「其他」分類或未命中已知詞庫，嚴禁讓物品名稱（itemNameInput）留空
+ */
+function applyVlmDomValues(parsedName, parsedCategory, parsedExpiry) {
+  const detectedName = parsedName;
+  const targetCategory = normalizeCategory(parsedCategory);
+
+  const finalName = detectedName && detectedName.trim() !== '' ? detectedName.trim() : '其他物品';
+
+  if (typeof document !== 'undefined') {
+    // 2. 表單強制賦值與事件派發：
+    const nameInput = document.getElementById('itemNameInput');
+    if (nameInput) {
+      nameInput.value = finalName;
+      nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    // 既有頁面表單欄位相容處理 (itemName / nlpConfirmName)
+    const altNameInput = document.getElementById('itemName');
+    if (altNameInput && altNameInput !== nameInput) {
+      altNameInput.value = finalName;
+      altNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      altNameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    const nlpNameInput = document.getElementById('nlpConfirmName');
+    if (nlpNameInput && nlpNameInput !== nameInput && nlpNameInput !== altNameInput) {
+      nlpNameInput.value = finalName;
+      nlpNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nlpNameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 3. 分類選單同步選中「其他」或目標分類：
+    const catSelect = document.getElementById('itemCategorySelect');
+    if (catSelect) {
+      catSelect.value = targetCategory;
+      if (!catSelect.value || catSelect.value === '' || catSelect.value !== targetCategory) {
+        if (catSelect.options) {
+          const catKeyMap = { '食品': 'food', '動畫': 'animation', '遊戲': 'game', '二次元': 'otaku', '票券/活動': 'ticket', '日用品': 'cleaning', '其他': 'other' };
+          const mappedKey = catKeyMap[targetCategory] || 'other';
+          for (let i = 0; i < catSelect.options.length; i++) {
+            const opt = catSelect.options[i];
+            if (opt.value === targetCategory || opt.value === mappedKey || opt.text.includes(targetCategory) || (targetCategory === '其他' && (opt.value === 'other' || opt.text.includes('其他')))) {
+              catSelect.selectedIndex = i;
+              break;
+            }
+          }
+        }
+      }
+      if (!catSelect.value || catSelect.value === '') {
+        catSelect.value = '其他';
+      }
+      catSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    const nlpCatSelect = document.getElementById('nlpConfirmCategory');
+    if (nlpCatSelect && nlpCatSelect !== catSelect) {
+      nlpCatSelect.value = targetCategory;
+      if (!nlpCatSelect.value || nlpCatSelect.value === '' || nlpCatSelect.value !== targetCategory) {
+        if (nlpCatSelect.options) {
+          const catKeyMap = { '食品': 'food', '動畫': 'animation', '遊戲': 'game', '二次元': 'otaku', '票券/活動': 'ticket', '日用品': 'cleaning', '其他': 'other' };
+          const mappedKey = catKeyMap[targetCategory] || 'other';
+          for (let i = 0; i < nlpCatSelect.options.length; i++) {
+            const opt = nlpCatSelect.options[i];
+            if (opt.value === targetCategory || opt.value === mappedKey || opt.text.includes(targetCategory) || (targetCategory === '其他' && (opt.value === 'other' || opt.text.includes('其他')))) {
+              nlpCatSelect.selectedIndex = i;
+              break;
+            }
+          }
+        }
+      }
+      if (!nlpCatSelect.value || nlpCatSelect.value === '') {
+        nlpCatSelect.value = '其他';
+      }
+      nlpCatSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 有效期限：
+    const formattedExpiry = parsedExpiry ? String(parsedExpiry).replace(/\//g, '-') : '';
+    const expiryInput = document.getElementById('itemExpiryDateInput');
+    if (expiryInput && parsedExpiry) {
+      expiryInput.value = formattedExpiry;
+      expiryInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    const altExpiryInput = document.getElementById('itemEndDate');
+    if (altExpiryInput && altExpiryInput !== expiryInput && parsedExpiry) {
+      altExpiryInput.value = formattedExpiry;
+      altExpiryInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    const nlpExpiryInput = document.getElementById('nlpConfirmDate');
+    if (nlpExpiryInput && nlpExpiryInput !== expiryInput && nlpExpiryInput !== altExpiryInput && parsedExpiry) {
+      nlpExpiryInput.value = formattedExpiry;
+      nlpExpiryInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 【三、除錯日誌】
+    const currentNameVal = (nameInput && nameInput.value) || (altNameInput && altNameInput.value) || finalName;
+    const currentCatVal = (catSelect && catSelect.value) || targetCategory || '其他';
+    console.log('【自動填入結果】', { name: currentNameVal, category: currentCatVal });
+
+    // Toast 提示：「✨ 已自動辨識帶入：[物品名稱]」
+    const toastMsg = `✨ 已自動辨識帶入：${currentNameVal}`;
+    if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+      window.showToast(toastMsg);
+    } else if (typeof showToast === 'function') {
+      showToast(toastMsg);
+    } else if (typeof document !== 'undefined') {
+      const toastContainer = document.getElementById('toastContainer') || document.body;
+      if (toastContainer) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = toastMsg;
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-10px)';
+          toast.style.transition = 'all 0.2s ease';
+          setTimeout(() => toast.remove(), 200);
+        }, 2200);
+      }
+    }
+  } else {
+    console.log('【自動填入結果】', { name: finalName, category: targetCategory });
+  }
+}
+
+/**
+ * 格式化與映射 VLM 結果，並連動表單輸入欄位
+ */
+function formatVlmResult(result, photoDataUrl, skipDom = false) {
+  let name = (result && (result.name || result.parsedName)) ? String(result.name || result.parsedName).trim() : '';
+  if (!name || name === '') {
+    name = (targetCategory === '其他') ? '生活物品' : (targetCategory + '物品');
+  }
+  const rawCat = (result && (result.category || result.parsedCategory)) ? String(result.category || result.parsedCategory).trim() : '其他';
+  const targetCategory = normalizeCategory(rawCat);
+
+  // 映射合法分類
+  let category = 'other';
+  let categoryLabel = targetCategory;
+  let emoji = '📦';
+  let subCategory = '未分類';
+
+  if (targetCategory === '食品') {
+    category = 'food';
+    categoryLabel = '食品';
+    emoji = /飲料|飲品|水|酒|茶|咖啡|乳品|鮮奶/i.test(rawCat) ? '🧃' : '🥦';
+    subCategory = /飲料|飲品|水|酒|茶|咖啡|乳品|鮮奶/i.test(rawCat) ? '飲品' : '生鮮/食品';
+  } else if (targetCategory === '日用品') {
+    category = 'cleaning';
+    categoryLabel = '日用品';
+    emoji = '🧼';
+    subCategory = '日常用品';
+  } else if (targetCategory === '動畫') {
+    category = 'animation';
+    categoryLabel = '動畫';
+    emoji = '🎬';
+    subCategory = '動漫周邊';
+  } else if (targetCategory === '遊戲') {
+    category = 'game';
+    categoryLabel = '遊戲';
+    emoji = '🎮';
+    subCategory = '遊戲卡帶/光碟';
+  } else if (targetCategory === '二次元') {
+    category = 'otaku';
+    categoryLabel = '二次元';
+    emoji = '✨';
+    subCategory = '二次元周邊';
+  } else if (targetCategory === '票券/活動') {
+    category = 'ticket';
+    categoryLabel = '票券/活動';
+    emoji = '🎟️';
+    subCategory = '票券/活動';
+  } else {
+    category = 'other';
+    categoryLabel = '其他';
+    emoji = '📦';
+    subCategory = '未分類';
+  }
+
+  // 效期計算：若有有效日期字串則採用，否則以今天 + shelf_life_days 計算
+  let expiryDate = '';
+  const candidateExpiry = (result && (result.expiry || result.parsedExpiry)) ? String(result.expiry || result.parsedExpiry).trim().replace(/\//g, '-') : '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(candidateExpiry)) {
+    expiryDate = candidateExpiry;
+  } else {
+    const shelfLife = (result && typeof result.shelf_life_days === 'number' && result.shelf_life_days > 0)
+      ? Math.round(result.shelf_life_days)
+      : (category === 'food' ? 14 : 30);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiryDate = formatDate(offsetDays(today, shelfLife));
+  }
+
+  if (!skipDom) {
+    applyVlmDomValues(name, rawCat, candidateExpiry || expiryDate);
+  }
+
+  return {
+    success: true,
+    name: name,
+    category: category,
+    categoryLabel: categoryLabel,
+    subCategory: subCategory,
+    emoji: emoji,
+    expiryDate: expiryDate,
+    hasEndDate: true,
+    remindDaysBefore: 3,
+    remindTime: '09:00',
+    confidence: 0.95,
+    visualMatch: 'SmolVLM 端側多模態大模型',
+    fusionMode: 'vlm_webgpu',
+    image: photoDataUrl || null
+  };
+}
+
+/**
+ * 端側視覺語言大模型辨識核心 (支援 WebGPU 環境檢查、8秒超時控制與舊版雙軌降級)
+ */
+async function analyzeSmartCameraWithVlm(imageSource, photoDataUrl) {
+  // 1. 執行前先偵測使用者裝置環境 (WebGPU 檢查)
+  const hasWebGpu = typeof navigator !== 'undefined' && !!navigator.gpu;
+  if (!hasWebGpu) {
+    console.log('[VLM] 裝置環境未支援 WebGPU，切換為輕量相機辨識');
+    if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+      window.showToast('已切換為輕量相機辨識');
+    }
+    return await analyzeSmartCameraDualTrack(imageSource, photoDataUrl);
+  }
+
+  // 2. 嘗試執行端側 VLM 視覺推論
+  try {
+    // 檢查模型是否就緒，若未就緒則首次觸發加載與進度追蹤
+    const pipe = await initVlmModel();
+    if (!pipe) {
+      throw new Error('VLM Pipeline Unavailable');
+    }
+
+    // 壓縮輸入影像 (限制寬高最大 768px 以提升生成速度)
+    const compressedImg = compressImageForVlm(imageSource, 768);
+
+    // 8 秒推論超時控制器 (Promise.race)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('VLM_TIMEOUT_8S')), 8000);
+    });
+
+    const inferencePromise = runVlmInference(pipe, compressedImg, VLM_PROMPT);
+    const rawOutput = await Promise.race([inferencePromise, timeoutPromise]);
+    const rawText = (typeof rawOutput === 'string') ? rawOutput : extractTextFromOutput(rawOutput);
+
+    // 【四、除錯日誌與 Toast 提示】：印出 VLM 原始輸出
+    console.log('[VLM Raw Output]:', rawText);
+
+    // 【一、容錯式 VLM 輸出解析器】
+    const parsed = parseVLMResponse(rawText);
+    const parsedName = parsed ? (parsed.name || parsed.parsedName || '') : '';
+    const parsedCategory = parsed ? (parsed.category || parsed.parsedCategory || '') : '';
+    const parsedExpiry = parsed ? (parsed.expiry || parsed.parsedExpiry || null) : null;
+
+    // 【四、除錯日誌與 Toast 提示】：印出解析結果
+    console.log('[VLM Parsed]:', { parsedName, parsedCategory, parsedExpiry });
+
+    if (!parsedName && !parsedCategory) {
+      throw new Error('VLM_INVALID_JSON_RESPONSE');
+    }
+
+    // 【三、精確 DOM 賦值與觸發連動】及 Toast 提示
+    applyVlmDomValues(parsedName, parsedCategory, parsedExpiry);
+
+    const finalResult = formatVlmResult(parsed, photoDataUrl, true);
+    return finalResult;
+  } catch (err) {
+    console.warn('[VLM] 端側推論異常或超時 (>8s)，自動切換至輕量相機辨識：', err);
+    if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+      window.showToast('已切換為輕量相機辨識');
+    }
+    return await analyzeSmartCameraDualTrack(imageSource, photoDataUrl);
+  }
 }
 
 // ==========================================
@@ -2391,6 +3565,8 @@ if (typeof window !== 'undefined') {
   window.applyProgressBarStatus = renderProgressBar;
   window.getItemStatusConfig = getItemStatusConfig;
   window.VISUAL_APPEARANCE_DICT = VISUAL_APPEARANCE_DICT;
+  window.DEFAULT_CATEGORIES = DEFAULT_CATEGORIES;
+  window.SUB_CATEGORY_CONFIG = SUB_CATEGORY_CONFIG;
   window.CATEGORY_MAP_TO_KEY = CATEGORY_MAP_TO_KEY;
   window.normalizeCategoryKey = normalizeCategoryKey;
   window.initMobileNet = initMobileNet;
@@ -2401,17 +3577,34 @@ if (typeof window !== 'undefined') {
   window.runTextAndDateOcr = runTextAndDateOcr;
   window.fuseVisualAndOcrDecision = fuseVisualAndOcrDecision;
   window.analyzeSmartCameraDualTrack = analyzeSmartCameraDualTrack;
+  window.loadTransformers = loadTransformers;
+  window.getVisionEngine = getVisionEngine;
+  window.initVisionModel = initVisionModel;
+  window.extractFallbackItemName = extractFallbackItemName;
+  window.JP_TO_TC_DICT = JP_TO_TC_DICT;
+  window.localizeJapaneseText = localizeJapaneseText;
+  window.VISUAL_LABEL_TRANSLATIONS = VISUAL_LABEL_TRANSLATIONS;
+  window.showModelLoadingOverlay = showModelLoadingOverlay;
+  window.updateModelLoadingProgress = updateModelLoadingProgress;
+  window.hideModelLoadingOverlay = hideModelLoadingOverlay;
+  window.initVlmModel = initVlmModel;
+  window.compressImageForVlm = compressImageForVlm;
+  window.runVlmInference = runVlmInference;
+  window.parseVLMResponse = parseVLMResponse;
+  window.parseVlmJsonResponse = parseVlmJsonResponse;
+  window.normalizeCategory = normalizeCategory;
+  window.applyVlmDomValues = applyVlmDomValues;
+  window.formatVlmResult = formatVlmResult;
+  window.analyzeSmartCameraWithVlm = analyzeSmartCameraWithVlm;
+  window.showVlmLoadingCard = showVlmLoadingCard;
+  window.updateVlmProgress = updateVlmProgress;
+  window.hideVlmLoadingCard = hideVlmLoadingCard;
+  window.VLM_PROMPT = VLM_PROMPT;
   window.getLastCreatedItem = () => lastCreatedItem;
   window.setLastCreatedItem = (item) => { lastCreatedItem = item; };
 
   // DOM 載入後自動嘗試啟動非同步模型初始化
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      initModel();
-    });
-  } else {
-    initModel();
-  }
+  // AI 模型載入全面改為「點擊相機按鈕」時非同步觸發，初始化不自動載入任何模型
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -2434,6 +3627,8 @@ if (typeof module !== 'undefined' && module.exports) {
     applyProgressBarStatus: renderProgressBar,
     getItemStatusConfig,
     VISUAL_APPEARANCE_DICT,
+    DEFAULT_CATEGORIES,
+    SUB_CATEGORY_CONFIG,
     CATEGORY_MAP_TO_KEY,
     normalizeCategoryKey,
     initMobileNet,
@@ -2444,6 +3639,29 @@ if (typeof module !== 'undefined' && module.exports) {
     runTextAndDateOcr,
     fuseVisualAndOcrDecision,
     analyzeSmartCameraDualTrack,
+    loadTransformers,
+    getVisionEngine,
+    initVisionModel,
+    extractFallbackItemName,
+    JP_TO_TC_DICT,
+    localizeJapaneseText,
+    VISUAL_LABEL_TRANSLATIONS,
+    showModelLoadingOverlay,
+    updateModelLoadingProgress,
+    hideModelLoadingOverlay,
+    initVlmModel,
+    compressImageForVlm,
+    runVlmInference,
+    parseVLMResponse,
+    parseVlmJsonResponse,
+    normalizeCategory,
+    applyVlmDomValues,
+    formatVlmResult,
+    analyzeSmartCameraWithVlm,
+    showVlmLoadingCard,
+    updateVlmProgress,
+    hideVlmLoadingCard,
+    VLM_PROMPT,
     getLastCreatedItem: () => lastCreatedItem,
     setLastCreatedItem: (item) => { lastCreatedItem = item; }
   };
