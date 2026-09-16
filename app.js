@@ -18,8 +18,19 @@
  */
 
 // ==========================================
-// 1. 全域狀態與模型管線
+// 1. 全域狀態與模型管線 & VLM Debug 診斷開關
 // ==========================================
+let cameraDebug = true;
+if (typeof window !== 'undefined') {
+  window.cameraDebug = true;
+}
+function isCameraDebug() {
+  if (typeof window !== 'undefined' && window.cameraDebug !== undefined) {
+    return !!window.cameraDebug;
+  }
+  return !!cameraDebug;
+}
+
 let nerPipeline = null;
 let isModelLoading = false;
 let modelStatus = 'idle'; // 'idle' | 'loading' | 'ready' | 'fallback'
@@ -423,6 +434,7 @@ function updateNerStatus(status) {
 // 2.9 AI 模型防護載入引擎 (getVisionEngine - 僅於使用者點擊相機時觸發)
 // ==========================================
 async function getVisionEngine() {
+  const isDebug = isCameraDebug();
   try {
     if (typeof window !== 'undefined' && window.pipeline) {
       return window.pipeline;
@@ -438,6 +450,9 @@ async function getVisionEngine() {
     }
     return pipeline;
   } catch (err) {
+    if (isDebug) {
+      console.error('[VLM DEBUG] Transformers.js 動態 import 失敗:\n完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
     console.warn('AI 模型載入失敗，降級使用本機 OCR / MobileNet:', err);
     return null;
   }
@@ -445,6 +460,7 @@ async function getVisionEngine() {
 
 let transformersModule = null;
 async function loadTransformers() {
+  const isDebug = isCameraDebug();
   try {
     const pipe = await getVisionEngine();
     if (pipe) {
@@ -452,10 +468,19 @@ async function loadTransformers() {
         pipeline: pipe,
         env: (typeof window !== 'undefined' && window.transformersEnv) ? window.transformersEnv : { useBrowserCache: true, allowLocalModels: false }
       };
+      if (isDebug) {
+        console.log('[VLM DEBUG] Transformers.js 是否成功載入: 成功');
+      }
       return transformersModule;
+    }
+    if (isDebug) {
+      console.error('[VLM DEBUG] Transformers.js 是否成功載入: 失敗 (getVisionEngine 回傳空值)');
     }
     return null;
   } catch (err) {
+    if (isDebug) {
+      console.error('[VLM DEBUG] Transformers.js 是否成功載入: 失敗 (載入發生例外)\n完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
     console.warn('[loadTransformers] 載入失敗，降級備援:', err);
     return null;
   }
@@ -2953,16 +2978,36 @@ function hideVlmLoadingCard(withFadeOut = true) {
  * 透過 loadTransformers() 原生動態 import，並更新 #modelLoadingOverlay 進度
  */
 async function initVlmModel(onProgress) {
-  if (vlmPipeline) return vlmPipeline;
+  const isDebug = isCameraDebug();
+  const hasWebGpu = typeof navigator !== 'undefined' && !!navigator.gpu;
+
+  if (isDebug) {
+    console.log('[VLM DEBUG] 1. navigator.gpu 是否存在:', hasWebGpu);
+    console.log('[VLM DEBUG] 3. initVlmModel() 是否開始執行: 是 (目前狀態: ' + vlmStatus + ')');
+    console.log('[VLM DEBUG] 4. 使用的模型名稱: onnx-community/SmolVLM-Instruct');
+    console.log('[VLM DEBUG] 5. 使用的 device（WebGPU 或其他）: webgpu');
+    console.log('[VLM DEBUG] 6. 使用的 dtype: q4');
+  }
+
+  if (vlmPipeline) {
+    if (isDebug) {
+      console.log('[VLM DEBUG] 9. vlmPipeline 是否建立成功: 已快取就緒');
+    }
+    return vlmPipeline;
+  }
   if (isVlmLoading) {
     while (isVlmLoading) {
       await new Promise(r => setTimeout(r, 100));
+    }
+    if (isDebug) {
+      console.log('[VLM DEBUG] 9. vlmPipeline 是否建立成功:', !!vlmPipeline);
     }
     return vlmPipeline;
   }
 
   isVlmLoading = true;
   vlmStatus = 'loading';
+  const vlmStartTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
   showModelLoadingOverlay('首次載入 AI 視覺模型 0%... 之後離線免下載', 0, '正在連線模型儲存庫...');
 
@@ -2972,8 +3017,16 @@ async function initVlmModel(onProgress) {
       ? tf.pipeline
       : (typeof window !== 'undefined' && window.pipeline ? window.pipeline : null);
 
+    if (isDebug) {
+      console.log('[VLM DEBUG] 2. Transformers.js 是否成功載入:', !!pipelineFn ? '成功' : '失敗');
+    }
+
     if (!pipelineFn) {
-      throw new Error('Transformers.js pipeline is not available');
+      const err = new Error('Transformers.js pipeline is not available');
+      if (isDebug) {
+        console.error('[VLM DEBUG] 15. Fallback 原因: VLM model load failed (Transformers.js pipeline 不可用)\n完整 Error Stack:', err.stack);
+      }
+      throw err;
     }
 
     if (typeof window !== 'undefined') {
@@ -3011,6 +3064,16 @@ async function initVlmModel(onProgress) {
         percent = Math.min(100, Math.round(p.progress));
       }
 
+      if (isDebug) {
+        console.log('[VLM DEBUG] 7. 模型下載 / cache 載入進度:', {
+          file: p.file || '快取載入中',
+          status: p.status,
+          loaded: p.loaded || 0,
+          total: p.total || 0,
+          percent: percent + '%'
+        });
+      }
+
       const statusMsg = `首次載入 AI 視覺模型 ${percent}%... 之後離線免下載`;
       const fileName = p.file ? p.file.split('/').pop() : '離線快取儲存中';
       updateModelLoadingProgress(percent, statusMsg, `下載進度: ${fileName}`);
@@ -3027,6 +3090,14 @@ async function initVlmModel(onProgress) {
       progress_callback: progressCallback
     });
 
+    const vlmEndTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const loadDuration = ((vlmEndTime - vlmStartTime) / 1000).toFixed(2);
+
+    if (isDebug) {
+      console.log(`[VLM DEBUG] 8. 模型載入完成耗時: ${loadDuration} 秒`);
+      console.log('[VLM DEBUG] 9. vlmPipeline 是否建立成功: 是', vlmPipeline);
+    }
+
     vlmStatus = 'ready';
     updateModelLoadingProgress(100, '首次載入 AI 視覺模型 100%... 之後離線免下載', '✅ 模型快取完成，已就緒！');
     setTimeout(() => {
@@ -3036,6 +3107,11 @@ async function initVlmModel(onProgress) {
     console.log('[VLM] ✅ SmolVLM 端側多模態大模型加載完成！');
     return vlmPipeline;
   } catch (err) {
+    if (isDebug) {
+      const isGpuError = err && String(err).toLowerCase().includes('webgpu');
+      console.error(`[VLM DEBUG] 15. Fallback 原因: ${isGpuError ? 'WebGPU unavailable' : 'VLM model load failed'}`);
+      console.error('[VLM DEBUG] 完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
     console.warn('[VLM] SmolVLM 模型載入失敗或 WebGPU 異常：', err);
     vlmStatus = 'fallback';
     hideModelLoadingOverlay(false);
@@ -3050,8 +3126,15 @@ async function initVlmModel(onProgress) {
  * 使用者開啟相機或進入畫面時自動在背景靜默預載，首次下載喚起 #modelLoadingOverlay
  */
 async function initVisionModel(onProgress) {
+  const isDebug = isCameraDebug();
   const hasWebGpu = typeof navigator !== 'undefined' && !!navigator.gpu;
+  if (isDebug) {
+    console.log('[VLM DEBUG] 1. navigator.gpu 是否存在 (initVisionModel 預載階段):', hasWebGpu);
+  }
   if (!hasWebGpu) {
+    if (isDebug) {
+      console.warn('[VLM DEBUG] 15. Fallback 原因: WebGPU unavailable (預載檢測到 navigator.gpu 不存在)');
+    }
     console.log('[VisionModel] 裝置環境不支援 WebGPU，切換為輕量 MobileNet 視覺模型');
     return await initMobileNet();
   }
@@ -3076,6 +3159,11 @@ async function initVisionModel(onProgress) {
     }, 600);
     return pipeline;
   } catch (err) {
+    if (isDebug) {
+      const isTimeout = err && (err.message?.includes('超時') || err.message?.includes('timeout'));
+      console.error(`[VLM DEBUG] 15. Fallback 原因: ${isTimeout ? 'inference timeout (預載超時 15s)' : 'VLM model load failed'}`);
+      console.error('[VLM DEBUG] 完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
     console.warn('[VisionModel] 視覺模型預載失敗或超時，平滑降級至輕量相機辨識：', err);
     hideModelLoadingOverlay(false);
     return await initMobileNet();
@@ -3138,6 +3226,13 @@ function extractTextFromOutput(out) {
  * 執行 VLM 視覺推論
  */
 async function runVlmInference(pipe, imgDataUrl, promptText = VLM_PROMPT) {
+  const isDebug = isCameraDebug();
+  if (isDebug) {
+    console.log('[VLM DEBUG] 11. 是否真的執行 runVlmInference(): 是', {
+      pipeAvailable: !!pipe,
+      promptPreview: promptText ? promptText.slice(0, 100) + '...' : ''
+    });
+  }
   let out;
   try {
     const messages = [
@@ -3151,13 +3246,23 @@ async function runVlmInference(pipe, imgDataUrl, promptText = VLM_PROMPT) {
     ];
     out = await pipe(messages, { max_new_tokens: 160, temperature: 0.1 });
   } catch (chatErr) {
+    if (isDebug) {
+      console.warn('[VLM DEBUG] runVlmInference 對話格式失敗，嘗試單純圖文提示詞備援格式:', chatErr);
+    }
     try {
       out = await pipe(imgDataUrl, promptText, { max_new_tokens: 160 });
     } catch (e2) {
+      if (isDebug) {
+        console.warn('[VLM DEBUG] runVlmInference 第二格式失敗，嘗試物件格式:', e2);
+      }
       out = await pipe({ image: imgDataUrl, prompt: promptText }, { max_new_tokens: 160 });
     }
   }
-  return extractTextFromOutput(out);
+  const rawText = extractTextFromOutput(out);
+  if (isDebug) {
+    console.log('[VLM DEBUG] 12. VLM 原始輸出內容 (runVlmInference 產生):', rawText);
+  }
+  return rawText;
 }
 
 /**
@@ -3173,7 +3278,11 @@ async function runVlmInference(pipe, imgDataUrl, promptText = VLM_PROMPT) {
  *      * 效期：rawText.match(/(?:expiry|到期日|有效期限)["':\s]+["']?(\d{4}[-\/]\d{2}[-\/]\d{2})/i)?.[1]?.trim()
  */
 function parseVLMResponse(rawText) {
+  const isDebug = isCameraDebug();
   if (!rawText || typeof rawText !== 'string') {
+    if (isDebug) {
+      console.warn('[VLM DEBUG] 13. parseVLMResponse() 輸入無效或為空字串');
+    }
     return { name: '', category: '', expiry: null, parsedName: '', parsedCategory: '', parsedExpiry: null };
   }
 
@@ -3191,6 +3300,7 @@ function parseVLMResponse(rawText) {
   let parsedCategory = '';
   let parsedExpiry = null;
   let parsedObject = null;
+  let jsonParseError = null;
 
   // 3. 雙重解析機制：
   // - 優先嘗試 JSON.parse(extractedJson)。
@@ -3203,6 +3313,7 @@ function parseVLMResponse(rawText) {
         parsedExpiry = parsedObject.expiry || parsedObject['到期日'] || parsedObject['有效期限'] || null;
       }
     } catch (parseErr) {
+      jsonParseError = parseErr;
       try {
         const sanitized = extractedJson.replace(/,\s*([}\]])/g, '$1');
         parsedObject = JSON.parse(sanitized);
@@ -3210,11 +3321,17 @@ function parseVLMResponse(rawText) {
           parsedName = parsedObject.name || parsedObject['品名'] || parsedObject['物品名稱'] || parsedObject['商品名稱'] || '';
           parsedCategory = parsedObject.category || parsedObject['分類'] || parsedObject['類別'] || '';
           parsedExpiry = parsedObject.expiry || parsedObject['到期日'] || parsedObject['有效期限'] || null;
+          jsonParseError = null;
         }
       } catch (e2) {
         parsedObject = null;
+        jsonParseError = e2;
       }
     }
+  }
+
+  if (jsonParseError && isDebug) {
+    console.warn('[VLM DEBUG] 15. Fallback 警告: JSON parse failed (標準 JSON.parse 解析失敗，轉用寬鬆正則逐欄抽取備援)\n完整 Error Stack:', jsonParseError && jsonParseError.stack ? jsonParseError.stack : jsonParseError);
   }
 
   // - 若解析失敗（如字串未閉合），改用寬鬆的正規表達式逐欄抓取：
@@ -3228,7 +3345,7 @@ function parseVLMResponse(rawText) {
     parsedExpiry = rawText.match(/(?:expiry|到期日|有效期限)["':\s]+["']?(\d{4}[-\/]\d{2}[-\/]\d{2})/i)?.[1]?.trim() || null;
   }
 
-  return {
+  const resultObj = {
     ...(parsedObject || {}),
     name: parsedName,
     category: parsedCategory,
@@ -3237,6 +3354,12 @@ function parseVLMResponse(rawText) {
     parsedCategory,
     parsedExpiry
   };
+
+  if (isDebug) {
+    console.log('[VLM DEBUG] 13. parseVLMResponse() 解析後內容:', resultObj);
+  }
+
+  return resultObj;
 }
 
 /**
@@ -3482,9 +3605,22 @@ function formatVlmResult(result, photoDataUrl, skipDom = false) {
  * 端側視覺語言大模型辨識核心 (支援 WebGPU 環境檢查、8秒超時控制與舊版雙軌降級)
  */
 async function analyzeSmartCameraWithVlm(imageSource, photoDataUrl) {
+  const isDebug = isCameraDebug();
+
   // 1. 執行前先偵測使用者裝置環境 (WebGPU 檢查)
   const hasWebGpu = typeof navigator !== 'undefined' && !!navigator.gpu;
+  if (isDebug) {
+    console.log('[VLM DEBUG] 10. 拍照後是否真的進入 analyzeSmartCameraWithVlm(): 是', {
+      hasImageSource: !!imageSource,
+      hasPhotoDataUrl: !!photoDataUrl
+    });
+    console.log('[VLM DEBUG] 1. navigator.gpu 是否存在:', hasWebGpu);
+  }
+
   if (!hasWebGpu) {
+    if (isDebug) {
+      console.error('[VLM DEBUG] 15. Fallback 原因: WebGPU unavailable (navigator.gpu 不存在或不支援)');
+    }
     console.log('[VLM] 裝置環境未支援 WebGPU，切換為輕量相機辨識');
     if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
       window.showToast('已切換為輕量相機辨識');
@@ -3495,9 +3631,24 @@ async function analyzeSmartCameraWithVlm(imageSource, photoDataUrl) {
   // 2. 嘗試執行端側 VLM 視覺推論
   try {
     // 檢查模型是否就緒，若未就緒則首次觸發加載與進度追蹤
-    const pipe = await initVlmModel();
+    let pipe;
+    try {
+      pipe = await initVlmModel();
+    } catch (loadErr) {
+      if (isDebug) {
+        console.error('[VLM DEBUG] 15. Fallback 原因: VLM model load failed');
+        console.error('[VLM DEBUG] 完整 Error Stack:', loadErr && loadErr.stack ? loadErr.stack : loadErr);
+      }
+      throw loadErr;
+    }
+
     if (!pipe) {
-      throw new Error('VLM Pipeline Unavailable');
+      const pipeErr = new Error('VLM Pipeline Unavailable');
+      if (isDebug) {
+        console.error('[VLM DEBUG] 15. Fallback 原因: VLM model load failed (pipe 實例為空)');
+        console.error('[VLM DEBUG] 完整 Error Stack:', pipeErr.stack);
+      }
+      throw pipeErr;
     }
 
     // 壓縮輸入影像 (限制寬高最大 768px 以提升生成速度)
@@ -3508,11 +3659,28 @@ async function analyzeSmartCameraWithVlm(imageSource, photoDataUrl) {
       setTimeout(() => reject(new Error('VLM_TIMEOUT_8S')), 8000);
     });
 
-    const inferencePromise = runVlmInference(pipe, compressedImg, VLM_PROMPT);
-    const rawOutput = await Promise.race([inferencePromise, timeoutPromise]);
+    let rawOutput;
+    try {
+      const inferencePromise = runVlmInference(pipe, compressedImg, VLM_PROMPT);
+      rawOutput = await Promise.race([inferencePromise, timeoutPromise]);
+    } catch (infErr) {
+      if (isDebug) {
+        if (infErr && (infErr.message === 'VLM_TIMEOUT_8S' || infErr.message?.includes('timeout'))) {
+          console.error('[VLM DEBUG] 15. Fallback 原因: inference timeout (>8s)');
+        } else {
+          console.error('[VLM DEBUG] 15. Fallback 原因: inference error');
+        }
+        console.error('[VLM DEBUG] 完整 Error Stack:', infErr && infErr.stack ? infErr.stack : infErr);
+      }
+      throw infErr;
+    }
+
     const rawText = (typeof rawOutput === 'string') ? rawOutput : extractTextFromOutput(rawOutput);
 
     // 【四、除錯日誌與 Toast 提示】：印出 VLM 原始輸出
+    if (isDebug) {
+      console.log('[VLM DEBUG] 12. VLM 原始輸出內容:', rawText);
+    }
     console.log('[VLM Raw Output]:', rawText);
 
     // 【一、容錯式 VLM 輸出解析器】
@@ -3522,18 +3690,48 @@ async function analyzeSmartCameraWithVlm(imageSource, photoDataUrl) {
     const parsedExpiry = parsed ? (parsed.expiry || parsed.parsedExpiry || null) : null;
 
     // 【四、除錯日誌與 Toast 提示】：印出解析結果
+    if (isDebug) {
+      console.log('[VLM DEBUG] 13. parseVLMResponse() 解析後內容:', { parsedName, parsedCategory, parsedExpiry });
+    }
     console.log('[VLM Parsed]:', { parsedName, parsedCategory, parsedExpiry });
 
     if (!parsedName && !parsedCategory) {
-      throw new Error('VLM_INVALID_JSON_RESPONSE');
+      const jsonErr = new Error('JSON parse failed (無法從 VLM 原始輸出擷取出 name 或 category)');
+      if (isDebug) {
+        console.error('[VLM DEBUG] 15. Fallback 原因: JSON parse failed (品名與類別皆為空)\n[VLM DEBUG] 原始輸出內容:', rawText);
+        console.error('[VLM DEBUG] 完整 Error Stack:', jsonErr.stack);
+      }
+      throw jsonErr;
     }
 
     // 【三、精確 DOM 賦值與觸發連動】及 Toast 提示
     applyVlmDomValues(parsedName, parsedCategory, parsedExpiry);
 
     const finalResult = formatVlmResult(parsed, photoDataUrl, true);
+    if (isDebug) {
+      console.log('[VLM DEBUG] 14. 最終 name / category / subCategory / confidence:', {
+        name: finalResult.name,
+        category: finalResult.category,
+        subCategory: finalResult.subCategory,
+        confidence: finalResult.confidence
+      });
+    }
     return finalResult;
   } catch (err) {
+    if (isDebug) {
+      let fallbackReason = 'inference error';
+      if (err?.message === 'VLM_TIMEOUT_8S' || err?.message?.includes('timeout')) {
+        fallbackReason = 'inference timeout';
+      } else if (err?.message?.includes('JSON parse failed') || err?.message === 'VLM_INVALID_JSON_RESPONSE') {
+        fallbackReason = 'JSON parse failed';
+      } else if (err?.message?.includes('Pipeline') || err?.message?.includes('model load') || err?.message?.includes('Transformers.js')) {
+        fallbackReason = 'VLM model load failed';
+      } else if (err?.message?.includes('WebGPU')) {
+        fallbackReason = 'WebGPU unavailable';
+      }
+      console.error(`[VLM DEBUG] 15. Fallback 原因: ${fallbackReason}`);
+      console.error('[VLM DEBUG] 完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
     console.warn('[VLM] 端側推論異常或超時 (>8s)，自動切換至輕量相機辨識：', err);
     if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
       window.showToast('已切換為輕量相機辨識');
@@ -3600,6 +3798,8 @@ if (typeof window !== 'undefined') {
   window.updateVlmProgress = updateVlmProgress;
   window.hideVlmLoadingCard = hideVlmLoadingCard;
   window.VLM_PROMPT = VLM_PROMPT;
+  window.cameraDebug = true;
+  window.isCameraDebug = isCameraDebug;
   window.getLastCreatedItem = () => lastCreatedItem;
   window.setLastCreatedItem = (item) => { lastCreatedItem = item; };
 
@@ -3609,6 +3809,8 @@ if (typeof window !== 'undefined') {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    cameraDebug: true,
+    isCameraDebug,
     initModel,
     updateNerStatus,
     parseWithLocalNER,
