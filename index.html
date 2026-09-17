@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.9.3">
+  <link rel="stylesheet" href="style.css?v=1.9.4">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -791,7 +791,7 @@ body {
   box-shadow: 0 2px 8px rgba(255, 214, 10, 0.4);
 }
 
-/* 辨識遮罩與純文字載入動畫 (Recognition Overlay & Text Animation v1.9.3) */
+/* 辨識遮罩與純文字載入動畫 (Recognition Overlay & Text Animation v1.9.4) */
 .camera-recognition-overlay {
   position: fixed;
   inset: 0;
@@ -1437,6 +1437,15 @@ body {
   font-weight: 500;
 }
 
+.camera-control-btn:disabled,
+.camera-control-btn.disabled,
+.camera-control-btn.loading {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
 .camera-shutter-btn {
   width: 72px;
   height: 72px;
@@ -1467,6 +1476,15 @@ body {
 .camera-shutter-btn:active .shutter-inner {
   transform: scale(0.94);
   background: #dddddd;
+}
+
+.camera-shutter-btn:disabled,
+.camera-shutter-btn.disabled,
+.camera-shutter-btn.loading {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
 }
 
 .sync-dot.offline {
@@ -3395,6 +3413,14 @@ input[type="time"]::-webkit-date-and-time-value {
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+}
+
+.btn-ios-primary:disabled,
+.btn-ios-primary.disabled,
+.btn-ios-primary.loading {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-ios-secondary {
@@ -7828,7 +7854,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.3</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.4</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -9123,6 +9149,8 @@ var CapacitorBridgeBundle = (() => {
         async getAll(options) {
           const scheduled = [...this.pending];
           const delivered = this.deliveredNotifications.map((n) => this.deliveredToSchema(n));
+          // ==========================================
+          // AI Scan Loading HUD 控制函式 (純文字流光與動態推進動畫 v1.9.4)
           if ((options === null || options === void 0 ? void 0 : options.state) === "SCHEDULED") {
             return { notifications: scheduled };
           }
@@ -9339,7 +9367,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.9.3';
+  const APP_VERSION = '1.9.4';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -17422,6 +17450,7 @@ function extractCleanName(rawText) {
   }
 
   function handleCameraShutter() {
+    if (isCameraProcessing || (window.isCloudCameraBusy && window.isCloudCameraBusy())) return;
     const video = document.getElementById('cameraVideo');
     const flashOverlay = document.getElementById('cameraFlashOverlay');
     if (flashOverlay) {
@@ -17437,6 +17466,7 @@ function extractCleanName(rawText) {
   }
 
   function handleAlbumFileSelect(e) {
+    if (isCameraProcessing || (window.isCloudCameraBusy && window.isCloudCameraBusy())) return;
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -17452,7 +17482,7 @@ function extractCleanName(rawText) {
   }
 
   // ==========================================
-  // 智慧鏡頭每日額度管理 (每日上限 200 次 v1.9.3)
+  // 智慧鏡頭每日額度管理 (每日上限 200 次 v1.9.4)
   // ==========================================
   const SMART_LENS_DAILY_LIMIT = 200;
   const SMART_LENS_QUOTA_KEY = 'expiry_smart_lens_quota_v1';
@@ -17528,7 +17558,7 @@ function extractCleanName(rawText) {
   window.markSmartLensQuotaExhausted = markSmartLensQuotaExhausted;
   window.updateSmartLensQuotaDisplays = updateSmartLensQuotaDisplays;
 
-  // AI Scan Loading HUD 控制函式 (純文字流光與動態推進動畫 v1.9.3)
+  // AI Scan Loading HUD 控制函式 (純文字流光與動態推進動畫 v1.9.4)
   let aiScanStepTimer = null;
   function showAiScanLoading(photoDataUrl) {
     const hud = document.getElementById('aiScanLoadingModal');
@@ -17605,7 +17635,7 @@ function extractCleanName(rawText) {
    */
   let isCameraProcessing = false;
   async function processCapturedImage(source) {
-    if (isCameraProcessing) return;
+    if (isCameraProcessing || (window.isCloudCameraBusy && window.isCloudCameraBusy())) return;
     const quotaInfo = getSmartLensQuotaInfo();
     if (quotaInfo.remaining <= 0) {
       showToast('今日智慧鏡頭辨識額度已達上限（200次），請明天再試或手動填寫。');
@@ -17613,6 +17643,7 @@ function extractCleanName(rawText) {
       return;
     }
     isCameraProcessing = true;
+    if (window.setCloudCameraBusy) window.setCloudCameraBusy(true);
     let photoDataUrl = null, parsed = null, notice = '';
     try {
       const canvas = document.getElementById('cameraCanvas');
@@ -17645,6 +17676,7 @@ function extractCleanName(rawText) {
       closeCameraScanModal();
       hideAiScanLoading();
       isCameraProcessing = false;
+      if (window.setCloudCameraBusy) window.setCloudCameraBusy(false);
     }
     if (!parsed) parsed = {success:false, name:'', category:'other', subCategory:'', emoji:'📦', expiryDate:null, hasEndDate:false, remindDaysBefore:3, remindTime:'09:00', image:photoDataUrl, recognitionNotice:notice};
     openNlpConfirmModal(parsed);
@@ -17921,7 +17953,7 @@ function extractCleanName(rawText) {
 })();
 
 </script>
-  <script type="module" src="app.js?v=1.9.3"></script>
-  <script type="module" src="cloud-camera.js?v=1.9.3"></script>
+  <script type="module" src="app.js?v=1.9.4"></script>
+  <script type="module" src="cloud-camera.js?v=1.9.4"></script>
 </body>
 </html>

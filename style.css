@@ -774,7 +774,7 @@ body {
   box-shadow: 0 2px 8px rgba(255, 214, 10, 0.4);
 }
 
-/* 辨識遮罩與純文字載入動畫 (Recognition Overlay & Text Animation v1.9.3) */
+/* 辨識遮罩與純文字載入動畫 (Recognition Overlay & Text Animation v1.9.4) */
 .camera-recognition-overlay {
   position: fixed;
   inset: 0;
@@ -1228,6 +1228,15 @@ body {
   font-weight: 500;
 }
 
+.camera-control-btn:disabled,
+.camera-control-btn.disabled,
+.camera-control-btn.loading {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
 .camera-shutter-btn {
   width: 72px;
   height: 72px;
@@ -1258,6 +1267,15 @@ body {
 .camera-shutter-btn:active .shutter-inner {
   transform: scale(0.94);
   background: #dddddd;
+}
+
+.camera-shutter-btn:disabled,
+.camera-shutter-btn.disabled,
+.camera-shutter-btn.loading {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
 }
 
 .sync-dot.offline {
@@ -3186,6 +3204,14 @@ input[type="time"]::-webkit-date-and-time-value {
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+}
+
+.btn-ios-primary:disabled,
+.btn-ios-primary.disabled,
+.btn-ios-primary.loading {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-ios-secondary {
