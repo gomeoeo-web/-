@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.8.6
+ * Smart Quick Add & On-Device NER Parser v1.9.13
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -15,11 +15,23 @@
  *    - 保留 lastCreatedItem 機制，若使用者輸入「那隻貓叫小黑」，辨識出新名詞後直接覆蓋上一筆名稱。
  * 6. 錯誤降級處理：
  *    - 若模型尚未下載完成、處於離線環境或推論異常，自動降級使用純本地正則解析器 (parseNaturalInput)。
+ * 7. 相機辨識由 cloud-camera.js 呼叫雲端服務，不載入手機視覺模型。
  */
 
 // ==========================================
-// 1. 全域狀態與模型管線
+// 1. 全域狀態與模型管線 & 相機 Debug 診斷開關
 // ==========================================
+let cameraDebug = true;
+if (typeof window !== 'undefined') {
+  window.cameraDebug = true;
+}
+function isCameraDebug() {
+  if (typeof window !== 'undefined' && window.cameraDebug !== undefined) {
+    return !!window.cameraDebug;
+  }
+  return !!cameraDebug;
+}
+
 let nerPipeline = null;
 let isModelLoading = false;
 let modelStatus = 'idle'; // 'idle' | 'loading' | 'ready' | 'fallback'
@@ -58,6 +70,80 @@ function offsetDays(d, numDays) {
 }
 
 // ==========================================
+// 1.4 一級分類與細項項目設定 (DEFAULT_CATEGORIES & SUB_CATEGORY_CONFIG)
+// ==========================================
+const DEFAULT_CATEGORIES = {
+  food: { label: '食品', emoji: '🥛' },
+  drinks: { label: '飲品', emoji: '🥤' },
+  snack: { label: '零食', emoji: '🍪' },
+  fresh: { label: '生鮮', emoji: '🐟' },
+  medicine: { label: '藥品', emoji: '💊' },
+  supplement: { label: '保健', emoji: '💊' },
+  beauty: { label: '美妝', emoji: '💄' },
+  pao: { label: '日用', emoji: '🧴' },
+  cleaning: { label: '清潔', emoji: '🧽' },
+  filter: { label: '耗材', emoji: '🌀' },
+  warranty: { label: '保固', emoji: '🛡️' },
+  digital: { label: '數位', emoji: '📱' },
+  stationery: { label: '文具', emoji: '✏️' },
+  sports: { label: '運動', emoji: '🏋️' },
+  tools: { label: '五金', emoji: '🔧' },
+  pet: { label: '寵物', emoji: '🐾' },
+  baby: { label: '母嬰', emoji: '🍼' },
+  office: { label: '辦公', emoji: '💼' },
+  outdoor: { label: '戶外', emoji: '⛺' },
+  home: { label: '居家', emoji: '🏠' },
+  fashion: { label: '穿搭', emoji: '👕' },
+  animation: { label: '動畫', emoji: '🎬' },
+  game: { label: '遊戲', emoji: '🎮' },
+  otaku: { label: '二次元', emoji: '✨' },
+  vehicle: { label: '車輛', emoji: '🚗' },
+  subscription: { label: '訂閱', emoji: '📅' },
+  ticket: { label: '票券/活動', emoji: '🎟️' },
+  other: {
+    label: '其他',
+    emoji: '📦',
+    items: [
+      { name: '日常生活用品', subCat: '一般雜項', emoji: '📦' },
+      { name: '未分類備忘物品', subCat: '未分類', emoji: '📦' },
+      { name: '商務背包', subCat: '包袋', emoji: '🎒' },
+      { name: '日常工作會議', subCat: '會議', emoji: '📅' },
+      { name: '各類生活備忘', subCat: '備忘', emoji: '📌' }
+    ]
+  }
+};
+
+const SUB_CATEGORY_CONFIG = {
+  food: ['青菜', '水果', '鮮乳', '雞蛋', '豆製品', '起司乳酪', '生鮮肉品', '水產海鮮', '麵包烘焙', '調味料', '食用油', '米麵穀物', '南北乾貨', '熟食料理'],
+  drinks: ['咖啡豆', '濾掛咖啡', '茶葉茶包', '手搖飲品', '果汁蔬果汁', '包裝水', '氣泡水', '碳酸飲料', '啤酒烈酒', '紅白酒', '沖泡飲品', '乳清飲品'],
+  snack: ['餅乾米果', '洋芋片脆片', '巧克力可可', '堅果果乾', '糖果軟糖', '肉乾肉條', '即食泡麵', '海苔點心', '果凍布丁', '傳統糕餅'],
+  fresh: ['牛肉羊肉', '生鮮豬肉', '雞肉禽肉', '海鮮魚類', '蝦蟹貝類', '火鍋肉片', '冷凍調理包', '微波熟食', '水餃湯圓', '生鮮時蔬'],
+  medicine: ['眼藥水', '人工淚液', '外用藥膏', '感冒退燒', '消炎止痛', '腸胃整腸', '處方藥', '醫療敷料', '隱眼保養液', '防蚊止癢', '常備成藥'],
+  supplement: ['綜合維他命', 'B群活力', '維生素C', '深海魚油', '葉黃素', '活性益生菌', '膠原蛋白', '鈣片D3', '滴雞精', '高蛋白粉', '機能保健'],
+  beauty: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '唇膏口紅', '粉底彩妝', '美甲護理', '香水香氛'],
+  pao: ['洗髮沐浴', '潤髮護髮', '牙膏口腔', '洗手香皂', '身體乳液', '護手滋潤', '刮鬍刀具', '女性護理', '毛巾面巾', '日常消耗'],
+  cleaning: ['菜瓜布海綿', '菜瓜布', '洗碗精洗劑', '洗衣精洗衣球', '抹布抹巾', '潔廁去垢', '水垢油垢清', '消毒酒精', '除塵防塵', '除濕防潮', '除蟎噴霧', '地板清潔', '疏通清潔'],
+  filter: ['清淨機濾網', '淨水器濾芯', '音波牙刷頭', '集水除濕盒', '掃地機主刷邊刷', '吸塵器耗材', '咖啡機除鈣', '冷氣濾網', '通風濾材'],
+  warranty: ['智慧手機', '筆記型電腦', '平板電腦', '藍牙耳機', '家用電器', '電視螢幕', '人體工學家具', '智慧手錶', '遊戲主機', '攝影器材', '保固維修'],
+  digital: ['充電器快充', '傳輸充電線', '行動電源', '耳機周邊', '保護貼保護殼', '記憶卡隨身碟', '鍵盤滑鼠', '智慧穿戴', '擴充轉接HUB'],
+  stationery: ['手帳筆記', '書籍雜誌', '簽字鋼筆', '墨水替芯', '膠帶黏著', '檔案夾收納', '繪畫美術', '裁切工具', '辦公文具'],
+  sports: ['運動護具', '瑜珈墊', '彈力帶拉力繩', '啞鈴重訓', '機能水壺', '跑鞋運動鞋', '球鞋', '運動補給', '運動包袋', '球拍線路'],
+  tools: ['螺絲工具組', '手電筒照明', '防水絕緣膠帶', '接著快乾膠', '修繕五金', '量尺測量', '潤滑防鏽油', '五金耗材'],
+  pet: ['乾糧飼料', '主食罐頭', '副食肉泥', '原肉凍乾', '體內外驅蟲', '核心疫苗', '貓砂尿墊', '寵物潔牙', '洗毛護理', '寵物保健品'],
+  baby: ['配方奶粉', '成長奶粉', '透氣尿布', '純水濕紙巾', '副食品常溫粥', '奶瓶奶嘴', '米餅副食', '幼兒常規疫苗', '兒童餐具'],
+  vehicle: ['機油', '機油芯', '齒輪油', '輪胎對調', '電瓶', '雨刷', '煞車油皮', '火星塞', '空氣濾清器', '定檢驗車', '車險強制險'],
+  subscription: ['影音串流', '音樂串流', '雲端空間', '專業軟體', '健身會籍', '寬頻電信', '房屋租約', '訂閱服務', '年約保險'],
+  outdoor: ['露營天幕', '登山裝備', '戶外炊具', '機能水壺', '防潮地墊', '登山手杖', '能量果膠', '防寒睡袋'],
+  home: ['室內植栽', '花草肥料', 'LED照明', '防蟎寢具', '住警消防', '香氛擴香', '水電修繕', '收納整理'],
+  fashion: ['換季送洗', '真皮皮革保養', '珠寶首飾', '衣物防護防蛀', '精品鞋靴', '名牌包袋', '飾品小物', '太陽眼鏡'],
+  animation: ['漫畫單行本', '輕小說', 'BD藍光影音', '畫冊設定集', '周邊特典', '海報掛軸', '同人周邊'],
+  game: ['Switch卡帶', 'PSXbox光碟', '主機手把', '點數卡序號', '特典周邊', '典藏套裝', 'Amiibo'],
+  otaku: ['徽章吧唧', '壓克力立牌磚', '色紙相卡', '手辦模型景品', '棉花娃玩偶', '一番賞獎品', '痛包配件'],
+  ticket: ['電影票', '演唱會門票', '動漫展覽票', '活動兌換券', '餐券住宿券', '高鐵車票', '商品禮券'],
+  other: ['一般雜項', '配件小物', '未分類', '包袋', '工作會議', '各類備忘']
+};
+
+// ==========================================
 // 1.5 智慧分類與細項對應辭典 (SMART_KEYWORD_MAP)
 // ==========================================
 const SMART_KEYWORD_MAP = [
@@ -84,19 +170,17 @@ const SMART_KEYWORD_MAP = [
 
   // 藥品 (medicine)
   { keywords: ['眼藥水', '人工淚液', '洗眼液'], emoji: '💊', cat: 'medicine', subCat: '眼藥水' },
-  { keywords: ['維他命', '維生素', 'b群', '維他命c', '合利他命'], emoji: '💊', cat: 'medicine', subCat: '維他命' },
-  { keywords: ['魚油', '葉黃素', '益生菌', '保健品', '膠原蛋白', '鈣片', '鋅錠'], emoji: '🐟', cat: 'medicine', subCat: '魚油' },
   { keywords: ['藥膏', '皮膚膏', '抗生素', '曼秀雷敦', '眼藥膏', '蚊蟲膏', 'ok繃', '創口貼', '優碘', '碘酒'], emoji: '🩹', cat: 'medicine', subCat: '藥膏' },
   { keywords: ['止痛藥', '感冒藥', '胃藥', '成藥', '膠囊', '錠', '藥', '普拿疼', '退燒藥', '胃散', '正露丸', '止咳藥', '消炎藥'], emoji: '🩺', cat: 'medicine', subCat: '成藥' },
   { keywords: ['牙醫', '洗牙', '看診', '診所', '醫院', '看牙', '牙齒', '補牙'], emoji: '🦷', cat: 'medicine', subCat: '醫療' },
   { keywords: ['隱形眼鏡', '保養液', '隱眼', '生理食鹽水'], emoji: '👁️', cat: 'medicine', subCat: '保養液' },
 
   // 清潔 (cleaning)
-  { keywords: ['菜瓜布', '海綿', '科技海綿', '洗碗海綿'], emoji: '🧼', cat: 'cleaning', subCat: '菜瓜布' },
+  { keywords: ['菜瓜布', '海綿', '科技海綿', '洗碗海綿'], emoji: '🧽', cat: 'cleaning', subCat: '菜瓜布' },
   { keywords: ['洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '漂白水'], emoji: '🧺', cat: 'cleaning', subCat: '洗衣精' },
   { keywords: ['洗碗精', '洗潔精', '洗碗機洗碗粉', '光潔劑', '洗碗錠', '洗碗塊'], emoji: '🍽️', cat: 'cleaning', subCat: '洗碗精' },
   { keywords: ['抹布', '拖把', '除塵拖', '除塵紙', '靜電拖'], emoji: '🧽', cat: 'cleaning', subCat: '抹布' },
-  { keywords: ['潔廁劑', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '洗手乳', '洗手液', '小蘇打', '過碳酸鈉', '除霉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
+  { keywords: ['潔廁劑', '清潔劑', '漂白水', '洗碗精', '洗潔精', '洗衣精', '洗衣球', '洗衣膠囊', '洗衣粉', '柔軟精', '除黴', '除霉', '去漬', '洗手乳', '洗手液', '地板清潔', '馬桶刷', '芳香劑', '馬桶清潔', '水垢清', '小蘇打', '過碳酸鈉'], emoji: '🚽', cat: 'cleaning', subCat: '潔廁劑' },
   { keywords: ['酒精', '消毒水', '乾洗手', '次氯酸'], emoji: '🧴', cat: 'cleaning', subCat: '酒精' },
   { keywords: ['除蟎', '防蟎噴霧', '防塵蟎'], emoji: '💨', cat: 'cleaning', subCat: '除蟎' },
 
@@ -111,6 +195,7 @@ const SMART_KEYWORD_MAP = [
   // 保固 (warranty)
   { keywords: ['椅', 'chair', '沙發', '辦公椅', '人體工學', '升降桌', '家具'], emoji: '🪑', cat: 'warranty', subCat: '家具' },
   { keywords: ['電腦', '筆電', 'mac', 'macbook', 'pc', '主機', 'ipad', '平板', 'surface'], emoji: '💻', cat: 'warranty', subCat: '電腦' },
+  { keywords: ['滑鼠', '電腦滑鼠', '無線滑鼠', '電競滑鼠', '藍芽滑鼠', '藍牙滑鼠', '光學滑鼠', '鍵盤', '電腦鍵盤', '機械鍵盤', '無線鍵盤', '滑鼠墊', '桌墊', '電腦螢幕', 'mouse', 'keyboard', 'mousepad', 'trackpad'], emoji: '🖱️', cat: 'warranty', subCat: '電腦' },
   { keywords: ['手機', 'iphone', 'pixel', 'galaxy', 'android'], emoji: '📱', cat: 'warranty', subCat: '手機' },
   { keywords: ['耳機', 'airpods', 'buds', 'headphone', '喇叭', '音響', 'soundbar'], emoji: '🎧', cat: 'warranty', subCat: '耳機' },
   { keywords: ['電視', '螢幕', '顯示器', 'tv', '冰箱', '洗衣機', '冷氣', '微波爐', '烤箱', '除濕機', '電風扇'], emoji: '📺', cat: 'warranty', subCat: '家電' },
@@ -142,7 +227,7 @@ const SMART_KEYWORD_MAP = [
 
   { keywords: [
     '鮮乳', '牛乳', '羊乳', '保久乳', '全脂乳', '低脂乳', '鮮奶', '牛奶', '優格', '起司',
-    '豆漿', '奶粉', 'milk', '優酪乳', '燕麥奶', '堅果奶', '黑豆漿', '米漿', '鮮奶油',
+    '豆漿', '奶粉', 'milk', '生乳', 'fresh milk', '優酪乳', '燕麥奶', '堅果奶', '黑豆漿', '米漿', '鮮奶油',
     '乳酪', '奶酪', '起司片', '起司條', '奶油', '牛油', '優格飲', '發酵乳', '養樂多',
     '布丁', '木瓜牛奶'
   ], emoji: '🥛', cat: 'food', subCat: '鮮乳' },
@@ -150,7 +235,7 @@ const SMART_KEYWORD_MAP = [
   { keywords: [
     '咖啡', '咖啡豆', '咖啡粉', '美式', '拿鐵', '濾掛', '濃縮咖啡',
     '耳掛咖啡', '冷萃', '冰美式', '卡布奇諾', '摩卡', '美式咖啡', '拿鐵咖啡'
-  ], emoji: '☕', cat: 'food', subCat: '咖啡' },
+  ], emoji: '☕', cat: 'drinks', subCat: '咖啡豆' },
 
   { keywords: [
     '蛋', '雞蛋', '鴨蛋', '茶葉蛋', '皮蛋', '鹹蛋', '生鮮蛋', '洗選蛋', '放牧蛋',
@@ -160,7 +245,7 @@ const SMART_KEYWORD_MAP = [
   { keywords: [
     '茶', '茶葉', '茶包', '烏龍茶', '綠茶', '紅茶', '普洱茶',
     '四季春', '青茶', '鐵觀音', '包種茶', '奶茶', '花茶', '菊花茶', '麥茶', '玄米茶'
-  ], emoji: '🍵', cat: 'food', subCat: '茶包' },
+  ], emoji: '🍵', cat: 'drinks', subCat: '茶葉茶包' },
 
   { keywords: [
     '醬油', '鹽', '糖', '油', '醋', '調味料', '胡椒', '沙拉醬', '橄欖油', '辣醬',
@@ -192,11 +277,11 @@ const SMART_KEYWORD_MAP = [
   ], emoji: '🍞', cat: 'food', subCat: '麵包烘焙' },
 
   // 日用 (pao)
-  { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳', '洗髮精', '潤髮乳'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
+  { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳', '洗髮精', '潤髮乳', 'shampoo'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
   { keywords: ['防曬', '隔離', '防曬乳', '防曬露', '防曬噴霧'], emoji: '☀️', cat: 'pao', subCat: '防曬' },
   { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕', '眼霜', '面霜', '精華液', '保養品', '洗面乳', '潔顏乳', '卸妝水', '卸妝油', '化妝棉'], emoji: '✨', cat: 'pao', subCat: '保養' },
   { keywords: ['護手霜', '護唇膏', '身體乳', '護足霜'], emoji: '👐', cat: 'pao', subCat: '護手霜' },
-  { keywords: ['牙膏', '漱口水', '牙線', '牙線棒'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
+  { keywords: ['牙膏', '漱口水', '牙線', '牙線棒', 'toothpaste'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
   { keywords: ['刮鬍刀', '刀頭', '刮鬍泡', '電鬍刀'], emoji: '🪒', cat: 'pao', subCat: '刮鬍刀' },
   { keywords: ['香水', '淡香水', '香氛', '香膏'], emoji: '🌸', cat: 'pao', subCat: '香水' },
   { keywords: ['唇膏', '口紅', '粉底', '遮瑕', '眼影', '腮紅', '彩妝'], emoji: '💄', cat: 'pao', subCat: '彩妝' },
@@ -249,13 +334,138 @@ const SMART_KEYWORD_MAP = [
   { keywords: ['樟木', '防蛀包', '防蟲包', '除蟲片', '衣櫃防潮'], emoji: '🌿', cat: 'fashion', subCat: '衣物防護' },
   { keywords: ['高跟鞋', '皮鞋', '皮靴', '精品鞋', '靴子'], emoji: '👠', cat: 'fashion', subCat: '精品鞋靴' },
 
+  // 動畫 (animation) - 書籍、漫畫、單行本、BD影音
+  { keywords: ['漫畫', '單行本', '漫畫書', '輕小說', '小說', '書籍', '書本', '圖書', '雜誌', '課本', '畫冊', '設定集', '同人誌', '角川', '東立', '尖端', '青文', '航海王', '海賊王', '鬼滅之刃', '鬼滅', '咒術迴戰', '咒術', '葬送的芙莉蓮', '芙莉蓮', '排球少年', '我推的孩子', '間諜家家酒', '鏈鋸人', '進擊的巨人', '柯南', '火影', '死神', '獵人', 'isbn'], emoji: '📚', cat: 'animation', subCat: '漫畫/單行本', duration: 365 },
+  { keywords: ['bd', 'blu-ray', 'dvd', '動漫影音', '動畫影音', '番劇'], emoji: '💿', cat: 'animation', subCat: 'BD/影音', duration: 180 },
+  { keywords: ['動漫特典', '周邊特典', '特典', '預購特典'], emoji: '🎁', cat: 'animation', subCat: '周邊特典', duration: 365 },
+
+  // 遊戲 (game) - 主機卡帶、光碟、周邊
+  { keywords: ['switch', 'switch卡帶', 'ns卡帶', '任天堂', '薩爾達', '瑪利歐', '寶可夢', '動森', '魔物獵人'], emoji: '🎮', cat: 'game', subCat: 'Switch 卡帶', duration: 365 },
+  { keywords: ['ps5', 'ps4', 'xbox', '遊戲光碟', 'ps光碟'], emoji: '💿', cat: 'game', subCat: 'PS/Xbox 光碟', duration: 365 },
+  { keywords: ['遊戲手把', '手把', 'joycon', 'pro手把', '搖桿'], emoji: '🕹️', cat: 'game', subCat: '主機/手把周邊', duration: 365 },
+  { keywords: ['點數卡', 'psn點數', 'eshop點數', 'steam點數', '遊戲點數', '序號'], emoji: '💳', cat: 'game', subCat: '點數卡/序號', duration: 365 },
+
+  // 二次元 (otaku) - 徽章、立牌、模型、玩偶
+  { keywords: ['徽章', '吧唧', '胸章', '馬口鐵徽章'], emoji: '🏅', cat: 'otaku', subCat: '徽章/吧唧', duration: 365 },
+  { keywords: ['壓克力立牌', '立牌', '壓克力磚', '壓克力牌', '立牌擺件'], emoji: '🪧', cat: 'otaku', subCat: '壓克力立牌/磚', duration: 365 },
+  { keywords: ['色紙', '相卡', '拍立得卡', '小卡', '透卡', '收藏卡'], emoji: '🖼️', cat: 'otaku', subCat: '色紙/相卡', duration: 365 },
+  { keywords: ['模型', '黏土人', '景品', '手辦', '公仔', '一番賞', '扭蛋', '轉蛋'], emoji: '🪀', cat: 'otaku', subCat: '模型/黏土人/景品', duration: 365 },
+  { keywords: ['棉花娃', '娃', '玩偶', '毛絨公仔', '趴趴'], emoji: '🧸', cat: 'otaku', subCat: '棉花娃/玩偶', duration: 365 },
+
+  // 票券/活動 (ticket) - 電影票、演唱會、展覽、兌換券
+  { keywords: ['電影票', '威秀', '國賓', '秀泰', '百老匯', '電影'], emoji: '🎬', cat: 'ticket', subCat: '電影票', duration: 7 },
+  { keywords: ['演唱會', '門票', '音樂會', '演場會門票', '拓元', '寬宏', '年代售票'], emoji: '🎤', cat: 'ticket', subCat: '演唱會/音樂會', duration: 30 },
+  { keywords: ['展覽門票', '動漫展', '漫畫博覽會', 'ff', 'cwt', '展覽'], emoji: '🖼️', cat: 'ticket', subCat: '動漫展覽門票', duration: 30 },
+  { keywords: ['兌換券', '餐券', '住宿券', '優惠券', '提貨券', '商品券'], emoji: '🔖', cat: 'ticket', subCat: '活動兌換券', duration: 365 },
+
+  // 飲品 (drinks)
+  { keywords: ['咖啡豆', '咖啡粉', '濾掛', '濾掛咖啡', '手沖咖啡', '即溶咖啡', '濃縮咖啡', '拿鐵', '美式咖啡', '冷萃'], emoji: '☕', cat: 'drinks', subCat: '咖啡豆', duration: 30 },
+  { keywords: ['茶葉', '茶包', '高山茶', '烏龍茶', '紅茶', '綠茶', '四季春', '包種茶', '鐵觀音', '普洱茶', '花草茶', '麥茶'], emoji: '🍵', cat: 'drinks', subCat: '茶葉茶包', duration: 180 },
+  { keywords: ['手搖', '手搖飲', '珍奶', '珍珠奶茶', '綠茶多多', '清心', '五十嵐', '麻古', '可不可', '得正'], emoji: '🧋', cat: 'drinks', subCat: '手搖飲品', duration: 1 },
+  { keywords: ['果汁', '柳橙汁', '蘋果汁', '蔬果汁', '芭樂汁', '番茄汁', '胡蘿蔔汁'], emoji: '🧃', cat: 'drinks', subCat: '果汁蔬果汁', duration: 7 },
+  { keywords: ['礦泉水', '純水', '瓶裝水', '飲用水', '多喝水', '泰山純水'], emoji: '💧', cat: 'drinks', subCat: '包裝水', duration: 365 },
+  { keywords: ['氣泡水', '聖沛黎洛', '舒味思', '沛綠雅', '氣泡飲'], emoji: '🫧', cat: 'drinks', subCat: '氣泡水', duration: 180 },
+  { keywords: ['可樂', '雪碧', '沙士', '汽水', '碳酸飲料', '黑松沙士', '芬達'], emoji: '🥤', cat: 'drinks', subCat: '碳酸飲料', duration: 180 },
+  { keywords: ['啤酒', '台啤', '海尼根', '百威', '精釀啤酒', 'asahi', 'kirin', 'sapporo', '低酒精'], emoji: '🍺', cat: 'drinks', subCat: '啤酒烈酒', duration: 180 },
+  { keywords: ['紅酒', '白酒', '威士忌', '白蘭地', '伏特加', '琴酒', '葡萄酒', '清酒', '高粱酒', '香檳'], emoji: '🍷', cat: 'drinks', subCat: '紅白酒', duration: 365 },
+  { keywords: ['沖泡飲', '阿華田', '美祿', '杏仁粉', '黑芝麻糊', '穀粉', '桂格麥片飲'], emoji: '🥣', cat: 'drinks', subCat: '沖泡飲品', duration: 180 },
+  { keywords: ['乳清蛋白飲', '高蛋白飲', '蛋白水', '能量飲', '紅牛', '怪獸能量', 'red bull', 'monster'], emoji: '⚡', cat: 'drinks', subCat: '乳清飲品', duration: 90 },
+
+  // 零食 (snack)
+  { keywords: ['洋芋片', '薯片', '樂事', '波卡', '卡迪那', '多力多滋', '可樂果', '蝦味先', '脆片'], emoji: '🥔', cat: 'snack', subCat: '洋芋片脆片', duration: 60 },
+  { keywords: ['餅乾', '米果', '蘇打餅', '夾心餅', '蛋捲', '仙貝', '雪餅', '曲奇', '威化餅', 'oreo'], emoji: '🍪', cat: 'snack', subCat: '餅乾米果', duration: 60 },
+  { keywords: ['巧克力', '生巧克力', '黑巧克力', '金莎', 'godiva', '明治巧克力', '雷神', '可可球'], emoji: '🍫', cat: 'snack', subCat: '巧克力可可', duration: 180 },
+  { keywords: ['堅果', '腰果', '核桃', '杏仁果', '開心果', '夏威夷豆', '花生', '綜合堅果', '蔓越莓乾', '葡萄乾', '果乾'], emoji: '🥜', cat: 'snack', subCat: '堅果果乾', duration: 90 },
+  { keywords: ['糖果', '軟糖', '小熊軟糖', '喉糖', '口香糖', '棒棒糖', '薄荷糖', '牛奶糖'], emoji: '🍬', cat: 'snack', subCat: '糖果軟糖', duration: 180 },
+  { keywords: ['肉乾', '豬肉乾', '牛肉乾', '肉條', '肉鬆', '魷魚絲', '鱈魚香絲', '魚酥'], emoji: '🥩', cat: 'snack', subCat: '肉乾肉條', duration: 45 },
+  { keywords: ['泡麵', '即食麵', '杯麵', '統一麵', '滿漢大餐', '維力炸醬麵', '拉麵', '辛拉麵', '乾拌麵'], emoji: '🍜', cat: 'snack', subCat: '即食泡麵', duration: 180 },
+  { keywords: ['海苔', '元本山', '高麗海苔', '海苔酥', '海苔片'], emoji: '🍙', cat: 'snack', subCat: '海苔點心', duration: 90 },
+  { keywords: ['布丁', '果凍', '統一布丁', '茶凍', '咖啡凍', '豆花', '愛玉'], emoji: '🍮', cat: 'snack', subCat: '果凍布丁', duration: 14 },
+  { keywords: ['鳳梨酥', '蛋黃酥', '太陽餅', '綠豆椪', '糕餅', '月餅', '麻糬'], emoji: '🥮', cat: 'snack', subCat: '傳統糕餅', duration: 21 },
+
+  // 生鮮 (fresh)
+  { keywords: ['牛肉', '牛排', '牛絞肉', '和牛', '羊肉', '羊排', '牛肉片'], emoji: '🥩', cat: 'fresh', subCat: '牛肉羊肉', duration: 3 },
+  { keywords: ['豬肉', '梅花肉', '五花肉', '松阪豬', '豬絞肉', '豬排', '排骨', '里肌肉'], emoji: '🥓', cat: 'fresh', subCat: '生鮮豬肉', duration: 3 },
+  { keywords: ['雞肉', '雞胸肉', '雞腿', '雞翅', '土雞', '烏骨雞', '鴨肉', '鵝肉'], emoji: '🍗', cat: 'fresh', subCat: '雞肉禽肉', duration: 3 },
+  { keywords: ['鮮魚', '鮭魚', '鱸魚', '鯖魚', '鱈魚', '虱目魚', '生魚片', '鮮蚵', '蚵仔'], emoji: '🐟', cat: 'fresh', subCat: '海鮮魚類', duration: 2 },
+  { keywords: ['蝦', '白蝦', '草蝦', '明蝦', '龍蝦', '螃蟹', '紅蟳', '蛤蜊', '文蛤', '干貝', '透抽', '花枝', '軟絲'], emoji: '🦐', cat: 'fresh', subCat: '蝦蟹貝類', duration: 2 },
+  { keywords: ['火鍋肉片', '培根牛', '梅花豬肉片', '冷凍肉', '肉卷'], emoji: '🍲', cat: 'fresh', subCat: '火鍋肉片', duration: 60 },
+  { keywords: ['冷凍食品', '冷凍調理包', '披薩', '雞塊', '薯條', '冷凍炒飯', '微波食品', '調理包'], emoji: '🧊', cat: 'fresh', subCat: '冷凍調理包', duration: 90 },
+  { keywords: ['水餃', '鍋貼', '湯圓', '餛飩', '冷凍水餃'], emoji: '🥟', cat: 'fresh', subCat: '水餃湯圓', duration: 60 },
+
+  // 保健 (supplement)
+  { keywords: ['綜合維他命', '綜合維生素', '善存', '克補', '綜合營養'], emoji: '💊', cat: 'supplement', subCat: '綜合維他命', duration: 180 },
+  { keywords: ['b群', '維他命b', '維生素b', '合利他命', 'b12', 'b6', '葉酸'], emoji: '⚡', cat: 'supplement', subCat: 'B群活力', duration: 180 },
+  { keywords: ['維他命c', '維生素c', '發泡錠', 'c發泡錠', '抗氧化'], emoji: '🍊', cat: 'supplement', subCat: '維生素C', duration: 180 },
+  { keywords: ['魚油', '深海魚油', 'omega3', 'dha', 'epa', '磷蝦油'], emoji: '🐟', cat: 'supplement', subCat: '深海魚油', duration: 180 },
+  { keywords: ['葉黃素', '玉米黃素', '護眼錠', '晶亮'], emoji: '👁️', cat: 'supplement', subCat: '葉黃素', duration: 180 },
+  { keywords: ['益生菌', '乳酸菌', '腸胃益生菌', '娘家益生菌', '阿德比'], emoji: '🦠', cat: 'supplement', subCat: '活性益生菌', duration: 180 },
+  { keywords: ['膠原蛋白', '膠原蛋白粉', '膠原蛋白飲', '玻尿酸飲'], emoji: '✨', cat: 'supplement', subCat: '膠原蛋白', duration: 180 },
+  { keywords: ['鈣片', '檸檬酸鈣', '海藻鈣', '維生素d3', 'd3', '鋅錠', '補鋅', '鐵劑', '補鐵'], emoji: '🦴', cat: 'supplement', subCat: '鈣片D3', duration: 180 },
+  { keywords: ['滴雞精', '雞精', '蜆精', '燕窩', '人蔘飲', '冬蟲夏草', '補品'], emoji: '🥣', cat: 'supplement', subCat: '滴雞精', duration: 180 },
+  { keywords: ['乳清', '高蛋白粉', '分離乳清', '乳清蛋白', 'myprotein', 'on乳清', '肌酸'], emoji: '🥤', cat: 'supplement', subCat: '高蛋白粉', duration: 180 },
+
+  // 美妝 (beauty)
+  { keywords: ['精華液', '小黑瓶', '小棕瓶', '精華露', '安瓶', '玻尿酸精華', '抗老精華', '美白精華'], emoji: '💧', cat: 'beauty', subCat: '精華液', duration: 180 },
+  { keywords: ['乳液', '面霜', '乳霜', '保濕霜', '水凝霜', '日霜', '晚霜'], emoji: '🧴', cat: 'beauty', subCat: '乳液面霜', duration: 180 },
+  { keywords: ['面膜', '保濕面膜', '泥膜', '凍膜', '黑面膜', '早安面膜'], emoji: '🧖', cat: 'beauty', subCat: '保濕面膜', duration: 180 },
+  { keywords: ['卸妝', '卸妝水', '卸妝油', '卸妝乳', '卸妝膏', '眼唇卸妝', '洗面乳', '洗顏霜', '潔面慕斯'], emoji: '🫧', cat: 'beauty', subCat: '卸妝潔顏', duration: 180 },
+  { keywords: ['化妝水', '保濕水', '爽膚水', '精華水', '噴霧', '活泉水', '保濕噴霧'], emoji: '💦', cat: 'beauty', subCat: '化妝水噴霧', duration: 180 },
+  { keywords: ['眼霜', '眼膠', '眼部精華'], emoji: '👁️', cat: 'beauty', subCat: '緊緻眼霜', duration: 180 },
+  { keywords: ['防曬乳', '防曬露', '隔離霜', '防曬噴霧', '防曬棒', '安耐曬'], emoji: '☀️', cat: 'beauty', subCat: '防曬隔離', duration: 180 },
+  { keywords: ['唇膏', '口紅', '唇釉', '潤唇膏', '護唇膏', '唇蜜', '唇泥'], emoji: '💄', cat: 'beauty', subCat: '唇膏口紅', duration: 365 },
+  { keywords: ['粉底', '粉底液', '氣墊', '氣墊粉餅', '蜜粉', '遮瑕', '腮紅', '眼影', '眉筆', '睫毛膏', '眼線筆'], emoji: '🎨', cat: 'beauty', subCat: '粉底彩妝', duration: 365 },
+  { keywords: ['指甲油', '光療膠', '美甲片', '護甲油', '指緣油'], emoji: '💅', cat: 'beauty', subCat: '美甲護理', duration: 365 },
+  { keywords: ['香水', '淡香水', '香精', '古龍水', '香氛噴霧', 'jo malone', 'diptyque', 'chanel香水'], emoji: '🌸', cat: 'beauty', subCat: '香水香氛', duration: 730 },
+
+  // 數位 (digital)
+  { keywords: ['快充頭', '充電頭', '豆腐頭', 'gan快充', '充電器', '旅充'], emoji: '🔌', cat: 'digital', subCat: '充電器快充', duration: 730 },
+  { keywords: ['充電線', '傳輸線', 'type-c', 'lightning線', 'usb線', '編織線', '快充線'], emoji: '🪢', cat: 'digital', subCat: '傳輸充電線', duration: 365 },
+  { keywords: ['行動電源', '行電', '磁吸行充', 'magsafe電池', '快充行動電源'], emoji: '🔋', cat: 'digital', subCat: '行動電源', duration: 730 },
+  { keywords: ['手機殼', '保護殼', '保護貼', '玻璃貼', '防摔殼', '鏡頭貼'], emoji: '🛡️', cat: 'digital', subCat: '保護貼保護殼', duration: 180 },
+  { keywords: ['記憶卡', 'sd卡', 'tf卡', 'microsd', '隨身碟', 'usb隨身碟', '外接硬碟', 'ssd'], emoji: '💾', cat: 'digital', subCat: '記憶卡隨身碟', duration: 1095 },
+  { keywords: ['滑鼠', '鍵盤', '機械鍵盤', '無線鍵盤', '滑鼠墊', '軌跡球'], emoji: '🖱️', cat: 'digital', subCat: '鍵盤滑鼠', duration: 730 },
+  { keywords: ['轉接頭', 'hub', '集線器', 'hdmi線', '讀卡機', '擴充座'], emoji: '🎛️', cat: 'digital', subCat: '擴充轉接HUB', duration: 730 },
+
+  // 文具 (stationery)
+  { keywords: ['手帳', '筆記本', '日記本', '便條紙', '便利貼', '方格本', '活頁本'], emoji: '📓', cat: 'stationery', subCat: '手帳筆記', duration: 365 },
+  { keywords: ['書籍', '書本', '圖書', '雜誌', '課本', '小說', '散文', '工具書', '字典'], emoji: '📚', cat: 'stationery', subCat: '書籍雜誌', duration: 730 },
+  { keywords: ['鋼筆', '原子筆', '簽字筆', '中性筆', '螢光筆', '自動鉛筆', '百樂', '三菱', '斑馬筆'], emoji: '🖊️', cat: 'stationery', subCat: '簽字鋼筆', duration: 365 },
+  { keywords: ['墨水', '鋼筆墨水', '筆芯', '原子筆芯', '鉛筆芯', '替芯'], emoji: '🖋️', cat: 'stationery', subCat: '墨水替芯', duration: 365 },
+  { keywords: ['膠帶', '紙膠帶', '雙面膠', '封箱膠帶', '固體膠', '口紅膠', '白膠'], emoji: '🩹', cat: 'stationery', subCat: '膠帶黏著', duration: 365 },
+  { keywords: ['資料夾', '公文夾', '風琴夾', '檔案袋', '收納盒', '筆筒', '文件欄'], emoji: '📁', cat: 'stationery', subCat: '檔案夾收納', duration: 730 },
+  { keywords: ['色鉛筆', '水彩', '彩色筆', '畫筆', '素描本', '印泥', '印章'], emoji: '🎨', cat: 'stationery', subCat: '繪畫美術', duration: 730 },
+  { keywords: ['剪刀', '美工刀', '釘書機', '打孔機', '美工刀片', '尺', '圓規'], emoji: '✂️', cat: 'stationery', subCat: '裁切工具', duration: 730 },
+
+  // 運動 (sports)
+  { keywords: ['護膝', '護腕', '護踝', '運動護具', '護腰', '壓力褲', '束褲'], emoji: '🦵', cat: 'sports', subCat: '運動護具', duration: 365 },
+  { keywords: ['瑜珈墊', '瑜伽墊', '滾筒', '瑜珈磚', '拉筋板'], emoji: '🧘', cat: 'sports', subCat: '瑜珈墊', duration: 365 },
+  { keywords: ['彈力帶', '拉力繩', '阻力帶', '訓練帶', '拉力帶'], emoji: '🎗️', cat: 'sports', subCat: '彈力帶拉力繩', duration: 365 },
+  { keywords: ['啞鈴', '槓鈴', '壺鈴', '重訓手套', '握力器', '健腹輪'], emoji: '🏋️', cat: 'sports', subCat: '啞鈴重訓', duration: 1095 },
+  { keywords: ['運動水壺', '搖搖杯', '蛋白搖搖杯', '水袋', '保溫運動瓶'], emoji: '🍶', cat: 'sports', subCat: '機能水壺', duration: 365 },
+  { keywords: ['球鞋', '運動鞋', '跑鞋', '慢跑鞋', '籃球鞋', '羽球鞋', '登山鞋', '鞋墊'], emoji: '👟', cat: 'sports', subCat: '跑鞋運動鞋', duration: 365 },
+  { keywords: ['能量膠', '果膠', '電解質', '鹽錠', '運動補給', '能量棒'], emoji: '⚡', cat: 'sports', subCat: '運動補給', duration: 180 },
+  { keywords: ['運動包', '健身包', '運動腰包', '水壺腰包'], emoji: '🎒', cat: 'sports', subCat: '運動包袋', duration: 730 },
+  { keywords: ['球拍', '穿線', '網球拍', '羽球拍', '拍線', '握把皮'], emoji: '🏸', cat: 'sports', subCat: '球拍線路', duration: 90 },
+
+  // 五金 (tools)
+  { keywords: ['螺絲起子', '工具組', '板手', '六角板手', '鉗子', '老虎鉗', '斜口鉗', '電鑽'], emoji: '🪛', cat: 'tools', subCat: '螺絲工具組', duration: 1825 },
+  { keywords: ['手電筒', '探照燈', '工作燈', '頭燈'], emoji: '🔦', cat: 'tools', subCat: '手電筒照明', duration: 730 },
+  { keywords: ['絕緣膠帶', '電火布', '防水膠帶', '管路修補膠帶'], emoji: '🩹', cat: 'tools', subCat: '防水絕緣膠帶', duration: 730 },
+  { keywords: ['快乾膠', '三秒膠', '接著劑', 'ab膠', '強力膠', '矽利康', '填縫劑'], emoji: '🧪', cat: 'tools', subCat: '接著快乾膠', duration: 180 },
+  { keywords: ['螺絲', '壁虎', '膨脹螺絲', '鐵釘', '五金零件', '鉸鏈', '滑軌'], emoji: '🔩', cat: 'tools', subCat: '修繕五金', duration: 1825 },
+  { keywords: ['捲尺', '皮尺', '量尺', '水平尺', '游標卡尺'], emoji: '📏', cat: 'tools', subCat: '量尺測量', duration: 1825 },
+  { keywords: ['wd40', '潤滑油', '防鏽油', '黃油', '針車油'], emoji: '🛢️', cat: 'tools', subCat: '潤滑防鏽油', duration: 730 },
+
   // 其他 (other)
-  { keywords: ['球鞋', '慢跑鞋', '運動鞋', '拖鞋'], emoji: '👟', cat: 'other', subCat: '球鞋' },
+  { keywords: ['一般雜項', '雜項', '雜物', '日用品', '生活用品'], emoji: '📦', cat: 'other', subCat: '一般雜項' },
+  { keywords: ['眼鏡', '墨鏡', '太陽眼鏡', '抗藍光', '鏡框', '鏡片', '老花眼鏡', '護目鏡'], emoji: '🕶️', cat: 'fashion', subCat: '太陽眼鏡', duration: 365 },
+  { keywords: ['配件小物', '飾品小物', '隨身配件', '小物'], emoji: '💍', cat: 'fashion', subCat: '飾品小物' },
+  { keywords: ['未分類', '其他物品', '待整理'], emoji: '📦', cat: 'other', subCat: '未分類' },
   { keywords: ['背包', '後背包', '公事包', '手提包'], emoji: '🎒', cat: 'other', subCat: '包袋' },
-  { keywords: ['衣服', '褲子', '襯衫', '外套', '洋裝'], emoji: '🧥', cat: 'other', subCat: '衣物' },
-  { keywords: ['小說', '書籍', '雜誌', '課本'], emoji: '📚', cat: 'other', subCat: '圖書' },
+  { keywords: ['衣服', '褲子', '襯衫', '外套', '洋裝'], emoji: '👕', cat: 'fashion', subCat: '換季送洗' },
   { keywords: ['會議', '開會', '研討會', '週會', '月會', '晨會'], emoji: '📅', cat: 'other', subCat: '會議' },
-  { keywords: ['備忘', '筆記', '代辦', '待辦', '雜項', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
+  { keywords: ['備忘', '筆記', '代辦', '待辦', '個人事項', '隨手記'], emoji: '📌', cat: 'other', subCat: '備忘' }
 ];
 
 /**
@@ -264,8 +474,21 @@ const SMART_KEYWORD_MAP = [
  */
 function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
   if (!text || typeof text !== 'string') {
-    return { category: fallbackCat, subCategory: '', emoji: '📌' };
+    return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
   }
+
+  // 【最優先判定 1】：乳製品/鮮乳 Priority 1 優先攔截 (包含中英日關鍵字，防止「超高溫瞬間殺菌」或白瓶被誤殺成清潔用品)
+  const DAIRY_REGEX = /(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脱脂|脫脂|保久乳|純鮮乳|瑞穗|光泉|義美|林鳳營|初鹿|milk|乳飲品)/i;
+  if (DAIRY_REGEX.test(text)) {
+    return { category: 'food', subCategory: '鮮乳', emoji: '🥛' };
+  }
+
+  // 【配件小物判定】：眼鏡與個人配件 (包含中英日關鍵字，排除隱形眼鏡與保養液，嚴禁進入食品)
+  const GLASSES_REGEX = /(眼鏡|墨鏡|太陽眼鏡|メガネ|glasses|sunglasses|spectacles|鏡框|抗藍光|鏡片|老花眼鏡|護目鏡)/i;
+  if (GLASSES_REGEX.test(text) && !text.includes('隱形眼鏡') && !text.includes('保養液')) {
+    return { category: 'fashion', subCategory: '太陽眼鏡', emoji: '🕶️' };
+  }
+
   const lower = text.toLowerCase();
   let bestMatch = null;
   let bestLen = 0;
@@ -286,11 +509,145 @@ function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
     return {
       category: bestMatch.cat || fallbackCat,
       subCategory: bestMatch.subCat || '',
-      emoji: bestMatch.emoji || '📌'
+      emoji: bestMatch.emoji || (fallbackCat === 'other' ? '📦' : '📌')
     };
   }
-  return { category: fallbackCat, subCategory: '', emoji: '📌' };
+  return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
 }
+
+// ==========================================
+// 1.6 物品使用期限推算與難以判斷轉使用日期引擎 (inferItemLifespanOrUsageDate)
+// ==========================================
+function inferItemLifespanOrUsageDate(name, category, subCategory, baseDate = new Date()) {
+  const text = `${name || ''} ${subCategory || ''} ${category || ''}`.toLowerCase();
+  const todayStr = formatDate(baseDate);
+
+  // 1. 明確無效期 / 難以判斷 / 耐用物品 -> 自動改為「記錄使用日期」
+  const isDurableOrNoExpiry = /(?:球鞋|慢跑鞋|運動鞋|布鞋|涼鞋|拖鞋|高跟鞋|皮鞋|靴子|背包|後背包|公事包|手提包|皮夾|錢包|皮包|衣服|外套|褲子|襯衫|洋裝|毛衣|內衣|襪子|圍巾|帽子|飾品|項鍊|戒指|手鍊|耳環|眼鏡|墨鏡|鏡框|鏡片|老花眼鏡|護目鏡|書|書籍|漫畫|小說|雜誌|單行本|繪本|畫冊|筆記本|手帳|資料夾|公文|印章|文具|剪刀|美工刀|玩具|公仔|模型|手辦|黏土人|景品|立牌|徽章|吧唧|色紙|相卡|棉花娃|玩偶|娃娃|一番賞|收藏|掛畫|海報|痛包|家具|沙發|桌|椅|床|櫃子|置物架|鍋具|餐具|杯子|碗盤|工具|螺絲起子|鉗子|板手|捲尺|隨身配件|一般雜項|未分類|備忘|生活備忘)/i;
+
+  // 2. 具有常態生命週期/保存期限之規則庫 (由短至長排列)
+  const LIFESPAN_RULES = [
+    { regex: /生鮮肉|牛肉|豬肉|雞肉|絞肉|生肉|生鮮魚|生鮮蝦|生魚片|海鮮|生干貝|鮮魚|鮮蝦|吐司|生吐司|麵包|三明治|沙拉|即食熟食|熟食便當|剩菜/i, days: 3, label: '生鮮肉品/短效麵包' },
+    { regex: /青菜|蔬菜|葉菜|菠菜|地瓜葉|空心菜|小白菜|萵苣|水蓮|香蕉|熟成木瓜|草莓|水蜜桃/i, days: 5, label: '葉菜生鮮/熟成水果' },
+    { regex: /水果|蘋果|芭樂|柑橘|柳丁|西瓜|芒果|葡萄|奇異果|高麗菜|包菜|菇|金針菇|杏鮑菇|豆腐|豆干/i, days: 7, label: '當季水果/常備冷藏' },
+    { regex: /鮮乳|鮮奶|牛乳|生乳|全脂乳|低脂乳|豆漿|優酪乳|燕麥奶/i, days: 12, label: '鮮乳/冷藏豆乳' },
+    { regex: /優格|布丁|奶酪/i, days: 14, label: '優格/冷藏點心' },
+    { regex: /蛋|雞蛋|鴨蛋|洗選蛋|放牧蛋/i, days: 21, label: '產地鮮蛋' },
+    { regex: /菜瓜布|洗碗海綿|科技海綿|抹布|擦拭布|刮鬍刀片|刮鬍刀頭|冷氣濾網清洗/i, days: 30, label: '廚衛清潔耗材' },
+    { regex: /眼藥水|人工淚液|洗眼液/i, days: 30, label: '眼藥水開封保存' },
+    { regex: /配方奶粉|嬰兒奶粉/i, days: 30, label: '嬰幼配方奶開罐' },
+    { regex: /貓砂|寵物尿墊|驅蟲滴劑|驅蟲藥/i, days: 30, label: '寵物月度護理' },
+    { regex: /咖啡豆|現烘咖啡/i, days: 30, label: '咖啡豆賞味期' },
+    { regex: /起司|乳酪|起司片/i, days: 30, label: '起司乳酪' },
+    { regex: /訂閱|netflix|spotify|disney|youtube|月費|電信費|寬頻|房租|健身房/i, days: 30, label: '月度定期訂閱' },
+    { regex: /電影票/i, days: 7, label: '電影票券' },
+    { regex: /展覽門票|演唱會/i, days: 30, label: '活動票券' },
+    { regex: /純水濕紙巾|濕紙巾/i, days: 45, label: '柔濕紙巾' },
+    { regex: /寵物主糧|狗飼料|貓飼料|凍乾零食|寵物凍乾/i, days: 60, label: '寵物乾糧/凍乾' },
+    { regex: /洗碗精|洗潔精|果醬|抹醬|花生醬|零食|洋芋片|餅乾|點心|除濕盒|除濕劑|克潮靈/i, days: 60, label: '常備清潔/除濕盒' },
+    { regex: /矽膠奶嘴|安撫奶嘴|固齒器/i, days: 60, label: '嬰幼奶嘴耗材' },
+    { regex: /音波牙刷|電動牙刷|牙刷|刷頭/i, days: 90, label: '牙刷刷頭' },
+    { regex: /淨水器濾芯|活性碳濾芯|濾水壺濾芯|brita/i, days: 90, label: '淨水活性碳濾芯' },
+    { regex: /洗衣精|洗衣球|洗衣膠囊|潔廁劑|除蟎噴霧|牙膏|齒輪油|機車齒輪油/i, days: 90, label: '清潔洗沐/齒輪油' },
+    { regex: /保養液|隱形眼鏡保養液|生理食鹽水/i, days: 90, label: '隱眼保養液開瓶' },
+    { regex: /咖啡機除鈣|水垢清潔劑/i, days: 90, label: '咖啡機除鈣' },
+    { regex: /紙尿褲|尿布/i, days: 90, label: '嬰兒紙尿褲' },
+    { regex: /濾網|清淨機濾網|hepa|空氣濾網/i, days: 180, label: '清淨機HEPA濾網' },
+    { regex: /機油|機油芯|汽車機油/i, days: 180, label: '汽車定期保養機油' },
+    { regex: /雨刷|汽車雨刷|輪胎|胎壓/i, days: 180, label: '車輛耗材定期檢測' },
+    { regex: /維他命|維生素|b群|魚油|葉黃素|益生菌|保健品|膠原蛋白|鈣片/i, days: 180, label: '保健營養品開封' },
+    { regex: /藥膏|外用藥膏|皮膚膏|曼秀雷敦|抗生素藥膏/i, days: 180, label: '外用藥膏' },
+    { regex: /沐浴乳|洗髮精|洗髮露|洗沐|精華液|保養品|乳液|面霜|防曬|防曬乳|護手霜|面膜/i, days: 180, label: '洗沐美妝保養品' },
+    { regex: /調味料|醬油|食用油|橄欖油|米酒|醋|味噌|茶葉|茶包|泡麵|乾拌麵/i, days: 180, label: '調味乾貨/油品' },
+    { regex: /墨水|印表機墨水|碳粉匣/i, days: 180, label: '印表機耗材' },
+    { regex: /掃地機|掃地機器人|主刷|邊刷/i, days: 180, label: '掃地機耗材' },
+    { regex: /消毒酒精|酒精噴霧/i, days: 180, label: '75%消毒酒精' },
+    { regex: /成藥|感冒藥|止痛藥|胃藥|急救箱/i, days: 365, label: '家庭常備成藥' },
+    { regex: /香水|淡香水|唇膏|口紅|彩妝/i, days: 365, label: '香水彩妝' },
+    { regex: /手機|iphone|android|耳機|airpods|手錶|apple watch|garmin|點數卡|序號/i, days: 365, label: '原廠有限保固 1 年' },
+    { regex: /驗車|定檢|強制險|車險|疫苗|寵物疫苗|狂犬疫苗/i, days: 365, label: '年度定檢/保險' },
+    { regex: /罐頭|主食罐|機能罐/i, days: 365, label: '常規密封罐頭' },
+    { regex: /電瓶|汽車電瓶|agm電瓶|鉛酸電瓶|煞車皮|煞車來令片/i, days: 730, label: '電瓶/煞車耐用期' },
+    { regex: /電腦|筆電|macbook|ipad|平板/i, days: 730, label: '筆電/平板保固 2 年' },
+    { regex: /家電|電視|冰箱|洗衣機|冷氣|除濕機|烤箱|微波爐/i, days: 1095, label: '家電核心保固 3 年' }
+  ];
+
+  const matchedRule = LIFESPAN_RULES.find(r => r.regex.test(text));
+
+  // A. 若命中耐用品/無期限標籤，且沒有明確消耗規則，一律記錄使用日期
+  if (isDurableOrNoExpiry.test(text) && !matchedRule) {
+    return {
+      hasEndDate: false,
+      durationDays: 0,
+      expiryDate: null,
+      startDate: todayStr,
+      mode: 'elapsed',
+      reason: '此物品無固定到期日或難以判斷，已自動切換為「記錄使用日期」。',
+      isEstimated: false
+    };
+  }
+
+  // B. 命中具體物品生命週期規則
+  if (matchedRule) {
+    const exp = formatDate(offsetDays(baseDate, matchedRule.days));
+    return {
+      hasEndDate: true,
+      durationDays: matchedRule.days,
+      expiryDate: exp,
+      startDate: todayStr,
+      mode: 'expiry',
+      reason: `依「${matchedRule.label}」自動估算建議使用期限（約 ${matchedRule.days} 天）。`,
+      isEstimated: true
+    };
+  }
+
+  // C. 依分類大項預設週期
+  const CAT_DEFAULT_DURATIONS = {
+    fresh: { days: 3, label: '生鮮肉品海鮮' },
+    food: { days: 7, label: '常態生鮮食品' },
+    drinks: { days: 30, label: '飲品/咖啡茶飲' },
+    snack: { days: 60, label: '常備零食點心' },
+    cleaning: { days: 60, label: '清潔日用品' },
+    pao: { days: 90, label: '洗沐日化品' },
+    beauty: { days: 180, label: '美妝護膚品' },
+    medicine: { days: 180, label: '醫藥常備品' },
+    supplement: { days: 180, label: '保健營養品' },
+    filter: { days: 90, label: '定期更換耗材' },
+    pet: { days: 60, label: '寵物消耗用品' },
+    baby: { days: 60, label: '母嬰消耗用品' },
+    vehicle: { days: 180, label: '車輛定期保養' },
+    subscription: { days: 30, label: '定期訂閱服務' },
+    ticket: { days: 30, label: '活動票券' },
+    warranty: { days: 365, label: '硬體保固 1 年' },
+    digital: { days: 365, label: '3C配件保固' }
+  };
+
+  const catRule = CAT_DEFAULT_DURATIONS[category];
+  if (catRule) {
+    const exp = formatDate(offsetDays(baseDate, catRule.days));
+    return {
+      hasEndDate: true,
+      durationDays: catRule.days,
+      expiryDate: exp,
+      startDate: todayStr,
+      mode: 'expiry',
+      reason: `依「${catRule.label}」分類自動估算建議期限（約 ${catRule.days} 天）。`,
+      isEstimated: true
+    };
+  }
+
+  // D. 其他難以判斷之物品 -> 預設記錄使用日期 (hasEndDate: false)
+  return {
+    hasEndDate: false,
+    durationDays: 0,
+    expiryDate: null,
+    startDate: todayStr,
+    mode: 'elapsed',
+    reason: '此物品無特定到期日，自動切換為「記錄使用日期」（累計陪伴天數）。',
+    isEstimated: false
+  };
+}
+
 
 // ==========================================
 // 2. UI 狀態指示器 (輸入框 Placeholder)
@@ -303,23 +660,80 @@ function updateNerStatus(status) {
 
   if (status === 'loading') {
     if (input) {
-      input.placeholder = '智慧輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
+      input.placeholder = '智慧輸入 (如：鮮奶5天後到期、那隻貓叫小黑)';
       input.title = '智慧輸入：支援自然語言與日期分析';
     }
   } else if (status === 'ready') {
     if (input) {
-      input.placeholder = '✨ 智慧輸入（如：鮮奶5天後到期、那隻貓叫小黑）';
+      input.placeholder = '✨ 智慧輸入 (如：鮮奶5天後到期、那隻貓叫小黑)';
       input.title = '智慧輸入：本地微型實體模型支援';
     }
   } else if (status === 'fallback') {
     if (input) {
-      input.placeholder = '智慧輸入（如：交通會議 下週三下午2點提醒、鮮奶5天後到期）';
+      input.placeholder = '智慧輸入 (如：交通會議 下週三下午2點提醒、鮮奶5天後到期)';
       input.title = '智慧輸入';
     }
   }
 }
 
 // ==========================================
+// 2.9 AI 模型防護載入引擎 (getVisionEngine - 僅於使用者點擊相機或下載模型時觸發)
+// ==========================================
+async function getVisionEngine() {
+  const isDebug = isCameraDebug();
+  try {
+    if (typeof window !== 'undefined' && window.transformersLib) {
+      return window.transformersLib;
+    }
+    const tf = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.1');
+    if (typeof window !== 'undefined') {
+      window.transformersLib = tf;
+      if (tf.AutoProcessor) window.AutoProcessor = tf.AutoProcessor;
+      if (tf.CLIPVisionModelWithProjection) window.CLIPVisionModelWithProjection = tf.CLIPVisionModelWithProjection;
+      if (tf.RawImage) window.RawImage = tf.RawImage;
+      if (tf.load_image) window.load_image = tf.load_image;
+      if (tf.pipeline) window.pipeline = tf.pipeline;
+      if (tf.env) {
+        tf.env.useBrowserCache = true;
+        tf.env.allowLocalModels = false;
+        window.transformersEnv = tf.env;
+      }
+    }
+    return tf;
+  } catch (err) {
+    if (isDebug) {
+      console.error('[MOBILECLIP2] Transformers.js 動態 import 失敗:\n完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
+    console.warn('AI 模型載入失敗，降級使用本機 OCR / MobileNet:', err);
+    return null;
+  }
+}
+
+let transformersModule = null;
+async function loadTransformers() {
+  const isDebug = isCameraDebug();
+  try {
+    const tf = await getVisionEngine();
+    if (tf) {
+      transformersModule = tf;
+      if (isDebug) {
+        console.log('[MOBILECLIP2] Transformers.js 是否成功載入: 成功');
+      }
+      return tf;
+    }
+    if (isDebug) {
+      console.error('[MOBILECLIP2] Transformers.js 是否成功載入: 失敗 (getVisionEngine 回傳空值)');
+    }
+    return null;
+  } catch (err) {
+    if (isDebug) {
+      console.error('[MOBILECLIP2] Transformers.js 是否成功載入: 失敗 (載入發生例外)\n完整 Error Stack:', err && err.stack ? err.stack : err);
+    }
+    console.warn('[loadTransformers] 載入失敗，降級備援:', err);
+    return null;
+  }
+}
+
 // 3. 非同步初始化微型中文命名實體模型 (initModel)
 // ==========================================
 async function initModel() {
@@ -329,27 +743,25 @@ async function initModel() {
   updateNerStatus('loading');
 
   try {
-    // 檢查 window.pipeline 是否已由 Transformers.js CDN 模組注入
-    if (typeof window !== 'undefined' && !window.pipeline) {
-      await new Promise((resolve) => {
-        let done = false;
-        const timer = setTimeout(() => {
-          if (!done) { done = true; resolve(); }
-        }, 3500);
-
-        window.addEventListener('transformers-ready', () => {
-          if (!done) {
-            done = true;
-            clearTimeout(timer);
-            resolve();
-          }
-        }, { once: true });
-      });
+    let pipelineFn = null;
+    try {
+      const tf = await loadTransformers();
+      if (tf && tf.pipeline) {
+        pipelineFn = tf.pipeline;
+        if (typeof window !== 'undefined') {
+          window.pipeline = tf.pipeline;
+          if (tf.env) window.transformersEnv = tf.env;
+        }
+      }
+    } catch (tfErr) {
+      if (typeof window !== 'undefined' && typeof window.pipeline === 'function') {
+        pipelineFn = window.pipeline;
+      }
     }
 
-    if (typeof window !== 'undefined' && typeof window.pipeline === 'function') {
+    if (typeof pipelineFn === 'function') {
       console.log('[NLP] 正在初始化本地微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner)...');
-      nerPipeline = await window.pipeline('token-classification', 'Xenova/bert-tiny-chinese-ner', {
+      nerPipeline = await pipelineFn('token-classification', 'Xenova/bert-tiny-chinese-ner', {
         aggregation_strategy: 'simple'
       });
       isModelLoading = false;
@@ -601,6 +1013,21 @@ function simplifyItemName(rawText) {
     .replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
     .replace(/\u3000/g, ' ');
 
+  // 0. 特殊格式保護：ISBN 條碼格式保護與條碼商品保護
+  const isbnMatch = clean.match(/(?:ISBN[:\s]*)?(97[89]\d{9,10})/i);
+  if (isbnMatch) {
+    return `圖書/漫畫 (ISBN: ${isbnMatch[1]})`;
+  }
+  if (/^條碼商品/i.test(clean)) {
+    return '條碼商品';
+  }
+
+  // 0.5 移除 OCR 影像包裝雜訊（營養標示、成分、工廠、淨重、效期標籤等）
+  clean = clean.replace(/(?:有效日期|保存期限|有效期限|製造日期|到期日|賞味期限|EXP|MFG|BBD|LOT|NET\s*WT)[:：\s]*[\w\d\-./]*/gi, ' ');
+  clean = clean.replace(/條碼[:：\s]+[\w\d\-./]+/gi, ' ');
+  clean = clean.replace(/(?:營養標示|成份|成分|過敏原|原產地|淨重|內容量|保存條件|委託製造商|製造商|進口商|服務專線|服務電話|注意事項|台灣製造|MADE IN)[^]*$/gi, ' ');
+  clean = clean.replace(/^(?:品名|名稱|商品名稱|品項)[:：\s]*/gi, ' ');
+
   // 1. 移除時鐘與提醒修飾詞
   clean = clean.replace(/(?:提前|提早|前)?\s*\d+\s*(?:個)?(?:天|日|週|周|月|年)?(?:\s*(?:上午|早上|下午|晚上|中午|凌晨)?\s*\d{1,2}\s*(?:點|点|時|时|:\d{2})(?:\s*(?:半|\d{1,2}\s*分(?:鐘)?))?)?\s*(?:提醒|通知)/g, ' ');
   clean = clean.replace(/(?:當天|當日|當天上午|當天下午|當天晚上)\s*(?:提醒|通知)?/g, ' ');
@@ -703,10 +1130,12 @@ function simplifyItemName(rawText) {
 
   // 鮮奶與乳品保留品牌完整度
   if (/鮮奶|牛奶|鮮乳/.test(rawText)) {
-    const brandMatch = clean.match(/(好市多|光泉|瑞穗|義美|福樂|林鳳營|高大|初鹿|柳營|四方|東海|萬丹|六甲|崙背)?([^\s]{0,6})(?:鮮奶|牛奶|鮮乳)/);
-    if (brandMatch && brandMatch[0]) {
-      let result = brandMatch[0].replace(/^[買了大瓶小瓶一兩三]+/g, '').trim();
-      if (result.length >= 2) return result;
+    const brandMatch = clean.match(/(好市多|光泉|瑞穗|義美|福樂|林鳳營|高大|初鹿|柳營|四方|東海|萬丹|六甲|崙背)?\s*([^\s]{0,6})(?:鮮奶|牛奶|鮮乳)/);
+    if (brandMatch && (brandMatch[1] || brandMatch[0])) {
+      const b = brandMatch[1] || '';
+      const m = (brandMatch[2] || '').replace(/^[買了大瓶小瓶一兩三]+/g, '').trim();
+      const res = (b + ' ' + m + '鮮乳').replace(/\s+/g, ' ').trim();
+      if (res.length >= 2) return res;
     }
     return clean.includes('鮮奶') ? clean : '全脂鮮奶';
   }
@@ -918,24 +1347,27 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
   }
   if (!refinedName) refinedName = '未命名物品';
 
-  // F. 補齊預設到期日 (若未輸入時間，提供合理預設值或轉為謹記使用天數模式)
+  // F. 智慧分類與細項項目自動對應 (若無對應則自動選 other 其他)
+  const matched = matchCategoryAndSubCategory(text + ' ' + refinedName, 'other');
+  const category = matched.category || 'other';
+  const subCategory = matched.subCategory || '';
+  const emoji = matched.emoji || '📌';
+
+  // G. 補齊預設到期日 (若未輸入時間，自動判斷使用期限；若難以判斷則轉為記錄使用日期)
   const isElapsedExplicit = /(?:謹記|僅記|記|紀錄|記錄)?\s*(?:使用天數|陪伴天數|天數)|不設(?:定)?(?:到期|效期|時間|日)|無到期|不限期|永久/i.test(text);
   let finalDate = parsedDate;
   let hasEndDate = true;
+  let autoInferred = null;
 
   if (isElapsedExplicit) {
     hasEndDate = false;
     finalDate = null;
   } else if (!finalDate) {
-    if (/鮮奶|牛奶|鮮乳/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/蔬菜|青菜/.test(text)) finalDate = formatDate(offsetDays(baseDate, 5));
-    else if (/水果|木瓜|蘋果|香蕉|芭樂|西瓜|芒果/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/機油/.test(text)) finalDate = formatDate(offsetDays(baseDate, 180));
-    else if (/會議|開會|研討會/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/貓.*出生|貓.*誕生/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/訂閱|續約|netflix|spotify|disney|youtube|軟體|月費/.test(text)) finalDate = formatDate(offsetDays(baseDate, 30));
-    else {
-      // 智慧輸入未設定到期時間，自動切換為「謹記使用天數」模式
+    autoInferred = inferItemLifespanOrUsageDate(refinedName, category, subCategory, baseDate);
+    if (autoInferred.hasEndDate && autoInferred.expiryDate) {
+      hasEndDate = true;
+      finalDate = autoInferred.expiryDate;
+    } else {
       hasEndDate = false;
       finalDate = null;
     }
@@ -965,12 +1397,6 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
     parsedStartDate = formatDate(offsetDays(baseDate, -2));
   }
 
-  // G. 智慧分類與細項項目自動對應 (若無對應則自動選 other 其他)
-  const matched = matchCategoryAndSubCategory(text + ' ' + refinedName, 'other');
-  const category = matched.category || 'other';
-  const subCategory = matched.subCategory || '';
-  const emoji = matched.emoji || '📌';
-
   const finalWarnDays = hasEndDate ? (remindDaysBefore !== null ? remindDaysBefore : 3) : -1;
   const finalRemindTime = parsedTime || '15:00';
   const calculatedReminderDate = (hasEndDate && finalDate && finalWarnDays >= 0)
@@ -988,6 +1414,7 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
     hasEndDate: hasEndDate,
     mode: hasEndDate ? 'expiry' : 'elapsed',
     expiryDate: finalDate,
+    autoInferred: autoInferred,
     remindDaysBefore: finalWarnDays,
     remindTime: finalRemindTime,
     hasCustomTime: parsedTime !== null,
@@ -1094,23 +1521,28 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
   }
 
   // 4. 處理新增 (CREATE)
+  const cleanName = extractCleanName(text);
+
+  // 分類與細項項目自動對應（若無對應則預設選 other 其他）
+  const matched = matchCategoryAndSubCategory(text + ' ' + cleanName, 'other');
+  const category = matched.category || 'other';
+  const subCategory = matched.subCategory || '';
+  const emoji = matched.emoji || '📌';
+
   const isElapsedExplicit = /(?:謹記|僅記|記|紀錄|記錄)?\s*(?:使用天數|陪伴天數|天數)|不設(?:定)?(?:到期|效期|時間|日)|無到期|不限期|永久/i.test(text);
   let finalDate = parsedDate;
   let hasEndDate = true;
+  let autoInferred = null;
 
   if (isElapsedExplicit) {
     hasEndDate = false;
     finalDate = null;
   } else if (!finalDate) {
-    if (/鮮奶|牛奶|鮮乳/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/蔬菜|青菜/.test(text)) finalDate = formatDate(offsetDays(baseDate, 5));
-    else if (/水果|木瓜|蘋果|香蕉|芭樂|西瓜|芒果/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/機油/.test(text)) finalDate = formatDate(offsetDays(baseDate, 180));
-    else if (/會議|開會|研討會/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/貓.*出生|貓.*誕生/.test(text)) finalDate = formatDate(offsetDays(baseDate, 7));
-    else if (/訂閱|續約|netflix|spotify|disney|youtube|軟體|月費/.test(text)) finalDate = formatDate(offsetDays(baseDate, 30));
-    else {
-      // 智慧輸入未設定到期時間，自動切換為「謹記使用天數」模式
+    autoInferred = inferItemLifespanOrUsageDate(cleanName, category, subCategory, baseDate);
+    if (autoInferred.hasEndDate && autoInferred.expiryDate) {
+      hasEndDate = true;
+      finalDate = autoInferred.expiryDate;
+    } else {
       hasEndDate = false;
       finalDate = null;
     }
@@ -1140,14 +1572,6 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
     parsedStartDate = formatDate(offsetDays(baseDate, -2));
   }
 
-  const cleanName = extractCleanName(text);
-
-  // 分類與細項項目自動對應（若無對應則預設選 other 其他）
-  const matched = matchCategoryAndSubCategory(text + ' ' + cleanName, 'other');
-  const category = matched.category || 'other';
-  const subCategory = matched.subCategory || '';
-  const emoji = matched.emoji || '📌';
-
   const finalWarnDays = hasEndDate ? defaultWarnDays : -1;
   const finalRemindTime = parsedTime || '15:00';
   const calculatedReminderDate = (hasEndDate && finalDate && finalWarnDays >= 0)
@@ -1165,6 +1589,7 @@ function parseNaturalInput(rawInput, baseDate = new Date(), existingItems = [], 
     hasEndDate: hasEndDate,
     mode: hasEndDate ? 'expiry' : 'elapsed',
     expiryDate: finalDate,
+    autoInferred: autoInferred,
     remindDaysBefore: finalWarnDays,
     remindTime: finalRemindTime,
     hasCustomTime: parsedTime !== null,
@@ -1295,7 +1720,7 @@ function updateItemByNlp(targetId, updates) {
 }
 
 // ==========================================
-// 7.5 卡片效期狀態與進度條判定模組 (v1.8.6)
+// 7.5 卡片效期狀態與進度條判定模組 (v1.8.7)
 // ==========================================
 /**
  * 依據效期嚴格三段天數判定，直接透過 JavaScript 計算並設定 progressBarFill 的 backgroundColor 與 width
@@ -1487,586 +1912,55 @@ function getItemStatusConfig(item, todayStr) {
 }
 
 
-// ==========================================
-// 7.6 智慧鏡頭雙軌並行分析引擎 (MobileNet 視覺外觀 + Tesseract OCR 文字校驗) v1.8.6
-// ==========================================
 
 const CATEGORY_MAP_TO_KEY = {
   '食品': 'food', 'food': 'food',
+  '飲品': 'drinks', 'drinks': 'drinks', '飲料': 'drinks', '咖啡': 'drinks', '茶': 'drinks', '酒': 'drinks',
+  '零食': 'snack', 'snack': 'snack', '點心': 'snack', '餅乾': 'snack',
+  '生鮮': 'fresh', 'fresh': 'fresh', '生鮮冷凍': 'fresh', '肉品': 'fresh', '海鮮': 'fresh',
+  '藥品': 'medicine', 'medicine': 'medicine',
+  '保健': 'supplement', 'supplement': 'supplement', '保健品': 'supplement', '營養品': 'supplement',
+  '美妝': 'beauty', 'beauty': 'beauty', '護膚': 'beauty', '保養': 'beauty', '化妝品': 'beauty',
   '清潔': 'cleaning', 'cleaning': 'cleaning',
   '保固': 'warranty', 'warranty': 'warranty',
   '耗材': 'filter', 'filter': 'filter',
-  '藥品': 'medicine', 'medicine': 'medicine',
+  '數位': 'digital', 'digital': 'digital', '3c': 'digital', '電子': 'digital',
+  '文具': 'stationery', 'stationery': 'stationery', '圖書': 'stationery', '書籍': 'stationery',
+  '運動': 'sports', 'sports': 'sports', '健身': 'sports',
+  '五金': 'tools', 'tools': 'tools', '修繕': 'tools', '工具': 'tools',
   '其他': 'other', 'other': 'other',
   '車輛': 'vehicle', 'vehicle': 'vehicle',
   '訂閱': 'subscription', 'subscription': 'subscription',
-  '日化開封': 'pao', 'pao': 'pao',
+  '日化開封': 'pao', 'pao': 'pao', '日用': 'pao', '日用品': 'pao',
   '寵物': 'pet', 'pet': 'pet',
   '母嬰': 'baby', 'baby': 'baby',
   '辦公': 'office', 'office': 'office',
   '戶外': 'outdoor', 'outdoor': 'outdoor',
   '居家': 'home', 'home': 'home',
-  '穿搭': 'fashion', 'fashion': 'fashion'
+  '穿搭': 'fashion', 'fashion': 'fashion',
+  '動畫': 'animation', 'animation': 'animation',
+  '漫畫': 'animation', 'comic': 'animation',
+  '遊戲': 'game', 'game': 'game',
+  '二次元': 'otaku', 'otaku': 'otaku',
+  '票券': 'ticket', 'ticket': 'ticket',
+  '票券/活動': 'ticket'
 };
 
 function normalizeCategoryKey(cat) {
-  if (!cat) return 'food';
+  if (!cat) return 'other';
   const str = String(cat).trim().toLowerCase();
-  return CATEGORY_MAP_TO_KEY[str] || CATEGORY_MAP_TO_KEY[cat] || 'food';
+  return CATEGORY_MAP_TO_KEY[str] || CATEGORY_MAP_TO_KEY[cat] || 'other';
 }
 
-/**
- * 本地外觀特徵庫與自動分類字典 (VISUAL_APPEARANCE_DICT)
- * 涵蓋 ImageNet 常見外觀類別並直接綁定中文品名、預設分類與預設天數
- */
-const VISUAL_APPEARANCE_DICT = [
-  // 1. 蔬果與生鮮（依靠外觀形體）
-  {
-    keywords: ['banana'],
-    name: '香蕉',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '水果',
-    defaultDays: 5,
-    emoji: '🍌',
-    isContainer: false
-  },
-  {
-    keywords: ['granny smith', 'apple'],
-    name: '蘋果',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '水果',
-    defaultDays: 14,
-    emoji: '🍎',
-    isContainer: false
-  },
-  {
-    keywords: ['orange', 'lemon', 'citrus'],
-    name: '柑橘/檸檬',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '水果',
-    defaultDays: 14,
-    emoji: '🍊',
-    isContainer: false
-  },
-  {
-    keywords: ['bell pepper', 'broccoli', 'cauliflower', 'cucumber', 'zucchini', 'cabbage'],
-    name: '新鮮蔬菜',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '生鮮',
-    defaultDays: 5,
-    emoji: '🥦',
-    isContainer: false
-  },
-  {
-    keywords: ['bakery', 'french loaf', 'bagel', 'bread', 'baguette'],
-    name: '麵包/土司',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '烘焙',
-    defaultDays: 3,
-    emoji: '🍞',
-    isContainer: false
-  },
-
-  // 2. 瓶罐容器與清潔用品（依靠瓶身外觀）
-  {
-    keywords: ['lotion', 'soap dispenser', 'sunscreen', 'lotion bottle', 'spray'],
-    name: '瓶裝洗劑/保養品',
-    category: 'cleaning',
-    categoryLabel: '清潔',
-    subCategory: '衛浴保養',
-    defaultDays: 180,
-    emoji: '🧴',
-    isContainer: true
-  },
-  {
-    keywords: ['pill bottle', 'medicine bottle', 'prescription bottle'],
-    name: '藥罐/保健品',
-    category: 'medicine',
-    categoryLabel: '藥品',
-    subCategory: '常備藥品',
-    defaultDays: 180,
-    emoji: '💊',
-    isContainer: true
-  },
-  {
-    keywords: ['water bottle', 'pop bottle', 'beer bottle', 'wine bottle', 'bottle'],
-    name: '瓶裝飲料',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '飲品',
-    defaultDays: 30,
-    emoji: '🍾',
-    isContainer: true
-  },
-  {
-    keywords: ['can', 'tin', 'tin can', 'canned'],
-    name: '罐頭/鐵罐',
-    category: 'food',
-    categoryLabel: '食品',
-    subCategory: '乾貨',
-    defaultDays: 180,
-    emoji: '🥫',
-    isContainer: true
-  },
-
-  // 3. 3C、家電與居家耗材（依靠外觀結構）
-  {
-    keywords: ['laptop', 'notebook', 'laptop computer'],
-    name: '筆記型電腦',
-    category: 'warranty',
-    categoryLabel: '保固',
-    subCategory: '電腦',
-    defaultDays: 365,
-    emoji: '💻',
-    isContainer: false
-  },
-  {
-    keywords: ['cellular telephone', 'ipod', 'mobile phone', 'cellphone', 'smartphone'],
-    name: '手機/電子產品',
-    category: 'warranty',
-    categoryLabel: '保固',
-    subCategory: '3C產品',
-    defaultDays: 365,
-    emoji: '📱',
-    isContainer: false
-  },
-  {
-    keywords: ['mouse', 'computer mouse', 'keyboard', 'typewriter keyboard', 'space bar'],
-    name: '電腦周邊耗材',
-    category: 'filter',
-    categoryLabel: '耗材',
-    subCategory: '周邊',
-    defaultDays: 180,
-    emoji: '⌨️',
-    isContainer: false
-  },
-  {
-    keywords: ['coffee mug', 'cup', 'mug'],
-    name: '馬克杯/杯具',
-    category: 'other',
-    categoryLabel: '其他',
-    subCategory: '生活日用',
-    defaultDays: 365,
-    emoji: '☕',
-    isContainer: false
-  }
-];
-
-let mobileNetModel = null;
-let isMobileNetLoading = false;
-
-/**
- * 非同步初始化本地 MobileNet 視覺模型
- */
-async function initMobileNet() {
-  if (mobileNetModel) return mobileNetModel;
-  if (typeof window === 'undefined') return null;
-  if (!window.mobilenet) return null;
-  if (isMobileNetLoading) {
-    while (isMobileNetLoading) {
-      await new Promise(r => setTimeout(r, 100));
-    }
-    return mobileNetModel;
-  }
-  isMobileNetLoading = true;
-  try {
-    console.log('[Vision] 正在載入本地 MobileNet 視覺辨識模型...');
-    mobileNetModel = await window.mobilenet.load({ version: 2, alpha: 1.0 });
-    console.log('[Vision] ✅ MobileNet 視覺模型載入就緒！');
-    return mobileNetModel;
-  } catch (err) {
-    console.warn('[Vision] MobileNet 模型載入失敗或處於離線環境：', err);
-    return null;
-  } finally {
-    isMobileNetLoading = false;
-  }
+if (typeof window !== "undefined") {
+ Object.assign(window, { initModel, updateNerStatus, parseWithLocalNER, parseNaturalInput, parseNaturalInputAsync, matchCategoryAndSubCategory, inferItemLifespanOrUsageDate, SMART_KEYWORD_MAP, extractTime, extractDate, extractCleanName, simplifyItemName, renderProgressBar, getItemStatusConfig, DEFAULT_CATEGORIES, SUB_CATEGORY_CONFIG, CATEGORY_MAP_TO_KEY, normalizeCategoryKey });
+ window.applyProgressBarStatus = renderProgressBar;
 }
 
-/**
- * 軌道一：視覺外觀辨識引擎
- * mobilenet.classify(img, 5)（擷取前 5 大可能的外觀特徵與信心度）
- */
-async function classifyImageVisual(imgSource) {
-  try {
-    const model = await initMobileNet();
-    if (!model || typeof model.classify !== 'function') {
-      return [];
-    }
-    const predictions = await model.classify(imgSource, 5);
-    return Array.isArray(predictions) ? predictions : [];
-  } catch (err) {
-    console.warn('[Vision] classifyImageVisual 執行異常：', err);
-    return [];
-  }
-}
-
-/**
- * 從字串中精確提取有效日期格式 (YYYY-MM-DD)
- */
-function extractDateFromText(text) {
-  if (!text || typeof text !== 'string') return null;
-
-  // 1. 標準日期格式：YYYY[-/.年]MM[-/.月]DD[日]?
-  const stdDateRegex = /(?:EXP|有效|到期|保存|BEST\s*BEFORE|USE\s*BY)?\s*[:.]?\s*(202\d[-/.年]\d{1,2}[-/.月]\d{1,2}日?)/i;
-  const match1 = text.match(stdDateRegex);
-  if (match1) {
-    const raw = match1[1].replace(/[年月]/g, '-').replace(/日/g, '').replace(/\./g, '-').replace(/\//g, '-').trim();
-    const parts = raw.split('-');
-    if (parts.length === 3) {
-      const y = parts[0];
-      const m = String(parseInt(parts[1], 10)).padStart(2, '0');
-      const d = String(parseInt(parts[2], 10)).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    }
-  }
-
-  // 2. 8位連號格式 (如 20260920)
-  const num8Match = text.match(/(?:EXP|有效|到期|保存)?\s*[:.]?\s*(202\d)(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])/i);
-  if (num8Match) {
-    return `${num8Match[1]}-${num8Match[2]}-${num8Match[3]}`;
-  }
-
-  // 3. 雙位數年日月 (如 26.10.15, 26/10/15)
-  const shortYearMatch = text.match(/(?:EXP|有效|到期)?\s*[:.]?\s*([2-3]\d)[-/.](0[1-9]|1[0-2])[-/.](0[1-9]|[12]\d|3[01])/i);
-  if (shortYearMatch) {
-    return `20${shortYearMatch[1]}-${shortYearMatch[2]}-${shortYearMatch[3]}`;
-  }
-
-  // 4. 日/月/年格式 (如 15/10/2026, 15-10-2026)
-  const dmyMatch = text.match(/([0-2]\d|3[01])[-/.](0[1-9]|1[0-2])[-/.](202\d)/);
-  if (dmyMatch) {
-    return `${dmyMatch[3]}-${dmyMatch[2]}-${dmyMatch[1]}`;
-  }
-
-  return null;
-}
-
-/**
- * 軌道二：文字與效期掃描引擎 (Tesseract OCR + 原生 TextDetector/BarcodeDetector)
- */
-async function runTextAndDateOcr(imgSource) {
-  let text = '';
-  let barcode = null;
-
-  // 1. Tesseract.js OCR (支援離線與中英雙語)
-  if (typeof window !== 'undefined' && window.Tesseract) {
-    try {
-      console.log('[OCR] 正在執行 Tesseract OCR 文字辨識...');
-      const ocrResult = await window.Tesseract.recognize(imgSource, 'chi_tra+eng', {
-        logger: () => {}
-      });
-      if (ocrResult && ocrResult.data && ocrResult.data.text) {
-        text += ' ' + ocrResult.data.text;
-      }
-    } catch (tessErr) {
-      console.warn('[OCR] Tesseract 執行異常，嘗試降級原生識別器：', tessErr);
-    }
-  }
-
-  // 2. 原生 TextDetector (若環境支援)
-  if (typeof window !== 'undefined' && typeof window.TextDetector === 'function') {
-    try {
-      const textDetector = new window.TextDetector();
-      const detected = await textDetector.detect(imgSource);
-      if (detected && detected.length > 0) {
-        text += ' ' + detected.map(t => t.rawValue).join(' ');
-      }
-    } catch (tdErr) {
-      console.warn('[OCR] 原生 TextDetector 異常：', tdErr);
-    }
-  }
-
-  // 3. 原生 BarcodeDetector (條碼/QR Code 輔助)
-  if (typeof window !== 'undefined' && typeof window.BarcodeDetector === 'function') {
-    try {
-      const barcodeDetector = new window.BarcodeDetector({
-        formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'data_matrix']
-      });
-      const barcodes = await barcodeDetector.detect(imgSource);
-      if (barcodes && barcodes.length > 0) {
-        barcode = barcodes[0].rawValue;
-      }
-    } catch (bcErr) {
-      console.warn('[Barcode] 原生 BarcodeDetector 異常：', bcErr);
-    }
-  }
-
-  text = text.trim();
-  const detectedDate = extractDateFromText(text + (barcode ? ' ' + barcode : ''));
-
-  return { text, date: detectedDate, barcode };
-}
-
-/**
- * 【三、外觀與文字決策融合演算法（Fusion Logic）】
- * 依據雙軌回傳的資料自動計算最終品名、分類與到期天數
- */
-function fuseVisualAndOcrDecision(visualPredictions, ocrData, existingItems = []) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // 1. 檢視視覺辨識前 5 大結果命中外觀特徵庫的情況
-  let topVisualMatch = null;
-  let topVisualConfidence = 0;
-  let topVisualClassName = '';
-
-  if (Array.isArray(visualPredictions)) {
-    let bestKwLength = 0;
-    for (const pred of visualPredictions) {
-      const clsName = (pred.className || '').toLowerCase();
-      const prob = typeof pred.probability === 'number' ? pred.probability : 0;
-      for (const dictItem of VISUAL_APPEARANCE_DICT) {
-        for (const kw of dictItem.keywords) {
-          const kwLower = kw.toLowerCase();
-          if (clsName.includes(kwLower)) {
-            // 優先考慮信心度較高者；同等/接近信心度下以最長特徵關鍵字為準 (如 pill bottle 優於 generic bottle)
-            if (prob > topVisualConfidence || (Math.abs(prob - topVisualConfidence) < 0.05 && kwLower.length > bestKwLength)) {
-              topVisualConfidence = prob;
-              bestKwLength = kwLower.length;
-              topVisualMatch = dictItem;
-              topVisualClassName = pred.className;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // 2. 檢視 OCR 掃描到的文字中是否含有特定商品、品牌或中文關鍵字
-  const ocrText = (ocrData && ocrData.text) ? String(ocrData.text).trim() : '';
-  const ocrBarcode = (ocrData && ocrData.barcode) ? String(ocrData.barcode).trim() : '';
-  let ocrKeywordMatch = null;
-  let ocrMatchedWord = '';
-
-  if (ocrText) {
-    const ocrLower = ocrText.toLowerCase();
-    let maxKwLen = 0;
-    for (const mapItem of SMART_KEYWORD_MAP) {
-      for (const kw of mapItem.keywords) {
-        const kwLower = kw.toLowerCase();
-        if (ocrLower.includes(kwLower)) {
-          if (kwLower.length > maxKwLen) {
-            maxKwLen = kwLower.length;
-            ocrKeywordMatch = mapItem;
-            ocrMatchedWord = kw;
-          }
-        }
-      }
-    }
-  }
-
-  // 3. 期限判定：若 OCR 掃到印刷日期，優先採用印刷日期
-  let finalDate = (ocrData && ocrData.date) ? ocrData.date : extractDateFromText(ocrText + ' ' + ocrBarcode);
-
-  let finalName = '';
-  let finalCategory = 'food';
-  let finalSubCategory = '';
-  let finalEmoji = '📌';
-  let defaultDays = 7;
-  let fusionMode = 'fallback';
-
-  // 【決策分支 2】：若外觀辨識出容器種類（如 lotion / bottle / can / pill bottle），且 OCR 同步掃到品牌或產品字樣（如「洗髮精」、「醬油」）
-  if (topVisualMatch && topVisualMatch.isContainer && ocrMatchedWord) {
-    fusionMode = 'container_ocr_fusion';
-    finalName = ocrMatchedWord;
-
-    // 若外觀為清潔瓶身 (lotion/soap dispenser)，分類統一遵循外觀特徵庫為 'cleaning' (清潔)
-    if (topVisualMatch.category === 'cleaning') {
-      finalCategory = 'cleaning';
-      finalSubCategory = topVisualMatch.subCategory || (ocrKeywordMatch ? ocrKeywordMatch.subCat : '衛浴保養');
-      defaultDays = topVisualMatch.defaultDays; // 180
-    } else if (topVisualMatch.category === 'medicine') {
-      finalCategory = 'medicine';
-      finalSubCategory = topVisualMatch.subCategory || '常備藥品';
-      defaultDays = topVisualMatch.defaultDays; // 180
-    } else if (ocrKeywordMatch && ocrKeywordMatch.cat) {
-      finalCategory = ocrKeywordMatch.cat;
-      finalSubCategory = ocrKeywordMatch.subCat || topVisualMatch.subCategory;
-      defaultDays = (ocrKeywordMatch.duration && ocrKeywordMatch.duration > 0) ? ocrKeywordMatch.duration : topVisualMatch.defaultDays;
-    } else {
-      finalCategory = topVisualMatch.category;
-      finalSubCategory = topVisualMatch.subCategory;
-      defaultDays = topVisualMatch.defaultDays;
-    }
-    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : topVisualMatch.emoji;
-  }
-  // 【決策分支 1】：若外觀特徵命中率高（置信度 > 0.35），且圖片中無明顯中文品名
-  else if (topVisualMatch && topVisualConfidence > 0.35 && !ocrMatchedWord) {
-    fusionMode = 'visual_priority';
-    finalName = topVisualMatch.name;
-    finalCategory = topVisualMatch.category;
-    finalSubCategory = topVisualMatch.subCategory;
-    finalEmoji = topVisualMatch.emoji;
-    defaultDays = topVisualMatch.defaultDays;
-  }
-  // 【決策分支 3】：若 OCR 掃到明確中文品名，但外觀非容器或信心度較低
-  else if (ocrMatchedWord) {
-    fusionMode = 'ocr_priority';
-    finalName = ocrMatchedWord;
-    finalCategory = ocrKeywordMatch ? ocrKeywordMatch.cat : 'food';
-    finalSubCategory = ocrKeywordMatch ? ocrKeywordMatch.subCat : '';
-    finalEmoji = ocrKeywordMatch ? ocrKeywordMatch.emoji : '📌';
-    defaultDays = 14;
-  }
-  // 【決策分支 4】：外觀特徵有命中但置信度 <= 0.35 且無 OCR 品名
-  else if (topVisualMatch) {
-    fusionMode = 'visual_low_confidence';
-    finalName = topVisualMatch.name;
-    finalCategory = topVisualMatch.category;
-    finalSubCategory = topVisualMatch.subCategory;
-    finalEmoji = topVisualMatch.emoji;
-    defaultDays = topVisualMatch.defaultDays;
-  }
-  // 【決策分支 5】：檢查條碼比對現有庫存
-  else if (ocrBarcode) {
-    fusionMode = 'barcode_match';
-    const existing = Array.isArray(existingItems) ? existingItems.find(i => (i.notes && i.notes.includes(ocrBarcode)) || i.name.includes(ocrBarcode)) : null;
-    if (existing) {
-      finalName = existing.name;
-      finalCategory = existing.category;
-      finalSubCategory = existing.subCategory || '';
-      finalEmoji = existing.emoji || '📦';
-      defaultDays = 14;
-    } else {
-      finalName = `物品 ${ocrBarcode}`;
-      finalCategory = 'food';
-      defaultDays = 30;
-    }
-  }
-  // 【決策分支 6】：完全無特徵之預設降級
-  else {
-    fusionMode = 'default_fallback';
-    finalName = '拍攝物品';
-    finalCategory = 'food';
-    defaultDays = 7;
-    finalEmoji = '📷';
-  }
-
-  // 期限判定：若無印刷日期，自動採用外觀特徵庫指定的預設保存天數（如麵包 +3 天、水果 +7 天、保養瓶罐 +180 天）
-  if (!finalDate) {
-    finalDate = formatDate(offsetDays(today, defaultDays));
-  }
-
-  finalCategory = normalizeCategoryKey(finalCategory);
-
-  return {
-    success: true,
-    name: finalName,
-    category: finalCategory,
-    subCategory: finalSubCategory,
-    emoji: finalEmoji,
-    expiryDate: finalDate,
-    hasEndDate: true,
-    remindDaysBefore: 3,
-    confidence: topVisualConfidence,
-    visualMatch: topVisualMatch ? topVisualMatch.name : null,
-    fusionMode,
-    visualPredictions: visualPredictions || [],
-    ocrText: ocrText
-  };
-}
-
-/**
- * 智慧鏡頭雙軌並行融合分析入口
- * 使用 Promise.all 同步啟動視覺外觀 (MobileNet) 與 文字效期 (Tesseract OCR)
- */
-async function analyzeSmartCameraDualTrack(imageSource, photoDataUrl) {
-  const [visualPredictions, ocrData] = await Promise.all([
-    classifyImageVisual(imageSource),
-    runTextAndDateOcr(imageSource)
-  ]);
-
-  const itemsList = (typeof window !== 'undefined' && window.getItems) ? window.getItems() : [];
-  const fused = fuseVisualAndOcrDecision(visualPredictions, ocrData, itemsList);
-
-  if (photoDataUrl) {
-    fused.image = photoDataUrl;
-  }
-  if (ocrData && ocrData.barcode && !fused.notes) {
-    fused.notes = `條碼: ${ocrData.barcode}`;
-  }
-
-  return fused;
-}
-
-// ==========================================
-// 8. 全域掛載與自啟動
-// ==========================================
-if (typeof window !== 'undefined') {
-  window.nerPipeline = nerPipeline;
-  window.initModel = initModel;
-  window.updateNerStatus = updateNerStatus;
-  window.parseWithLocalNER = parseWithLocalNER;
-  window.parseNaturalInput = parseNaturalInput;
-  window.parseNaturalInputAsync = parseNaturalInputAsync;
-  window.matchCategoryAndSubCategory = matchCategoryAndSubCategory;
-  window.SMART_KEYWORD_MAP = SMART_KEYWORD_MAP;
-  window.extractTime = extractTime;
-  window.extractDate = extractDate;
-  window.extractCleanName = extractCleanName;
-  window.simplifyItemName = simplifyItemName;
-  window.addItem = addItem;
-  window.updateItemByNlp = updateItemByNlp;
-  window.renderProgressBar = renderProgressBar;
-  window.renderCardProgressBar = renderProgressBar;
-  window.applyProgressBarStatus = renderProgressBar;
-  window.getItemStatusConfig = getItemStatusConfig;
-  window.VISUAL_APPEARANCE_DICT = VISUAL_APPEARANCE_DICT;
-  window.CATEGORY_MAP_TO_KEY = CATEGORY_MAP_TO_KEY;
-  window.normalizeCategoryKey = normalizeCategoryKey;
-  window.initMobileNet = initMobileNet;
-  window.classifyImageVisual = classifyImageVisual;
-  window.extractDateFromText = extractDateFromText;
-  window.runTextAndDateOcr = runTextAndDateOcr;
-  window.fuseVisualAndOcrDecision = fuseVisualAndOcrDecision;
-  window.analyzeSmartCameraDualTrack = analyzeSmartCameraDualTrack;
-  window.getLastCreatedItem = () => lastCreatedItem;
-  window.setLastCreatedItem = (item) => { lastCreatedItem = item; };
-
-  // DOM 載入後自動嘗試啟動非同步模型初始化
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      initModel();
-    });
-  } else {
-    initModel();
-  }
-}
-
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = {
-    initModel,
-    updateNerStatus,
-    parseWithLocalNER,
-    parseNaturalInput,
-    parseNaturalInputAsync,
-    matchCategoryAndSubCategory,
-    SMART_KEYWORD_MAP,
-    extractTime,
-    extractDate,
-    extractCleanName,
-    simplifyItemName,
-    addItem,
-    updateItemByNlp,
-    renderProgressBar,
-    renderCardProgressBar: renderProgressBar,
-    applyProgressBarStatus: renderProgressBar,
-    getItemStatusConfig,
-    VISUAL_APPEARANCE_DICT,
-    CATEGORY_MAP_TO_KEY,
-    normalizeCategoryKey,
-    initMobileNet,
-    classifyImageVisual,
-    extractDateFromText,
-    runTextAndDateOcr,
-    fuseVisualAndOcrDecision,
-    analyzeSmartCameraDualTrack,
-    getLastCreatedItem: () => lastCreatedItem,
-    setLastCreatedItem: (item) => { lastCreatedItem = item; }
+    initModel, updateNerStatus, parseWithLocalNER, parseNaturalInput, parseNaturalInputAsync, matchCategoryAndSubCategory, inferItemLifespanOrUsageDate, SMART_KEYWORD_MAP, extractTime, extractDate, extractCleanName, simplifyItemName, renderProgressBar, getItemStatusConfig, DEFAULT_CATEGORIES, SUB_CATEGORY_CONFIG, CATEGORY_MAP_TO_KEY, normalizeCategoryKey
   };
 }
+
+
