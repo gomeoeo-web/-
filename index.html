@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.9.13">
+  <link rel="stylesheet" href="style.css?v=1.9.14">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -2033,6 +2033,12 @@ body {
   touch-action: pan-x pan-y;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-item-card * {
+  pointer-events: none;
 }
 
 .ios-item-card:active {
@@ -7439,7 +7445,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 }
 
 </style>
-<script src="icons.js?v=1.9.13"></script>
+<script src="icons.js?v=1.9.14"></script>
 <style>
 /* Flat icon system: consistent silhouettes, no gradients, highlights or shadows. */
 .flat-item-icon {color:color-mix(in srgb,var(--icon-color) 70%,white);width:24px;height:24px;flex-shrink:0;vertical-align:middle;filter:none!important;}
@@ -7566,6 +7572,18 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 .view-panel { transition:none; }
 .views-slider-viewport.is-swiping .ios-item-card,
 .views-slider-viewport.is-swiping .pending-card { animation:none!important; }
+
+/* iOS & 行動裝置按鈕觸控優化：消除 300ms 延遲與防止子元素截斷點擊事件 */
+button, [role="button"], .dock-tab, .category-chip, .home-filter-btn, .btn-sheet-action, .sheet-action-btn, .btn-circle-dark, .btn-modal-close, .ios-fab-btn, .fab-add-btn, .floating-btn, .history-header-toggle, .settings-row-btn, .tag-chip, .quick-tag-chip, .mode-pill, .custom-cat-row-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, .btn-sheet-action *, .sheet-action-btn *, .btn-circle-dark *, .btn-modal-close *, .ios-fab-btn *, .fab-add-btn *, .floating-btn *, .history-header-toggle *, .settings-row-btn *, .tag-chip *, .quick-tag-chip *, .mode-pill *, .custom-cat-row-btn * {
+  pointer-events: none;
+}
 </style></head>
 <body>
   <div class="ios-app-container">
@@ -8266,7 +8284,7 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.13</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.14</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -9783,7 +9801,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.9.13';
+  const APP_VERSION = '1.9.14';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -10690,6 +10708,8 @@ var CapacitorBridgeBundle = (() => {
   let searchQuery = '';
   let activeSheetItemId = null;
   let hasSwipedHorizontally = false;
+  let lastCardTapTimestamp = 0;
+  let lastActionSheetOpenedAt = 0;
   let lastCreatedItem = null; // 最近一筆新增或編輯之物品快取 (Context Continuity)
   const GEMINI_API_KEY_STORAGE = 'lifespan_gemini_api_key';
 
@@ -11766,12 +11786,14 @@ var CapacitorBridgeBundle = (() => {
 
       let cardTouchStartX = 0;
       let cardTouchStartY = 0;
+      let cardTouchStartTime = 0;
       let cardMoved = false;
 
       card.addEventListener('touchstart', function (e) {
         if (e.touches && e.touches.length === 1) {
           cardTouchStartX = e.touches[0].clientX;
           cardTouchStartY = e.touches[0].clientY;
+          cardTouchStartTime = Date.now();
           cardMoved = false;
         }
       }, { passive: true });
@@ -11780,13 +11802,35 @@ var CapacitorBridgeBundle = (() => {
         if (e.touches && e.touches.length === 1) {
           const dx = Math.abs(e.touches[0].clientX - cardTouchStartX);
           const dy = Math.abs(e.touches[0].clientY - cardTouchStartY);
-          if (dx > 8 || dy > 8) {
+          if (Math.hypot(dx, dy) > 18 || (dx > 20 && dx > dy * 1.5)) {
             cardMoved = true;
           }
         }
       }, { passive: true });
 
+      card.addEventListener('touchend', function (e) {
+        if (cardMoved || hasSwipedHorizontally) {
+          cardMoved = false;
+          return;
+        }
+        const touchDuration = Date.now() - cardTouchStartTime;
+        if (touchDuration < 500 && e.changedTouches && e.changedTouches.length === 1) {
+          const touch = e.changedTouches[0];
+          const dx = Math.abs(touch.clientX - cardTouchStartX);
+          const dy = Math.abs(touch.clientY - cardTouchStartY);
+          if (Math.hypot(dx, dy) < 18) {
+            lastCardTapTimestamp = Date.now();
+            openActionSheet(item.id);
+          }
+        }
+        cardMoved = false;
+      }, { passive: true });
+
       card.addEventListener('click', function (e) {
+        if (Date.now() - lastCardTapTimestamp < 450) {
+          e.stopPropagation();
+          return;
+        }
         if (hasSwipedHorizontally || cardMoved) {
           cardMoved = false;
           return;
@@ -12283,14 +12327,26 @@ var CapacitorBridgeBundle = (() => {
       metricSubEl.style.setProperty('color', metricTextColor, 'important');
     }
 
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', '管理物品 ' + (item.name || '未命名物品'));
+    card.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openActionSheet(item.id);
+      }
+    });
+
     let cardTouchStartX = 0;
     let cardTouchStartY = 0;
+    let cardTouchStartTime = 0;
     let cardMoved = false;
 
     card.addEventListener('touchstart', function (e) {
       if (e.touches && e.touches.length === 1) {
         cardTouchStartX = e.touches[0].clientX;
         cardTouchStartY = e.touches[0].clientY;
+        cardTouchStartTime = Date.now();
         cardMoved = false;
       }
     }, { passive: true });
@@ -12299,13 +12355,35 @@ var CapacitorBridgeBundle = (() => {
       if (e.touches && e.touches.length === 1) {
         const dx = Math.abs(e.touches[0].clientX - cardTouchStartX);
         const dy = Math.abs(e.touches[0].clientY - cardTouchStartY);
-        if (dx > 8 || dy > 8) {
+        if (Math.hypot(dx, dy) > 18 || (dx > 20 && dx > dy * 1.5)) {
           cardMoved = true;
         }
       }
     }, { passive: true });
 
+    card.addEventListener('touchend', function (e) {
+      if (cardMoved || hasSwipedHorizontally) {
+        cardMoved = false;
+        return;
+      }
+      const touchDuration = Date.now() - cardTouchStartTime;
+      if (touchDuration < 500 && e.changedTouches && e.changedTouches.length === 1) {
+        const touch = e.changedTouches[0];
+        const dx = Math.abs(touch.clientX - cardTouchStartX);
+        const dy = Math.abs(touch.clientY - cardTouchStartY);
+        if (Math.hypot(dx, dy) < 18) {
+          lastCardTapTimestamp = Date.now();
+          openActionSheet(item.id);
+        }
+      }
+      cardMoved = false;
+    }, { passive: true });
+
     card.addEventListener('click', function (e) {
+      if (Date.now() - lastCardTapTimestamp < 450) {
+        e.stopPropagation();
+        return;
+      }
       if (hasSwipedHorizontally || cardMoved) {
         cardMoved = false;
         return;
@@ -12554,6 +12632,7 @@ var CapacitorBridgeBundle = (() => {
     const item = items.find(it => it.id === id);
     if (!item) return;
 
+    lastActionSheetOpenedAt = Date.now();
     activeSheetItemId = id;
     clearResetConfirmation();
     clearDeleteConfirmation();
@@ -12943,7 +13022,10 @@ var CapacitorBridgeBundle = (() => {
 
   btnCloseSheet.addEventListener('click', closeActionSheet);
   actionSheet.addEventListener('click', function (e) {
-    if (e.target === actionSheet) closeActionSheet();
+    if (e.target === actionSheet) {
+      if (Date.now() - lastActionSheetOpenedAt < 400) return;
+      closeActionSheet();
+    }
   });
 
   if (btnToggleHistoryCollapse && sheetHistoryList) {
@@ -14415,14 +14497,15 @@ var CapacitorBridgeBundle = (() => {
 
     settingsModalCard.addEventListener('touchmove', function (e) {
       if (e.touches.length === 1 && !settingsModal.classList.contains('modal-closing')) {
+        if (e.target.closest('button, [role="button"], a, input, select, textarea, .btn-modal-close, .settings-row-btn, .ios-btn')) return;
         const touchY = e.touches[0].clientY;
         const dy = touchY - settingsTouchStartY;
         const dx = Math.abs(e.touches[0].clientX - settingsTouchStartX);
         const isNearTop = !settingsScrollList || settingsScrollList.scrollTop <= 2;
         const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
 
-        // 當處於頂部手把/標頭，或列表滾動至頂端向下滑動時，觸發拖曳跟手下滑關閉
-        if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+        // 當處於頂部手把/標頭向下滑動時，觸發拖曳跟手下滑關閉（門檻提升至 16px，避免點按手指顫動誤觸）
+        if ((isHeaderArea || isNearTop) && dy > 16 && dy > dx * 0.8) {
           isDraggingSettings = true;
           currentSettingsDy = dy;
           if (e.cancelable) e.preventDefault();
@@ -15448,13 +15531,14 @@ var CapacitorBridgeBundle = (() => {
 
       customCatModalCard.addEventListener('touchmove', function (e) {
         if (e.touches.length === 1 && !customCategoryModal.classList.contains('modal-closing')) {
+          if (e.target.closest('button, [role="button"], a, input, select, textarea, .btn-modal-close, .category-chip, .ios-btn')) return;
           const touchY = e.touches[0].clientY;
           const dy = touchY - catTouchStartY;
           const dx = Math.abs(e.touches[0].clientX - catTouchStartX);
           const isNearTop = !customCatModalScroll || customCatModalScroll.scrollTop <= 2;
           const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
 
-          if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+          if ((isHeaderArea || isNearTop) && dy > 16 && dy > dx * 0.8) {
             isDraggingCatModal = true;
             currentCatDy = dy;
             if (e.cancelable) e.preventDefault();
@@ -16101,14 +16185,15 @@ var CapacitorBridgeBundle = (() => {
 
     actionSheetCard.addEventListener('touchmove', function (e) {
       if (e.touches.length === 1 && !isClosingSheet) {
+        if (e.target.closest('button, [role="button"], a, input, select, textarea, .btn-sheet-action, .sheet-action-btn, .btn-modal-close, .category-chip, .history-header-toggle')) return;
         const touchY = e.touches[0].clientY;
         const dy = touchY - sheetStartY;
         const dx = Math.abs(e.touches[0].clientX - sheetStartX);
         const isNearTop = actionSheetCard.scrollTop <= 4;
-        const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .sheet-header, .sheet-item-info, .sheet-metrics-grid');
+        const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .sheet-header');
 
-        // 當處於頂部區域或頂端，向下滑動即立即跟手拖拉，絕無延遲
-        if ((isHeaderArea || isNearTop) && dy > 4 && dy > dx * 0.7) {
+        // 當處於頂部手把或標頭頂端向下滑動，觸發拖曳關閉（門檻提升至 16px，避免點按手指顫動誤觸）
+        if ((isHeaderArea || isNearTop) && dy > 16 && dy > dx * 0.8) {
           isDraggingSheet = true;
           currentSheetDy = dy;
           if (e.cancelable) e.preventDefault();
@@ -16199,12 +16284,13 @@ var CapacitorBridgeBundle = (() => {
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
       touchActive = true;
+      if (!navigationInProgress) {
+        hasSwipedHorizontally = false;
+      }
       cancelAnimationFrame(navigationAnimationFrame);
       navigationAnimationFrame = 0;
-      viewsSliderViewport.style.scrollSnapType = '';
       pendingNavTab = null;
       clearTimeout(panelSwitchSettleTimer);
-      prepareIncomingPanelForSwipe();
     }, { passive: true });
 
     viewsSliderViewport.addEventListener('touchmove', event => {
@@ -16212,8 +16298,10 @@ var CapacitorBridgeBundle = (() => {
       const touch = event.touches[0];
       const dx = Math.abs(touch.clientX - touchStartX);
       const dy = Math.abs(touch.clientY - touchStartY);
-      if (dx > 6 && dx > dy) {
+      if (dx > 20 && dx > dy * 1.5) {
         hasSwipedHorizontally = true;
+        prepareIncomingPanelForSwipe();
+        viewsSliderViewport.style.scrollSnapType = '';
       }
     }, { passive: true });
 
@@ -16227,7 +16315,9 @@ var CapacitorBridgeBundle = (() => {
       if (!navigationInProgress) {
         prepareIncomingPanelForSwipe();
       }
-      hasSwipedHorizontally = true;
+      if (touchActive || isMouseDragging || navigationInProgress) {
+        hasSwipedHorizontally = true;
+      }
       scheduleCheckSettled();
     }, { passive: true });
 
@@ -16334,6 +16424,7 @@ var CapacitorBridgeBundle = (() => {
 
     window.addEventListener('touchmove', function (e) {
       if (isAnyModalOpen() || !e.touches || e.touches.length !== 1) return;
+      if (e.target && e.target.closest('.floating-island-dock')) return;
       const currentTouchY = e.touches[0].clientY;
       const touchDiff = touchStartDockY - currentTouchY;
       const currentScrollY = window.scrollY || window.pageYOffset || 0;
@@ -17874,14 +17965,15 @@ function extractCleanName(rawText) {
 
       nlpConfirmCard.addEventListener('touchmove', function (e) {
         if (e.touches.length === 1 && !modal.classList.contains('modal-closing')) {
+          if (e.target.closest('button, [role="button"], a, input, select, textarea, .btn-modal-close, .ios-btn')) return;
           const touchY = e.touches[0].clientY;
           const dy = touchY - nlpTouchStartY;
           const dx = Math.abs(e.touches[0].clientX - nlpTouchStartX);
           const isNearTop = !nlpConfirmScroll || nlpConfirmScroll.scrollTop <= 2;
           const isHeaderArea = !!e.target.closest('.sheet-drag-handle, .ios-modal-header');
 
-          // 當處於頂部手把/標頭，或內容滾動至頂端向下滑動時，觸發拖曳跟手下滑關閉
-          if ((isHeaderArea || isNearTop) && dy > 6 && dy > dx * 0.7) {
+          // 當處於頂部手把/標頭向下滑動時，觸發拖曳跟手下滑關閉（門檻提升至 16px，避免點按手指顫動誤觸）
+          if ((isHeaderArea || isNearTop) && dy > 16 && dy > dx * 0.8) {
             isDraggingNlpModal = true;
             currentNlpDy = dy;
             if (e.cancelable) e.preventDefault();
@@ -18637,6 +18729,146 @@ function extractCleanName(rawText) {
     }
   }
 
+  // ==========================================
+  // iOS & 行動裝置全域極速觸控響應引擎 (Universal Fast-Tap Touch Engine)
+  // 徹底解決 iOS Safari / WebKit 點按按鈕無反應、延遲 300ms 與幽靈點擊 (Ghost Click)
+  // ==========================================
+  (function initUniversalFastTapEngine() {
+    let fastTapTarget = null;
+    let fastTapStartX = 0;
+    let fastTapStartY = 0;
+    let fastTapStartTime = 0;
+    let fastTapMoved = false;
+    let lastFastTapElement = null;
+    let lastFastTapTime = 0;
+
+    const CLICKABLE_SELECTOR = [
+      'button',
+      '[role="button"]',
+      'a[href]',
+      'input[type="button"]',
+      'input[type="submit"]',
+      'input[type="reset"]',
+      '.dock-tab',
+      '.category-chip',
+      '.home-filter-btn',
+      '.btn-sheet-action',
+      '.sheet-action-btn',
+      '.btn-circle-dark',
+      '.btn-modal-close',
+      '.ios-fab-btn',
+      '.fab-add-btn',
+      '.floating-btn',
+      '.history-header-toggle',
+      '.settings-row-btn',
+      '.tag-chip',
+      '.quick-tag-chip',
+      '.mode-pill',
+      '.batch-item-checkbox',
+      '.cat-chip-add',
+      '.custom-cat-row-btn',
+      '[data-tab]',
+      '[data-filter]',
+      '[data-cat]'
+    ].join(',');
+
+    window.addEventListener('touchstart', function (e) {
+      if (!e.touches || e.touches.length !== 1) {
+        fastTapTarget = null;
+        return;
+      }
+      const touch = e.touches[0];
+      const el = e.target;
+      if (!el) return;
+
+      // 排除物品卡片 (物品卡片由 card.addEventListener('touchend') 專屬處理)
+      if (el.closest && el.closest('.ios-item-card')) {
+        fastTapTarget = null;
+        return;
+      }
+
+      // 排除非按鈕的文字輸入框、下拉選單等，保持其原生 focus 與鍵盤行為
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) && !['button', 'submit', 'reset', 'checkbox', 'radio'].includes(el.type)) {
+        fastTapTarget = null;
+        return;
+      }
+
+      const targetBtn = el.closest ? el.closest(CLICKABLE_SELECTOR) : null;
+      if (!targetBtn) {
+        fastTapTarget = null;
+        return;
+      }
+
+      // 檢查是否被禁用
+      if (targetBtn.disabled || targetBtn.getAttribute('aria-disabled') === 'true') {
+        fastTapTarget = null;
+        return;
+      }
+
+      fastTapTarget = targetBtn;
+      fastTapStartX = touch.clientX;
+      fastTapStartY = touch.clientY;
+      fastTapStartTime = Date.now();
+      fastTapMoved = false;
+    }, { passive: true, capture: true });
+
+    window.addEventListener('touchmove', function (e) {
+      if (!fastTapTarget || !e.touches || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - fastTapStartX);
+      const dy = Math.abs(touch.clientY - fastTapStartY);
+
+      // 位移超過容許半徑 18px 即視為滾動或滑動手勢，取消按鈕觸發
+      if (Math.hypot(dx, dy) > 18) {
+        fastTapMoved = true;
+        fastTapTarget = null;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', function (e) {
+      if (!fastTapTarget || fastTapMoved) {
+        fastTapTarget = null;
+        fastTapMoved = false;
+        return;
+      }
+
+      const touchDuration = Date.now() - fastTapStartTime;
+      if (touchDuration < 500 && e.changedTouches && e.changedTouches.length === 1) {
+        const touch = e.changedTouches[0];
+        const dx = Math.abs(touch.clientX - fastTapStartX);
+        const dy = Math.abs(touch.clientY - fastTapStartY);
+
+        if (Math.hypot(dx, dy) < 18) {
+          const btn = fastTapTarget;
+          lastFastTapElement = btn;
+          lastFastTapTime = Date.now();
+
+          // 立即同步觸發按鈕點擊，零延遲響應！
+          btn.click();
+        }
+      }
+
+      fastTapTarget = null;
+      fastTapMoved = false;
+    }, { passive: true, capture: true });
+
+    window.addEventListener('touchcancel', function () {
+      fastTapTarget = null;
+      fastTapMoved = false;
+    }, { passive: true });
+
+    // 攔截並消除 WebKit / Safari 在 300ms 後發送的延遲合成點擊 (Ghost Click)
+    window.addEventListener('click', function (e) {
+      const isRecentFastTap = (Date.now() - lastFastTapTime < 450);
+      const isRecentCardTap = (typeof lastCardTapTimestamp !== 'undefined') && (Date.now() - lastCardTapTimestamp < 450);
+      if (e.isTrusted && (isRecentFastTap || isRecentCardTap)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+    }, { capture: true });
+  })();
+
   function initApp() {
     try { renderCategoryChips(); } catch (e) { console.error(e); }
     try { populateCategorySelect(); } catch (e) { console.error(e); }
@@ -18812,8 +19044,8 @@ function extractCleanName(rawText) {
 
 </script>
 
-  <script type="module" src="app.js?v=1.9.13"></script>
-  <script type="module" src="cloud-camera.js?v=1.9.13"></script>
+  <script type="module" src="app.js?v=1.9.14"></script>
+  <script type="module" src="cloud-camera.js?v=1.9.14"></script>
 
 <script>
 // Native selects retain mobile accessibility; a shared SVG identifies the selection.
