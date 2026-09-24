@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.9.16
+ * Smart Quick Add & On-Device NER Parser v1.9.21
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -1758,20 +1758,25 @@ function updateItemByNlp(targetId, updates) {
 function renderProgressBar(progressBarFill, item) {
   if (!item) return null;
 
+  const theme = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'dark';
+  const inkGreen = typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--ink-green').trim() || '#355c50' : '#355c50';
+  const dueAmber = typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--due-amber').trim() || '#a65b10' : '#a65b10';
+  const colors = { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen };
   const expDateStr = item.expiryDate || item.endDate;
   const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
 
   // 1. 排除無到期日／僅記使用天數的項目
   if (isCountUp) {
+    const defaultColor = colors.muted;
     if (progressBarFill && progressBarFill.style) {
-      progressBarFill.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-      progressBarFill.style.setProperty('background-color', 'rgba(255, 255, 255, 0.15)', 'important');
+      progressBarFill.style.backgroundColor = defaultColor;
+      progressBarFill.style.setProperty('background-color', defaultColor, 'important');
       progressBarFill.style.width = '100%';
     }
     return {
       status: 'count_up',
       diffDays: null,
-      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      backgroundColor: defaultColor,
       width: '100%'
     };
   }
@@ -1783,19 +1788,19 @@ function renderProgressBar(progressBarFill, item) {
   exp.setHours(0, 0, 0, 0);
   const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
 
-  let bgColor = 'rgba(255, 255, 255, 0.25)';
+  let bgColor = colors.normal;
   let fillWidth = '100%';
   let status = 'normal';
 
   if (diffDays < 0) {
     // 【情況 A：已過期】diffDays < 0
     status = 'expired';
-    bgColor = '#FF453A'; // 純紅
+    bgColor = colors.expired;
     fillWidth = '100%';
   } else if (diffDays >= 0 && diffDays <= 3) {
     // 【情況 B：即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
     status = 'warning';
-    bgColor = '#FF9F0A'; // 警告橘
+    bgColor = colors.warning;
     let percent = 100;
     if (item.startDate) {
       const start = new Date(item.startDate);
@@ -1806,9 +1811,9 @@ function renderProgressBar(progressBarFill, item) {
     }
     fillWidth = `${percent > 0 ? percent : 20}%`;
   } else {
-    // 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
+    // 【情況 C：安全正常】diffDays > 3（4天、6天、100天以上）
     status = 'normal';
-    bgColor = 'rgba(255, 255, 255, 0.25)'; // 中性低調白
+    bgColor = colors.normal;
     let percent = 100;
     if (item.startDate) {
       const start = new Date(item.startDate);
@@ -1822,7 +1827,7 @@ function renderProgressBar(progressBarFill, item) {
 
   if (progressBarFill && progressBarFill.style) {
     progressBarFill.style.backgroundColor = bgColor;
-    progressBarFill.style.setProperty('background-color', bgColor, 'important');
+    progressBarFill.style.setProperty('background-color', status === 'expired' ? '#ff453a' : bgColor, 'important');
     progressBarFill.style.width = fillWidth;
   }
 
@@ -1835,14 +1840,23 @@ function renderProgressBar(progressBarFill, item) {
 }
 
 function getItemStatusConfig(item, todayStr) {
+  const theme = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'dark';
+  const isLight = theme === 'light';
+  const inkGreen = typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--ink-green').trim() || '#355c50' : '#355c50';
+  const dueAmber = typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--due-amber').trim() || '#a65b10' : '#a65b10';
+  const colors = theme === 'light'
+    ? { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen, text: '#7d756d' }
+    : theme === 'amoled'
+      ? { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen, text: '#b6c5bd' }
+      : { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen, text: 'rgba(255,255,255,.72)' };
   const expDateStr = item ? (item.expiryDate || item.endDate) : null;
   const isCountUp = !item || item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
 
   if (isCountUp) {
     return {
       statusMark: 'status-normal',
-      color: 'rgba(255, 255, 255, 0.15)',
-      textColor: 'rgba(255, 255, 255, 0.7)',
+      color: colors.muted,
+      textColor: colors.text,
       text: '持續使用中 ⏳',
       subMetricClass: 'ongoing status-normal',
       progressClass: 'progress-bar-fill status-normal',
@@ -1869,10 +1883,11 @@ function getItemStatusConfig(item, todayStr) {
 
   // 1. 【已過期】diffDays < 0
   if (diffDays < 0) {
+    const color = colors.expired;
     return {
       statusMark: 'status-expired',
-      color: '#FF453A',
-      textColor: '#FF453A',
+      color,
+      textColor: color,
       text: `已超過 ${Math.abs(diffDays)} 天`,
       subMetricClass: 'expired status-expired',
       progressClass: 'progress-bar-fill status-expired expired',
@@ -1884,10 +1899,11 @@ function getItemStatusConfig(item, todayStr) {
 
   // 2. 【即將到期】diffDays >= 0 且 diffDays <= 3（3天內，包含今天與第3天）
   if (diffDays >= 0 && diffDays <= 3) {
+    const color = colors.warning;
     return {
       statusMark: 'status-warning',
-      color: '#FF9F0A',
-      textColor: '#FF9F0A',
+      color,
+      textColor: color,
       text: diffDays === 0 ? '今天到期' : `還有 ${diffDays.toLocaleString()} 天`,
       subMetricClass: 'urgent status-warning',
       progressClass: 'progress-bar-fill status-warning urgent',
@@ -1897,11 +1913,11 @@ function getItemStatusConfig(item, todayStr) {
     };
   }
 
-  // 3. 【正常/安全】diffDays > 3（4天、6天、100天以上，絕不可出現 #FF453A 或 #FF9F0A！）
+  // 3. 【正常/安全】diffDays > 3（4天、6天、100天以上）
   return {
     statusMark: 'status-normal',
-    color: 'rgba(255, 255, 255, 0.25)',
-    textColor: 'rgba(255, 255, 255, 0.7)',
+    color: colors.normal,
+    textColor: colors.normal,
     text: `還有 ${diffDays.toLocaleString()} 天`,
     subMetricClass: 'status-normal',
     progressClass: 'progress-bar-fill status-normal',
@@ -1962,5 +1978,3 @@ if (typeof module !== "undefined" && module.exports) {
     initModel, updateNerStatus, parseWithLocalNER, parseNaturalInput, parseNaturalInputAsync, matchCategoryAndSubCategory, inferItemLifespanOrUsageDate, SMART_KEYWORD_MAP, extractTime, extractDate, extractCleanName, simplifyItemName, renderProgressBar, getItemStatusConfig, DEFAULT_CATEGORIES, SUB_CATEGORY_CONFIG, CATEGORY_MAP_TO_KEY, normalizeCategoryKey
   };
 }
-
-

@@ -1,4 +1,10 @@
-/* ==========================================================================
+@font-face {
+  font-family: 'jf-openhuninn';
+  src: url('./jf-openhuninn-2.1.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* ============================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
    ========================================================================== */
 
@@ -26,6 +32,11 @@
   --ios-red: #ff453a;
   --ios-red-bg: rgba(255, 69, 58, 0.15);
   --ios-blue: #0a84ff;
+
+  /* 文青進度色：深色模式也維持低飽和 */
+  --progress-normal: #355c50;
+  --progress-warning: #d99a6c;
+  --progress-expired: #d87870;
 
   /* Geometry */
   --radius-pill: 9999px;
@@ -64,6 +75,9 @@
   --ios-red: #ff453a;
   --ios-red-bg: rgba(255, 69, 58, 0.25);
   --ios-blue: #0a84ff;
+  --progress-normal: #416b5d;
+  --progress-warning: #e0a477;
+  --progress-expired: #e1847b;
 }
 
 [data-screen-fit="standard"] {
@@ -84,18 +98,51 @@
 
 [data-theme="light"] {
   color-scheme: light;
-  --ios-bg: #f2f2f7;
-  --ios-surface: #ffffff;
-  --ios-surface-elevated: #e5e5ea;
-  --ios-surface-secondary: #ebebeb;
-  --ios-dock-bg: rgba(255, 255, 255, 0.92);
-  --ios-border: rgba(0, 0, 0, 0.06);
-  --ios-border-strong: rgba(0, 0, 0, 0.12);
+  --ios-bg: #f8f6f0;               /* 溫潤紙質米白，取代冷灰死白 */
+  --ios-surface: #fffaf0;          /* 暖紙卡片 */
+  --ios-surface-elevated: #eee5d5; /* 燕麥卡其 */
+  --ios-surface-secondary: #f3ecdf;/* 米麻副背景 */
+  --ios-dock-bg: rgba(248, 246, 240, 0.94);
+  --ios-border: rgba(140, 125, 110, 0.12);
+  --ios-border-strong: rgba(140, 125, 110, 0.22);
 
-  --ios-text-primary: #000000;
-  --ios-text-secondary: #8e8e93;
-  --ios-text-muted: #aeaeb2;
+  /* 墨炭褐字體 */
+  --ios-text-primary: #2d2a26;     /* 暖調深褐灰 */
+  --ios-text-secondary: #7d756d;   /* 陶土暖灰 */
+  --ios-text-muted: #aba298;       /* 淺麻灰 */
   --ios-text-inverse: #ffffff;
+
+  /* 低飽和微文青強調色 */
+  --ios-green: #52796f;            /* 鼠尾草灰綠（正常週期） */
+  --ios-green-bg: rgba(82, 121, 111, 0.12);
+  --ios-orange: #c87d55;           /* 暖杏陶土橘（即將到期） */
+  --ios-orange-bg: rgba(200, 125, 85, 0.12);
+  --ios-red: #b85d58;              /* 乾燥玫瑰粉紅（已過期警示） */
+  --ios-red-bg: rgba(184, 93, 88, 0.12);
+  --ios-blue: #5b7c8d;             /* 霧灰藍 */
+  --progress-normal: #3f6859;
+  --progress-warning: #c87d55;
+  --progress-expired: #b85d58;
+}
+
+/* 淺色模式：統一暖紙、陶土、墨褐文青色 */
+[data-theme="light"] .ios-item-card,
+[data-theme="light"] .status-notice-card,
+[data-theme="light"] .category-create-card,
+[data-theme="light"] .cat-manage-item,
+[data-theme="light"] .btn,
+[data-theme="light"] button,
+[data-theme="light"] .pill-segment,
+[data-theme="light"] .home-filter-btn {
+  background-color: var(--ios-surface);
+  color: var(--ios-text-primary);
+  border-color: var(--ios-border);
+}
+
+[data-theme="light"] .progress-bar-fill.status-expired,
+[data-theme="light"] .card-progress-fill.status-expired,
+[data-theme="light"] .card-progress-fill.expired {
+  background-color: #ff453a;
 }
 
 /* ==========================================================================
@@ -109,7 +156,7 @@
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  font-family: 'jf-openhuninn', 'Noto Sans TC', sans-serif;
   background-color: var(--ios-bg);
   color: var(--ios-text-primary);
   min-height: 100vh;
@@ -1980,50 +2027,37 @@ body {
 }
 
 [data-theme="light"] .card-metric-sub.status-normal {
-  color: rgba(0, 0, 0, 0.65) !important;
+  color: #52796f !important;
+}
+
+[data-theme="light"] .card-metric-sub.status-expired,
+[data-theme="light"] .card-metric-sub.expired {
+  color: #b85d58 !important;
+}
+
+[data-theme="light"] .card-metric-sub.status-warning,
+[data-theme="light"] .card-metric-sub.urgent {
+  color: #c87d55 !important;
 }
 
 /* Card Note Preview on Home Page */
 .card-note-preview {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.76rem;
+  display: block;
+  font-size: 0.84rem;
+  line-height: 1.35;
   color: var(--ios-text-secondary);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  margin-top: 0.32rem;
-  margin-bottom: 0.36rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.24rem;
   max-width: 100%;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all var(--transition-ios);
-}
-
-[data-theme="light"] .card-note-preview {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.06);
-  color: #636366;
-}
-
-[data-theme="amoled"] .card-note-preview {
-  background: #141416;
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.card-note-icon {
-  font-size: 0.78rem;
-  line-height: 1;
-  flex-shrink: 0;
+  overflow: visible;
 }
 
 .card-note-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-  flex: 1;
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-weight: 700;
 }
 
 /* Minimalist Progress Bar */
@@ -2031,7 +2065,7 @@ body {
 .card-progress-bar {
   width: 100%;
   height: 4px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: color-mix(in srgb, var(--progress-normal) 16%, transparent);
   border-radius: 2px;
   overflow: hidden;
   margin-top: auto;
@@ -2048,20 +2082,20 @@ body {
 .progress-bar-fill.status-expired,
 .card-progress-fill.status-expired,
 .card-progress-fill.expired {
-  background-color: #FF453A;
+  background-color: var(--progress-expired);
 }
 
 /* 即將到期 / 3天內到期 - 警告橘 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-warning,
 .card-progress-fill.status-warning,
 .card-progress-fill.urgent {
-  background-color: #FF9F0A;
+  background-color: var(--progress-warning);
 }
 
 /* 正常/安全狀態 - 中性微透白 (後備樣式，實際顏色由 JS element.style 精準設定) */
 .progress-bar-fill.status-normal,
 .card-progress-fill.status-normal {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--progress-normal);
 }
 
 /* Card Group Actions (物品分類頁面專屬：移除此群組按鈕) */
@@ -2344,7 +2378,7 @@ body {
   z-index: 1000;
   animation: fadeIn 0.2s ease;
   overscroll-behavior: contain;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .ios-modal-card {
@@ -2368,7 +2402,7 @@ body {
 .ios-modal-backdrop.modal-closing,
 .ios-action-backdrop.modal-closing {
   animation: fadeOutModalBackdrop 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .ios-modal-backdrop.modal-closing .ios-modal-card {
@@ -3808,19 +3842,26 @@ input[type="time"]::-webkit-date-and-time-value {
    ========================================================================== */
 .toast-container {
   position: fixed;
-  top: 1.5rem;
+  top: max(1.5rem, calc(env(safe-area-inset-top, 0px) + 0.75rem));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-width: min(26rem, calc(100vw - 2rem));
   z-index: 2000;
   pointer-events: none;
 }
 
+@media (max-width: 600px) {
+  .toast-container { top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)); }
+}
+
 .toast {
-  background: rgba(30, 30, 32, 0.95);
-  backdrop-filter: blur(14px);
+  background: #252528;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  pointer-events: none;
   color: #ffffff;
   padding: 0.65rem 1.25rem;
   border-radius: var(--radius-pill);
@@ -3830,6 +3871,7 @@ input[type="time"]::-webkit-date-and-time-value {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  overflow-wrap: anywhere;
   animation: slideDownToast 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
@@ -4864,24 +4906,24 @@ input[type="time"]::-webkit-date-and-time-value {
 
 [data-theme="light"] .progress-bar-container,
 [data-theme="light"] .card-progress-bar {
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: rgba(140, 125, 110, 0.12);
 }
 
 [data-theme="light"] .progress-bar-fill.status-normal,
 [data-theme="light"] .card-progress-fill.status-normal {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: #52796f;
 }
 
 [data-theme="light"] .progress-bar-fill.status-expired,
 [data-theme="light"] .card-progress-fill.status-expired,
 [data-theme="light"] .card-progress-fill.expired {
-  background-color: #FF453A;
+  background-color: #b85d58;
 }
 
 [data-theme="light"] .progress-bar-fill.status-warning,
 [data-theme="light"] .card-progress-fill.status-warning,
 [data-theme="light"] .card-progress-fill.urgent {
-  background-color: #FF9F0A;
+  background-color: #c87d55;
 }
 
 /* 5. Sort Toolbar and Sort Modal */
@@ -5566,9 +5608,32 @@ input[type="time"]::-webkit-date-and-time-value {
 }
 
 /* Modal & Action Sheet Background Scroll Lock (彈出選單背景鎖定) */
+html.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
 body.modal-open {
   overflow: hidden !important;
-  touch-action: none !important;
+  overscroll-behavior: none;
+  touch-action: pan-y;
+}
+
+.ios-modal-backdrop.modal-closing,
+.ios-action-backdrop.modal-closing {
+  pointer-events: none;
+}
+
+/* The gesture controller owns transform until the sheet is hidden. */
+.ios-modal-backdrop .ios-modal-card.sheet-gesture-controlled,
+.ios-action-backdrop .ios-action-sheet.sheet-gesture-controlled {
+  animation: none !important;
+  transition: none !important;
+  will-change: transform;
+}
+
+.ios-modal-header {
+  touch-action: none;
 }
 
 body.modal-open .ios-modal-card,
@@ -6202,6 +6267,35 @@ body.modal-open .view-panel {
   text-shadow: 0 1px 8px rgba(255, 107, 34, 0.4);
 }
 
+/* 參考圖：暖米白文青配色；過期進度條固定純紅 */
+[data-theme="light"] {
+  --ios-bg: #f7f4ec;
+  --ios-surface: #fffdf8;
+  --ios-surface-elevated: #eee9dc;
+  --ios-surface-secondary: #f1ede3;
+  --ios-text-primary: #38332f;
+  --ios-text-secondary: #81776d;
+  --ios-text-muted: #aaa095;
+  --ios-border: rgba(125, 105, 85, .16);
+}
+[data-theme="light"] .ios-item-card,
+[data-theme="light"] .status-notice-card { background: #fffdf8; }
+[data-theme="light"] .home-filter-btn,
+[data-theme="light"] .pill-segment,
+[data-theme="light"] .btn-sort-menu-trigger,
+[data-theme="light"] .btn-move-order { background: #eee9dc; color: #38332f; }
+[data-theme="light"] .progress-bar-fill.status-expired,
+[data-theme="light"] .card-progress-fill.status-expired,
+[data-theme="light"] .card-progress-fill.expired { background-color: #ff453a !important; }
+
+/* 墨深綠選單、正常進度；輸入提示與註解降低存在感 */
+.home-filter-btn.active, .pill-segment.active, .subcat-pill.active,
+.mode-pill.active, .btn-sort-menu-trigger.active { background: #355c50 !important; color: #fffdf8 !important; }
+.home-filter-btn.active *, .pill-segment.active *, .subcat-pill.active *, .mode-pill.active * { color: inherit !important; }
+.progress-bar-fill.status-normal, .card-progress-fill.status-normal { background: #355c50 !important; }
+input::placeholder, textarea::placeholder,
+.ios-search-field input::placeholder, .header-smart-input::placeholder { color: #aaa095 !important; opacity: .72; }
+
 [data-theme="amoled"] .notice-num.urgent {
   color: #ff9f0a;
   text-shadow: 0 1px 8px rgba(255, 159, 10, 0.4);
@@ -6722,7 +6816,8 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 [data-theme="light"] input[type="datetime-local"],
 [data-theme="light"] .date-picker-input,
 [data-theme="light"] .custom-time-input,
-[data-theme="light"] #nlpConfirmCustomTime {
+[data-theme="light"] #nlpConfirmCustomTime,
+[data-theme="light"] #itemReminderCustomTime {
   background-color: rgba(0, 0, 0, 0.05) !important;
   border-color: rgba(0, 0, 0, 0.12) !important;
   color: #000000 !important;
