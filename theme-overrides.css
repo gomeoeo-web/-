@@ -4,8 +4,78 @@
   font-display: swap;
 }
 
+/* Shared outer radii; nested corners subtract the space to their parent. */
+:root {
+  --radius-control: 26px;
+  --radius-container: 36px;
+  --item-card-inset: 14px;
+  --radius-item-media: max(0px, calc(var(--radius-container) - var(--item-card-inset) - 1px));
+  --radius-pill: var(--radius-control);
+  --radius-sm: var(--radius-control);
+  --radius-subcard: var(--radius-control);
+  --radius-card: var(--radius-container);
+  --dock-inset: 6px;
+  --radius-dock-inner: max(0px, calc(var(--radius-container) - var(--dock-inset) - 1px));
+}
+:root body :where(button, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, [role="button"]) {
+  border-radius: var(--radius-control) !important;
+}
+:root body :is(.ios-item-card, .pending-card, .ios-modal-card, .ios-action-sheet, .nlp-confirm-dialog, .cloud-consent-dialog, .icon-picker-dialog, .dropdown-menu, .sort-menu, .category-dropdown-menu) {
+  border-radius: var(--radius-container) !important;
+}
+
+/* Equal top/side insets keep the thumbnail concentric with the card corner. */
+:root body .ios-item-card {
+  padding: var(--item-card-inset);
+}
+:root body .ios-item-card .card-icon-box {
+  border-radius: var(--radius-item-media) !important;
+  box-sizing: border-box;
+}
+:root body :is(.card-icon-box, .sheet-emoji, .avatar-preview-box, .order-item-thumb, .picker-item-thumb) {
+  overflow: hidden;
+  isolation: isolate;
+}
+/* The wrapper owns the crop, including images with an inline radius. */
+:root body :is(.card-icon-box, .sheet-emoji, .avatar-preview-box, .order-item-thumb, .picker-item-thumb) > img {
+  display: block;
+  border-radius: 0 !important;
+}
+
+/* Circular arcs remain concentric when the inner radius subtracts the inset.
+   Use the same geometry on older WebViews and browsers with corner-shape. */
+:root body :is(button, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, [role="button"], .ios-item-card, .pending-card, .ios-modal-card, .ios-action-sheet, .nlp-confirm-dialog, .cloud-consent-dialog, .icon-picker-dialog, .dropdown-menu, .sort-menu, .category-dropdown-menu, .card-icon-box, .sheet-emoji, .avatar-preview-box, .order-item-thumb, .picker-item-thumb, .nlp-confirm-icon-preview, #nlpConfirmImagePreview, .floating-island-dock, .dock-tab) {
+  corner-shape: round;
+}
+:root body .floating-island-dock {
+  padding: var(--dock-inset);
+  border-radius: var(--radius-container) !important;
+}
+:root body .floating-island-dock .dock-tab,
+:root body .floating-island-dock.dock-motion-ready::before {
+  --radius-control: var(--radius-dock-inner);
+  border-radius: var(--radius-dock-inner) !important;
+  corner-shape: round;
+}
+:root body .category-action-bar {
+  border-radius: var(--radius-container) !important;
+}
+
+/* Group actions use full capsules, with a circular search button. */
+:root body #categoryActionBar .category-action-buttons-group > button {
+  border-radius: 999px !important;
+  corner-shape: round;
+}
+
 body, button, input, textarea, select {
   font-family: 'jf-openhuninn', 'Noto Sans TC', sans-serif;
+}
+
+/* Every button has a theme surface; semantic/selected rules below take priority. */
+:root body button {
+  background-color: var(--button-gray) !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 
 /* Disable frosted-glass blur throughout the app, including iOS WebKit layers. */
@@ -18,7 +88,7 @@ body, button, input, textarea, select {
    the home-indicator inset inside the sheet so no backdrop-colored strip
    remains at the bottom of the screen. */
 #actionSheet.ios-action-backdrop {
-  background: rgba(0, 0, 0, 0.42) !important;
+  background: rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(10px) saturate(115%) !important;
   -webkit-backdrop-filter: blur(10px) saturate(115%) !important;
   padding-bottom: 0.75rem;
@@ -74,8 +144,10 @@ html {
   box-shadow: 0 4px 8px rgba(45, 42, 38, .14) !important;
 }
 
-/* Tighten the vertical rhythm above the item lists without shrinking controls. */
-#statusNoticeCard { margin-bottom: 14px; }
+/* Compact the header-to-list spacing while keeping clear touch targets. */
+.ios-header { margin-bottom: 10px; }
+#statusNoticeCard { margin-bottom: 8px; padding-block: 10px; }
+#homeSortToolbar { margin-bottom: 10px; }
 #inventoryControls { gap: 11px; margin-bottom: 15px; }
 
 /* 留白放在捲動區外，避免靠左對齊時露出上一個膠囊。 */
@@ -98,34 +170,45 @@ html {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   box-sizing: border-box;
   min-width: 0;
-  padding: 10px 2px;
-  margin-bottom: 17px;
+  padding: 6px 2px;
+  margin-bottom: 8px;
 }
 #segmentedPillsBar .home-filter-btn {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
   padding-inline: .3rem;
+  padding-block: 5px;
+  min-height: 40px;
+  height: 40px;
   gap: .25rem;
 }
 #segmentedPillsBar .filter-btn-badge {
+  display: inline-flex;
+  flex: 0 0 1.5rem;
+  align-self: center;
   box-sizing: border-box;
-  min-width: 1.7rem;
-  height: 1.7rem;
-  padding: 0 .42rem .16rem;
-  line-height: 1;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  line-height: 1 !important;
   align-items: center;
   justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
+#segmentedPillsBar .filter-btn-badge-value { position: static; }
 
 :root {
-  --ink-green: #49c775;
+  --ink-green: #b8b8bd;
+  --ios-green: #b8b8bd;
+  --ios-green-bg: rgba(184, 184, 189, .15);
+  --progress-normal: #b8b8bd;
   --button-green: #383838;
   --button-gray: #303033;
   --button-selected: #303033;
   --button-border: #4d4d51;
   --button-selected-border: #707074;
-  --button-text: #f3f5ef;
+  --button-text: #f5f5f7;
   --delete-border: #694343;
   --due-amber: #e6b553;
   --expired-red: #ff453a;
@@ -152,13 +235,16 @@ html {
   --ios-green: #355c50;
 }
 [data-theme="amoled"] {
-  --ink-green: #39dc72;
+  --ink-green: #c4c4c8;
+  --ios-green: #c4c4c8;
+  --ios-green-bg: rgba(196, 196, 200, .15);
+  --progress-normal: #c4c4c8;
   --button-green: #282828;
   --button-gray: #303033;
   --button-selected: #303033;
   --button-border: #4d4d51;
   --button-selected-border: #707074;
-  --button-text: #f5f7f2;
+  --button-text: #f5f5f7;
   --delete-border: #623838;
 }
 /* 手機頂部狀態列與頁面共用背景，頂端加深以襯托白色系系統圖示。 */
@@ -171,37 +257,47 @@ html {
 }
 [data-theme="light"] body {
   background-color: #f3efe6;
-  background-image: linear-gradient(180deg, #d9e8d5 0 10rem, #e6ede0 17rem, #efeee5 24rem, #f3efe6 31rem);
+  background-image: linear-gradient(180deg, #a9c99f 0%, #a9c99f 10%, #c2d6bb 24%, #d9e6d3 38%, #e6ede0 45%, #f3efe6 50%);
+  background-repeat: no-repeat;
 }
 [data-theme="amoled"] body {
   background-color: #000;
   background-image: none;
 }
 
-/* Paint the iOS safe area with a solid color so system-status-bar blur cannot
-   wash out the content below it. Keep this beneath modal and toast layers. */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: env(safe-area-inset-top, 0px);
-  z-index: 999;
-  pointer-events: none;
-  background: #d9e8d5;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-:root:not([data-theme="light"]) body::before { background: #111; }
-[data-theme="light"] body::before {
-  background: #d9e8d5;
-}
-[data-theme="amoled"] body::before { background: #000; }
-
-/* Keep the search field and settings control crisp against the solid header. */
+/* Keep the header's initial and scrolled positions identical. Safe-area padding
+   alone scrolls away with the document and cannot protect the input field. */
 @media (max-width: 600px) {
-  .ios-header { margin-top: 25px; }
+  :root {
+    --app-header-top: max(1.2rem, calc(env(safe-area-inset-top, 0px) + 8px));
+    --app-header-background: #111111;
+    overscroll-behavior-y: none;
+  }
+  :root[data-theme="light"] { --app-header-background: #a9c99f; }
+  :root[data-theme="amoled"] { --app-header-background: #000; }
+  /* overflow-x:hidden creates a second scroll container on body and prevents
+     the header from sticking to the document viewport. */
+  body { overflow-x: clip; }
+  .ios-app-container { padding-top: var(--app-header-top); }
+  .ios-header {
+    position: sticky;
+    top: var(--app-header-top);
+    z-index: 100;
+    isolation: isolate;
+    margin-top: 0;
+    background: var(--app-header-background);
+  }
+  .ios-header::before {
+    content: "";
+    position: absolute;
+    top: calc(-1 * var(--app-header-top));
+    bottom: -8px;
+    left: calc(50% - 50vw);
+    width: 100vw;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--app-header-background);
+  }
 }
 .ios-header,
 .ios-header * {
@@ -248,7 +344,7 @@ body::before {
   padding: 24px;
   overflow-y: auto;
   box-sizing: border-box;
-  border-radius: 22px;
+  border-radius: var(--radius-container);
   background: #fff;
   color: #262626;
   box-shadow: 0 18px 48px rgba(0, 0, 0, .28);
@@ -261,7 +357,7 @@ body::before {
   width: 100%;
   min-height: 52px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   font: inherit;
   cursor: pointer;
   -webkit-text-fill-color: currentColor !important;
@@ -320,18 +416,18 @@ body::before {
   font-weight: 400;
 }
 #customCategoryModal .category-create-card[open] > summary { margin-bottom: .9rem; }
-#customCategoryModal .cat-manage-item { flex-direction:row; align-items:center; gap:.45rem; min-height:58px; border-radius:13px; padding:.35rem .55rem; }
+#customCategoryModal .cat-manage-item { flex-direction:row; align-items:center; gap:.45rem; min-height:58px; border-radius:var(--radius-control); padding:.35rem .55rem; }
 #customCategoryModal .category-list-heading { display:flex; align-items:center; justify-content:space-between; gap:.75rem; position:sticky; top:-1.25rem; z-index:2; padding:.5rem 0; background:var(--group-modal-bg, var(--ios-surface)); }
 #customCategoryModal .category-list-title span { display:none; }
 #customCategoryModal .category-manage-list { gap:.4rem; margin-top:.5rem; }
 #customCategoryModal .category-reorder-actions { display:flex; gap:.45rem; }
 #customCategoryModal .category-reorder-actions[hidden] { display:none; }
-#customCategoryModal .category-reorder-actions button { border:1px solid var(--button-border); border-radius:999px; padding:.48rem .7rem; font:inherit; font-size:.78rem; font-weight:700; white-space:nowrap; }
+#customCategoryModal .category-reorder-actions button { border:1px solid var(--button-border); border-radius:var(--radius-control); padding:.48rem .7rem; font:inherit; font-size:.78rem; font-weight:700; white-space:nowrap; }
 #customCategoryModal #btnCancelCategoryReorder { background:var(--button-gray) !important; color:var(--button-text) !important; -webkit-text-fill-color:var(--button-text) !important; }
 #customCategoryModal #btnConfirmCategoryReorder { background:#24473c !important; border-color:#24473c !important; color:#fff !important; -webkit-text-fill-color:#fff !important; }
-#customCategoryModal .cat-drag-handle { width:44px; height:44px; flex:0 0 44px; display:inline-flex; align-items:center; justify-content:center; padding:0; border:0; border-radius:10px; background:transparent !important; color:var(--ios-text-secondary) !important; cursor:grab; touch-action:none; user-select:none; }
+#customCategoryModal .cat-drag-handle { width:44px; height:44px; flex:0 0 44px; display:inline-flex; align-items:center; justify-content:center; padding:0; border:0; border-radius:var(--radius-control); background:transparent !important; color:var(--ios-text-secondary) !important; cursor:grab; touch-action:none; user-select:none; }
 #customCategoryModal .cat-drag-lines { display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:none; }
-#customCategoryModal .cat-drag-lines i { display:block; width:19px; height:2.5px; border-radius:999px; background:currentColor; }
+#customCategoryModal .cat-drag-lines i { display:block; width:19px; height:2.5px; border-radius:var(--radius-control); background:currentColor; }
 #customCategoryModal .cat-drag-handle:active { cursor:grabbing; }
 #customCategoryModal .cat-drag-handle:focus-visible { outline:2px solid var(--ios-blue); outline-offset:2px; }
 #customCategoryModal .cat-manage-item.is-dragging { visibility:hidden; }
@@ -581,7 +677,7 @@ body::before {
   min-height: 46px;
   padding: .6rem .75rem;
   border: 1px solid var(--button-border) !important;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: var(--button-gray) !important;
   background-image: none !important;
   color: var(--button-text) !important;
@@ -725,7 +821,7 @@ body::before {
 }
 
 /* 深色按鈕：按壓與選中狀態使用淺灰底、深色文字。 */
-:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan) {
+:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan):not(.dock-tab) {
   --button-text: #202124;
   background: #d4d4d8 !important;
   background-image: none !important;
@@ -734,13 +830,13 @@ body::before {
   -webkit-text-fill-color: var(--button-text) !important;
   box-shadow: none !important;
 }
-:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan) :is(.dock-label, .filter-btn-text, .chip-label),
+:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan):not(.dock-tab) :is(.dock-label, .filter-btn-text, .chip-label),
 :root:not([data-theme="light"]) body .btn-sheet-action:active:not(#btnCameraScan) span,
 :root:not([data-theme="light"]) body .settings-row-btn:active :is(.settings-title, .settings-subtitle) {
   color: #202124 !important;
   -webkit-text-fill-color: #202124 !important;
 }
-:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan) svg {
+:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan):not(.dock-tab) svg {
   color: #202124 !important;
   stroke: #202124 !important;
 }
@@ -780,7 +876,7 @@ body::before {
   height: 52px;
   margin: 0 auto 16px;
   border: 1px solid var(--button-border);
-  border-radius: 18px;
+  border-radius: var(--radius-container);
   background: var(--button-gray);
   color: var(--button-text);
   font-size: 28px;
@@ -818,7 +914,7 @@ body::before {
   background: var(--camera-control) !important;
   color: var(--camera-text) !important;
   -webkit-text-fill-color: var(--camera-text) !important;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
 }
 #cameraScanModal .control-label { color: var(--camera-text); }
 #cameraScanModal .camera-quota-pill {
@@ -856,7 +952,7 @@ body::before {
   min-height: 46px;
   padding: 8px 6px;
   margin: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   gap: 6px;
   text-align: center;
   white-space: normal;
@@ -885,7 +981,69 @@ body::before {
 }
 :root .sheet-actions-group #btnSheetDelete {
   border-color: var(--delete-border) !important;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
+}
+
+/* 1.9.22: shared motion rhythm for controls, navigation and overlays. */
+:root,
+:root[data-motion-profile] {
+  --motion-ease: cubic-bezier(.22, .72, .18, 1);
+  --motion-duration: 220ms;
+  --motion-page: 320ms;
+  --motion-exit: 160ms;
+  --motion-press: 120ms;
+  --transition-ios: var(--motion-press) var(--motion-ease);
+}
+:root body :is(button, [role="button"], summary, .ios-item-card, .pending-card) {
+  transition: scale var(--motion-press) var(--motion-ease),
+    transform var(--motion-press) var(--motion-ease),
+    opacity var(--motion-press) var(--motion-ease),
+    background-color var(--motion-press) var(--motion-ease),
+    color var(--motion-press) var(--motion-ease),
+    border-color var(--motion-press) var(--motion-ease);
+}
+:root body :is(button, [role="button"], summary, .ios-item-card, .pending-card):active:not(:disabled):not([aria-disabled="true"]) {
+  scale: .985;
+}
+:root body :is(input, textarea, select) {
+  transition: border-color var(--transition-ios), background-color var(--transition-ios), box-shadow var(--transition-ios);
+}
+.floating-island-dock {
+  transition: transform var(--motion-duration) var(--motion-ease), opacity var(--motion-duration) var(--motion-ease);
+}
+:root body :is(.ios-modal-card, .ios-action-sheet, .ios-modal-backdrop, .ios-action-backdrop, .toast) {
+  animation-duration: var(--motion-duration) !important;
+  animation-timing-function: var(--motion-ease) !important;
+}
+@media (max-width: 600px) {
+  .ios-header {
+    transition: transform var(--motion-duration) var(--motion-ease),
+      opacity var(--motion-duration) var(--motion-ease),
+      visibility 0s;
+  }
+  .ios-header.header-hidden {
+    transform: translateY(calc(-100% - var(--app-header-top) - 10px));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform var(--motion-duration) var(--motion-ease),
+      opacity var(--motion-duration) var(--motion-ease),
+      visibility 0s var(--motion-duration);
+  }
+}
+
+/* Scroll owns these transforms: timed easing would lag behind the finger. */
+.floating-island-dock.scroll-linked-navigation {
+  transform: translate(-50%, var(--nav-offset, 0px));
+  opacity: var(--nav-opacity, 1);
+  transition: none;
+}
+@media (max-width: 600px) {
+  .ios-header.scroll-linked-navigation {
+    transform: translateY(var(--nav-offset, 0px));
+    opacity: var(--nav-opacity, 1);
+    transition: none;
+  }
 }
 
 /* One selection pill follows the actual horizontal page scroll position. */
@@ -897,7 +1055,7 @@ body::before {
   width: var(--dock-indicator-width);
   height: var(--dock-indicator-height);
   transform: translateX(var(--dock-indicator-x));
-  border-radius: 32px;
+  border-radius: var(--radius-container);
   background: #38383c;
   box-shadow: 0 3px 12px rgba(0, 0, 0, .16);
   pointer-events: none;
@@ -919,10 +1077,927 @@ body::before {
   -webkit-text-fill-color: var(--dock-ink) !important;
   transition: none;
 }
+@media (prefers-reduced-motion: reduce) {
+  :root body *, :root body *::before, :root body *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  :root body :is(button, [role="button"], summary, .ios-item-card, .pending-card):active {
+    scale: 1;
+  }
+}
 :root body .floating-island-dock.dock-motion-ready .dock-tab .dock-icon svg {
   stroke: currentColor !important;
 }
 :root body .floating-island-dock.dock-motion-ready .dock-tab .dock-icon {
-  transform: translateY(calc(-1px * var(--dock-emphasis))) scale(calc(1 + .15 * var(--dock-emphasis)));
+  transform: translateY(calc(-1px * var(--dock-emphasis))) scale(calc(1 + .04 * var(--dock-emphasis)));
   transition: none;
 }
+
+/* Keep native time digits visible in every theme; avoid flex on native editors. */
+:root body #nlpConfirmReminderTime {
+  display: block !important;
+  color: var(--ios-text-primary) !important;
+  -webkit-text-fill-color: var(--ios-text-primary) !important;
+  background: var(--ios-surface) !important;
+  border: 1px solid var(--ios-border, rgba(128,128,128,.25)) !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  line-height: normal !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  text-align: left !important;
+}
+:root body #nlpConfirmReminderTime::-webkit-datetime-edit {
+  color: var(--ios-text-primary) !important;
+  -webkit-text-fill-color: var(--ios-text-primary) !important;
+}
+:root body .nlp-time-input-container { height: auto; }
+:root body #nlpConfirmReminder { min-height: 44px; }
+:root body #nlpTrackingModeSelector .nlp-mode-pill { font-size: 14px; padding: 10px 6px; }
+:root body #nlpTrackingModeSelector .nlp-mode-pill:not(.active) {
+  background: var(--button-gray) !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+:root body #nlpTrackingModeSelector .nlp-mode-pill.active {
+  background: #d4d4d8 !important;
+  color: #202124 !important;
+  -webkit-text-fill-color: currentColor !important;
+  border-color: #d4d4d8 !important;
+}
+:root[data-theme="light"] body #nlpTrackingModeSelector .nlp-mode-pill.active {
+  background: #38383c !important;
+  color: #ffffff !important;
+  border-color: #38383c !important;
+}
+:root body .nlp-extra-options { margin-top: 10px; }
+:root body .nlp-extra-options summary {
+  cursor: pointer; color: var(--ios-text-secondary); font-size: 14px; padding: 6px 0;
+}
+:root body .nlp-extra-options[open] summary { margin-bottom: 8px; }
+:root body .nlp-extra-options .nlp-quick-days-pills {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+
+/* Secondary actions remain visible against modal and page surfaces. */
+:root body :is(.btn-ios-secondary, .btn-delete-confirm-cancel, button[id*="Cancel"], .icon-picker-option) {
+  background: var(--button-gray) !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  border: 1px solid var(--button-border) !important;
+}
+:root body button:focus-visible {
+  outline: 2px solid var(--ink-green);
+  outline-offset: 3px;
+}
+/* The shutter's 4px border and 4px inset share the same corner centre. */
+:root body #cameraScanModal #btnCameraShutter {
+  --radius-control: 36px;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 4px solid var(--camera-text) !important;
+  border-radius: 36px !important;
+  background: var(--camera-panel) !important;
+  corner-shape: round;
+}
+:root body #cameraScanModal #btnCameraShutter .shutter-inner {
+  box-sizing: border-box;
+  border-radius: 28px;
+  background: var(--camera-text);
+  corner-shape: round;
+}
+
+/* Button surfaces and inks are paired in every theme. */
+:root { --button-danger-ink: #ff958c; --button-warning-ink: #f0c46e; }
+:root[data-theme="light"] {
+  --button-danger-ink: #b42318;
+  --button-warning-ink: #925000;
+  --ios-text-secondary: #6c645c;
+}
+:root body :is(.settings-row-btn, #btnOpenArchive, #btnOpenRecentlyDeleted, #btnExportJson, #btnRestoreDemoData) {
+  background: transparent !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+:root body :is(.settings-row-btn, #btnOpenArchive, #btnOpenRecentlyDeleted, #btnExportJson, #btnRestoreDemoData) span {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root body :is(#btnSheetDelete, .btn-clean-expired, .btn-modal-delete-item, .danger, #btnRestoreDemoData),
+:root body :is(#btnSheetDelete, .btn-clean-expired, .btn-modal-delete-item, .danger, #btnRestoreDemoData) span {
+  color: var(--button-danger-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root body :is(#pillCountExpired, .pill-counter.expired) {
+  color: var(--button-danger-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root body :is(#pillCountUrgent, .pill-counter.urgent) {
+  color: var(--button-warning-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root[data-theme="light"] body :is(#pillCountExpired, .pill-counter.expired) { background: #fff0ed !important; }
+:root[data-theme="light"] body :is(#pillCountUrgent, .pill-counter.urgent) { background: #fff4e5 !important; }
+:root body #btnCameraScan,
+:root body .sheet-actions-group #btnSheetStart {
+  background: #1765c4 !important;
+  border-color: #1765c4 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+:root body #fabAddBtn svg { color: inherit !important; }
+
+/* Only the selected tab has a highlighted surface. */
+:root body .floating-island-dock .dock-tab,
+:root body .floating-island-dock.dock-motion-ready .dock-tab {
+  background: transparent !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  box-shadow: none !important;
+}
+:root body .floating-island-dock .dock-tab.active,
+:root body .floating-island-dock.dock-motion-ready .dock-tab.active {
+  background: #d4d4d8 !important;
+  color: #202124 !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root[data-theme="light"] body .floating-island-dock .dock-tab.active,
+:root[data-theme="light"] body .floating-island-dock.dock-motion-ready .dock-tab.active {
+  background: #38383c !important;
+  color: #fff !important;
+}
+:root body .floating-island-dock .dock-tab .dock-label,
+:root body .floating-island-dock .dock-tab .dock-icon svg,
+:root body .floating-island-dock.dock-motion-ready .dock-tab .dock-label,
+:root body .floating-island-dock.dock-motion-ready .dock-tab .dock-icon svg {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root body .category-chip.active svg {
+  color: inherit !important;
+}
+:root body :is(#btnOpenArchive, #btnOpenRecentlyDeleted) .trash-badge-count {
+  background: var(--button-selected) !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root body #customCategoryModal button.cat-drag-handle {
+  background: var(--button-gray) !important;
+  color: var(--button-text) !important;
+  border: 1px solid var(--button-border);
+}
+
+/* Shared form rhythm across item, confirmation and category menus. */
+:root {
+  --form-control-height: 48px;
+  --form-label-gap: 8px;
+  --form-field-gap: 20px;
+  --modal-content-inset: 20px;
+  --form-surface: #29292c;
+  --form-border: #55555b;
+}
+:root[data-theme="light"] { --form-surface: #f7f3eb; --form-border: #d9d5cd; }
+:root[data-theme="amoled"] { --form-surface: #202022; --form-border: #4d4d51; }
+:root body .ios-modal-header,
+:root body .icon-picker-dialog header { padding: 20px var(--modal-content-inset); }
+:root body .ios-modal-scroll {
+  padding: 20px var(--modal-content-inset) 24px !important;
+  gap: var(--form-field-gap);
+}
+:root body #nlpConfirmModal .ios-modal-scroll { gap: 0; }
+:root body :is(.nlp-confirm-label, .ios-label, .ios-field > label) {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+:root body .nlp-confirm-label { margin-bottom: var(--form-label-gap); }
+:root body .ios-field { gap: var(--form-label-gap); }
+:root body .nlp-confirm-field { margin-bottom: var(--form-field-gap); }
+:root body #nlpReminderScheduleTimeSection { margin-bottom: var(--form-field-gap) !important; }
+:root body .ios-modal-backdrop :is(#nlpConfirmReminderTime, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]), select, .icon-picker-trigger) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: var(--form-control-height) !important;
+  min-height: var(--form-control-height) !important;
+  padding: 10px 16px !important;
+  border: 1px solid var(--form-border) !important;
+  background-color: var(--form-surface) !important;
+  color: var(--ios-text-primary) !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-size: 16px !important;
+  font-family: inherit;
+  line-height: normal !important;
+  text-align: left !important;
+}
+:root body .ios-modal-backdrop select { padding-right: 36px !important; }
+:root body .ios-modal-backdrop .icon-picker-trigger {
+  gap: 12px;
+  background-image: none !important;
+}
+:root body .icon-picker-trigger .flat-item-icon { width: 24px; height: 24px; flex: 0 0 24px; }
+:root body :is(.nlp-select-wrap, .nlp-time-input-container) { height: var(--form-control-height); }
+:root body :is(.nlp-select-wrap, .ios-select-wrapper):has(.icon-picker-trigger) > .select-arrow { display: none; }
+:root body .ios-modal-backdrop :is(input[type="date"], input[type="time"])::-webkit-datetime-edit {
+  color: var(--ios-text-primary) !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-align: left;
+}
+:root body .nlp-reminder-time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+  align-items: start;
+}
+:root body .nlp-extra-options { margin-top: 16px; }
+:root body .nlp-confirm-hint { margin-top: 8px; }
+:root body .nlp-quick-days-pills { gap: 8px; }
+:root body #nlpConfirmImageWrap { margin-block: 8px 24px !important; }
+:root body :is(.nlp-confirm-actions, .studio-modal-footer) { gap: 12px; margin-top: 24px; }
+:root body .nlp-confirm-actions > button {
+  flex: 1 !important;
+  min-height: var(--form-control-height);
+  height: var(--form-control-height);
+  font-size: 16px;
+}
+:root body .icon-picker-options { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+:root body .icon-picker-option { min-height: var(--form-control-height); padding: 12px 16px; gap: 12px; }
+:root body :is(.ios-modal-header, .icon-picker-dialog header) .btn-modal-close { width: 40px; height: 40px; }
+:root body .ios-modal-backdrop :is(input[type="date"], input[type="time"])::-webkit-date-and-time-value {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+/* One moving background; all original content stays above it. The white
+   duplicate is visible only where that background intersects each tab. */
+:root body .floating-island-dock.dock-motion-ready { isolation: isolate; }
+:root body .floating-island-dock.dock-motion-ready::before { z-index: 0; background: #38383c; }
+:root[data-theme] body .floating-island-dock.dock-motion-ready button.dock-tab,
+:root[data-theme] body .floating-island-dock.dock-motion-ready button.dock-tab.active {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  box-shadow: none !important;
+}
+:root body .floating-island-dock .dock-highlight-content {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  padding: inherit;
+  box-sizing: border-box;
+  pointer-events: none;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  clip-path: inset(0 var(--dock-highlight-right, 100%) 0 var(--dock-highlight-left, 100%) round var(--radius-dock-inner));
+}
+:root body .floating-island-dock.dock-motion-ready .dock-highlight-content :is(.dock-label, .dock-icon svg) {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  stroke: currentColor;
+}
+
+
+/* Icons and labels share their layer's ink, including clipped swipe highlights. */
+:root[data-theme] body .floating-island-dock .dock-tab .dock-icon,
+:root[data-theme] body .floating-island-dock .dock-tab .dock-label,
+:root[data-theme] body .floating-island-dock .dock-tab .dock-icon svg,
+:root[data-theme] body .floating-island-dock .dock-tab .dock-icon svg * {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+:root[data-theme] body .floating-island-dock .dock-tab .dock-icon svg,
+:root[data-theme] body .floating-island-dock .dock-tab .dock-icon svg * {
+  stroke: currentColor !important;
+}
+
+/* Motion hierarchy: tactile controls, stable navigation, solid modal surfaces. */
+:root body :is(button, [role="button"], summary, .ios-item-card, .pending-card):active:not(:disabled):not([aria-disabled="true"]) {
+  transform: none;
+  transition-duration: 70ms;
+}
+:root body .floating-island-dock .dock-tab:active:not(:disabled):not([aria-disabled="true"]) { scale: 1; transform: none; }
+:root body :is(.ios-item-card, .pending-card):active:not(:disabled):not([aria-disabled="true"]) { scale: .995; }
+:root body .view-panel { transition: none; }
+:root body .floating-island-dock.scroll-linked-navigation {
+  transform: translate(-50%, var(--nav-offset, 0px));
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: none;
+}
+:root body .floating-island-dock.scroll-linked-navigation.dock-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+:root body :is(.ios-modal-backdrop, .ios-action-backdrop) {
+  --overlay-dim: rgba(0, 0, 0, .42);
+  animation-name: premiumScrimIn;
+  animation-duration: 160ms !important;
+}
+:root body #actionSheet.ios-action-backdrop:not(.modal-closing) {
+  animation: premiumScrimIn 160ms var(--motion-ease) !important;
+}
+:root body :is(.ios-modal-backdrop, .ios-action-backdrop).modal-closing {
+  animation: premiumScrimOut var(--motion-exit) ease-in forwards !important;
+}
+:root body .ios-modal-card { animation-name: premiumDialogIn; }
+:root body .ios-modal-backdrop.modal-closing .ios-modal-card {
+  animation: premiumDialogOut var(--motion-exit) ease-in forwards !important;
+}
+:root body .ios-action-sheet { animation-name: premiumSheetIn; }
+:root body .ios-action-backdrop.modal-closing .ios-action-sheet {
+  animation: premiumSheetOut var(--motion-exit) cubic-bezier(.4, 0, 1, 1) forwards !important;
+}
+/* Gesture transforms retain ownership during closing. */
+:root body :is(.ios-modal-backdrop, .ios-action-backdrop) :is(.ios-modal-card, .ios-action-sheet).sheet-gesture-controlled {
+  animation: none !important;
+  transition: none !important;
+}
+@keyframes premiumScrimIn {
+  from { background-color: transparent; }
+  to { background-color: var(--overlay-dim); }
+}
+@keyframes premiumScrimOut {
+  from { background-color: var(--overlay-dim); }
+  to { background-color: transparent; }
+}
+@keyframes premiumDialogIn {
+  from { transform: translateY(16px) scale(.985); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes premiumDialogOut {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to { transform: translateY(12px) scale(.985); opacity: 0; }
+}
+@keyframes premiumSheetIn {
+  from { transform: translateY(calc(100% + 32px)); }
+  to { transform: translateY(0); }
+}
+@keyframes premiumSheetOut {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(100% + 32px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root body :is(button, [role="button"], summary, .ios-item-card, .pending-card):active:not(:disabled):not([aria-disabled="true"]) { scale: 1; }
+  :root body :is(.ios-modal-backdrop, .ios-action-backdrop, .ios-modal-card, .ios-action-sheet),
+  :root body #actionSheet.ios-action-backdrop:not(.modal-closing),
+  :root body :is(.ios-modal-backdrop, .ios-action-backdrop).modal-closing,
+  :root body .ios-modal-backdrop.modal-closing .ios-modal-card,
+  :root body .ios-action-backdrop.modal-closing .ios-action-sheet { animation-duration: .01ms !important; }
+}
+
+/* Quiet utility rail. One surface replaces the green slab and separate capsules. */
+:root {
+  --header-surface: #242426;
+  --header-stroke: #3a3a3d;
+  --header-ink: #ededf0;
+  --header-muted: #adadb3;
+  --header-action: #38383c;
+  --header-focus: #9b9ba3;
+}
+:root[data-theme="light"] {
+  --header-surface: #fcfdf9;
+  --header-stroke: #dce4d7;
+  --header-ink: #344335;
+  --header-muted: #768271;
+  --header-action: #e9f0e3;
+  --header-focus: #71926a;
+  --app-header-background: #e3ebdc;
+}
+:root[data-theme="amoled"] { --header-surface: #111113; --header-stroke: #2d2d30; }
+:root body .ios-header {
+  gap: 6px;
+  padding: 6px;
+  min-height: 58px;
+  margin-bottom: 16px;
+  border: 1px solid var(--header-stroke);
+  border-radius: 22px;
+  background: var(--header-surface);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .055);
+}
+:root body .ios-header::before { content: none; }
+:root body .ios-header .header-smart-input-form { height: 44px; margin: 0; }
+:root body .ios-header .header-entry-icon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--header-muted);
+  display: flex;
+  pointer-events: none;
+}
+:root body .ios-header .header-smart-input {
+  height: 44px;
+  line-height: normal;
+  padding: 0 54px 0 37px;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--header-ink) !important;
+  -webkit-text-fill-color: var(--header-ink) !important;
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: 14px !important;
+}
+:root body .ios-header .header-smart-input.has-clear { padding-right: 86px; }
+:root body .ios-header .header-smart-input::placeholder {
+  color: var(--header-muted) !important;
+  -webkit-text-fill-color: var(--header-muted) !important;
+  font-size: 14px;
+  opacity: 1 !important;
+}
+:root body .ios-header .header-smart-input:focus { outline: 2px solid var(--header-focus); outline-offset: 0; }
+:root body .ios-header #btnCameraScan {
+  width: 44px;
+  height: 44px;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  transform: none;
+  border-radius: 15px !important;
+  background: var(--header-action) !important;
+  border: 1px solid transparent !important;
+  color: var(--header-ink) !important;
+  -webkit-text-fill-color: var(--header-ink) !important;
+}
+:root body .ios-header #btnCameraScan svg {
+  width: 21px; height: 21px;
+  color: var(--header-ink) !important;
+  stroke: var(--header-ink) !important;
+  stroke-width: 1.8;
+}
+:root body .ios-header .header-smart-clear {
+  right: 46px;
+  top: 50%;
+  translate: 0 -50%;
+  transform: none;
+  width: 32px; height: 44px;
+  background: transparent !important;
+  color: var(--header-muted) !important;
+}
+:root body .ios-header .header-actions { margin: 0; gap: 0; }
+:root body .ios-header #btnOpenSettings {
+  width: 44px; height: 44px;
+  border-radius: 15px !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--header-muted) !important;
+  -webkit-text-fill-color: var(--header-muted) !important;
+}
+:root body .ios-header #btnOpenSettings svg {
+  width: 20px; height: 20px;
+  color: var(--header-muted) !important;
+  stroke: var(--header-muted) !important;
+  stroke-width: 1.7;
+}
+/* Move only compositor transforms; no fading, continuous JS writes or broad will-change. */
+:root body .floating-island-dock.scroll-linked-navigation {
+  transform: translate3d(-50%, var(--nav-offset, 0px), 0);
+}
+@media (max-width: 600px) {
+  :root { --app-header-top: max(12px, calc(env(safe-area-inset-top, 0px) + 8px)); }
+  :root body .ios-header.scroll-linked-navigation {
+    transform: translate3d(0, var(--nav-offset, 0px), 0);
+    transition: none;
+  }
+  /* The status-bar mask stays in place while the toolbar leaves the viewport. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--app-header-background);
+    pointer-events: none;
+    z-index: 101;
+  }
+}
+
+/* Supported Safari versions attach the indicator directly to native page scrolling. */
+@supports (animation-timeline: --app-pages) and (timeline-scope: --app-pages) {
+  .ios-app-container { timeline-scope: --app-pages; }
+  #viewsSliderViewport { scroll-timeline-name: --app-pages; scroll-timeline-axis: inline; }
+  :root body .floating-island-dock.dock-scroll-timeline::before {
+    width: var(--dock-base-width);
+    transform-origin: left center;
+    animation: dockNativeTravel 1s linear both;
+    animation-timeline: --app-pages;
+  }
+  :root body .floating-island-dock.dock-scroll-timeline .dock-icon { transform: none; }
+  :root body .floating-island-dock.dock-scroll-timeline .dock-highlight-content {
+    clip-path: none;
+    animation: dockNativeFirst 1s linear both;
+    animation-timeline: --app-pages;
+  }
+  :root body .floating-island-dock.dock-scroll-timeline .dock-tab:nth-child(2) .dock-highlight-content {
+    animation-name: dockNativeMiddle;
+  }
+  :root body .floating-island-dock.dock-scroll-timeline .dock-tab:nth-child(3) .dock-highlight-content {
+    animation-name: dockNativeLast;
+  }
+}
+@keyframes dockNativeTravel {
+  0% { transform: translate3d(var(--dock-stop-0), 0, 0); }
+  50% { transform: translate3d(var(--dock-stop-1), 0, 0); }
+  100% { transform: translate3d(var(--dock-stop-2), 0, 0); }
+}
+@keyframes dockNativeFirst { 0% { opacity: 1; } 35%, 100% { opacity: 0; } }
+@keyframes dockNativeMiddle { 0%, 15%, 85%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes dockNativeLast { 0%, 65% { opacity: 0; } 100% { opacity: 1; } }
+
+/* Secondary overlays share the quicker entry/exit rhythm. */
+:root body :is(.cloud-consent-dialog, .icon-picker-dialog, .ai-scan-loading-card, .model-loading-card) {
+  animation-duration: var(--motion-duration) !important;
+  animation-timing-function: var(--motion-ease) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root body :is(.cloud-consent-dialog, .icon-picker-dialog, .ai-scan-loading-card, .model-loading-card) {
+    animation-duration: .01ms !important;
+  }
+}
+
+/* Equal navigation cells keep the moving capsule's radius and size invariant. */
+:root body .floating-island-dock .dock-tab {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  padding-inline: 6px;
+  box-sizing: border-box;
+}
+:root body .floating-island-dock .dock-tab:focus-visible { outline: none; }
+:root body .floating-island-dock.keyboard-navigation .dock-tab:focus-visible {
+  outline: 2px solid var(--ink-green);
+  outline-offset: -4px;
+}
+/* Paint the page field on a persistent viewport layer, independent of body locking. */
+:root { --app-header-background: #121212; background-color: #121212; }
+:root[data-theme="amoled"] { --app-header-background: #000; background-color: #000; }
+:root[data-theme="light"] { --app-header-background: #e3ebdc; background-color: #e3ebdc; }
+:root[data-theme="light"] body { background: transparent !important; }
+:root[data-theme="light"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, #e3ebdc 0%, #e3ebdc 1%, #e8eee2 18%, #eef1e8 34%, #f0f1e9 45%, #f3efe6 50%, #f3efe6 100%);
+  background-size: 100% 100lvh;
+  background-repeat: no-repeat;
+  background-color: #f3efe6;
+}
+
+/* Give equal flex cells a stable containing width instead of intrinsic shrink-to-fit. */
+:root body .floating-island-dock { width: min(360px, calc(100vw - 48px)); }
+
+/* Native smooth travel owns settling; CSS snap must not launch a second smooth scroll. */
+:root body .views-slider-viewport { scroll-behavior: auto; overflow-anchor: none; }
+:root body .views-slider-track { align-items: flex-start; }
+
+/* A quiet journal masthead and coordinated home controls. */
+.journal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 5px 7px;
+  color: var(--ios-text-primary);
+}
+.journal-heading-copy { min-width: 0; }
+.journal-eyebrow {
+  display: block;
+  color: var(--ios-text-secondary);
+  font-size: 8px;
+  letter-spacing: .18em;
+  margin-bottom: 3px;
+}
+.journal-heading h1 {
+  font-family: 'Noto Serif TC', 'PMingLiU', serif;
+  font-size: clamp(19px, 4.8vw, 22px);
+  font-weight: 500;
+  letter-spacing: .06em;
+  line-height: 1.3;
+}
+.journal-heading p {
+  color: var(--ios-text-secondary);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 3px;
+}
+.journal-botanical { width: 48px; height: 60px; flex-shrink: 0; color: var(--ink-green); }
+:root body #statusNoticeCard {
+  position: relative;
+  border: 1px solid var(--ios-border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  min-height: 54px;
+  margin-bottom: 12px;
+  box-shadow: none;
+}
+:root body #statusNoticeCard .notice-title { font-size: 14px; line-height: 1.4; }
+:root body #statusNoticeCard .notice-num { font-size: 17px; margin-inline: 2px; }
+:root body #statusNoticeCard .notice-left-group { gap: 8px; }
+:root body #noticeIconWrapper { width: 28px; height: 28px; min-width: 28px; }
+:root body #noticeIconWrapper svg { width: 15px; height: 15px; }
+:root body #btnCleanExpired { width: 44px; height: 44px; min-width: 44px; }
+:root body #segmentedPillsBar {
+  gap: 5px;
+  padding: 5px;
+  border-radius: 22px;
+  border: 1px solid var(--ios-border);
+  background: var(--ios-surface-secondary);
+  margin-bottom: 14px;
+}
+:root body #segmentedPillsBar .home-filter-btn {
+  height: 44px;
+  border: 0 !important;
+  border-radius: 17px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 14px;
+  gap: 6px;
+}
+:root body #segmentedPillsBar .home-filter-btn.active {
+  background: var(--button-green) !important;
+  color: #fffaf2 !important;
+  box-shadow: 0 2px 5px rgba(30, 48, 38, .12) !important;
+}
+:root body #segmentedPillsBar .home-filter-btn.active .filter-btn-text { color: #fffaf2 !important; }
+:root body #segmentedPillsBar .filter-btn-badge {
+  border: 0 !important;
+  background: rgba(128, 128, 128, .09) !important;
+  font-size: 12px;
+  min-width: 23px;
+  height: 23px;
+}
+:root body #segmentedPillsBar .active .filter-btn-badge {
+  background: rgba(255,255,255,.16) !important;
+  color: #fffaf2 !important;
+}
+:root body #homeSortToolbar { padding-inline: 4px; margin-bottom: 2px; }
+:root body #sortToolbarCount { font-size: 12px; font-weight: 400; letter-spacing: .04em; }
+:root body #btnOpenCustomSort {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-size: 12px;
+  min-height: 44px;
+  padding-inline: 10px;
+  color: var(--ios-text-secondary) !important;
+}
+:root[data-theme="light"] body .ios-header {
+  background: #fbfaf5;
+  border-color: #d9ded1;
+  box-shadow: 0 3px 12px rgba(61, 77, 54, .035);
+}
+:root[data-theme="light"] body #statusNoticeCard {
+  background: #fbfaf5;
+  border-color: #dadfd2;
+}
+:root[data-theme="light"] body #statusNoticeCard.expired {
+  background: #faf1e9;
+  border-color: #e6d5c7;
+}
+:root[data-theme="light"] body #statusNoticeCard.warning {
+  background: #faf4e6;
+  border-color: #e5dac0;
+}
+:root[data-theme="light"] body #noticeIconWrapper {
+  background: #e8eee1;
+  color: #52715b;
+}
+:root[data-theme="light"] body #statusNoticeCard.expired #noticeIconWrapper {
+  background: #f0ded4;
+  color: #a76559;
+}
+:root[data-theme="light"] body #segmentedPillsBar { background: #e5eadf; border-color: #d8dfd1; }
+:root[data-theme="light"] body #segmentedPillsBar .home-filter-btn.active { background: #3f5b4b !important; }
+@media (max-width: 350px) {
+  .journal-botanical { width: 55px; }
+  .journal-heading p { font-size: 11px; }
+  :root body #segmentedPillsBar .home-filter-btn { gap: 3px; font-size: 13px; }
+}
+
+/* Filters and the compact notice share one surface. */
+.home-overview-frame {
+  padding: 4px;
+  margin-bottom: 2px;
+  border: 1px solid var(--ios-border);
+  border-radius: 24px;
+  background: var(--ios-surface-secondary);
+}
+:root[data-theme="light"] .home-overview-frame {
+  background: #e5eadf;
+  border-color: #d8dfd1;
+}
+:root body .home-overview-frame #segmentedPillsBar {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+:root body .home-overview-frame #statusNoticeCard {
+  min-height: 28px;
+  padding: 0 8px;
+  margin: 3px 0 0;
+  border: 0;
+  border-top: 1px solid var(--ios-border);
+  border-radius: 0;
+  background: transparent;
+  gap: 6px;
+}
+:root body .home-overview-frame #statusNoticeCard .notice-title {
+  font-size: 12px;
+  font-weight: 500;
+}
+:root body .home-overview-frame #statusNoticeCard .notice-num { font-size: 14px; }
+:root body .home-overview-frame #noticeIconWrapper {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  background: transparent;
+}
+:root body .home-overview-frame #noticeIconWrapper svg { width: 14px; height: 14px; }
+:root body .home-overview-frame #btnCleanExpired {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+:root body .home-overview-frame #btnCleanExpired::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+
+:root body .home-overview-frame #segmentedPillsBar .home-filter-btn {
+  height: 36px;
+  min-height: 36px;
+  padding-block: 3px;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+:root body .home-overview-frame #segmentedPillsBar .home-filter-btn::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+:root body .home-overview-frame #segmentedPillsBar .home-filter-btn { position: relative; }
+@media (prefers-reduced-motion: reduce) {
+  :root body .home-overview-frame #segmentedPillsBar .home-filter-btn,
+  :root body .home-overview-frame #segmentedPillsBar .home-filter-btn * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+:root body .ios-header { margin-bottom: 8px; }
+
+/* Prominent close controls for item creation and smart confirmation. */
+:root body :is(#itemModal, #nlpConfirmModal) .btn-modal-close {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--button-border) !important;
+  border-radius: 50%;
+  background: var(--button-gray) !important;
+  color: var(--button-text) !important;
+  -webkit-text-fill-color: var(--button-text) !important;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+:root[data-theme="light"] body :is(#itemModal, #nlpConfirmModal) .btn-modal-close {
+  background: #eee9e1 !important;
+  border-color: #d5cec4 !important;
+  color: #38332f !important;
+  -webkit-text-fill-color: #38332f !important;
+}
+
+/* Subtle definition for the home filter capsules. */
+:root body .home-overview-frame #segmentedPillsBar .home-filter-btn {
+  border: 1px solid rgba(255, 255, 255, .12) !important;
+  background: rgba(255, 255, 255, .05) !important;
+}
+:root[data-theme="light"] body .home-overview-frame #segmentedPillsBar .home-filter-btn {
+  border-color: rgba(63, 91, 75, .16) !important;
+  background: rgba(255, 255, 255, .32) !important;
+}
+:root body .home-overview-frame #segmentedPillsBar .home-filter-btn.active {
+  background: var(--button-green) !important;
+  border-color: rgba(255, 255, 255, .24) !important;
+  box-shadow: 0 3px 8px rgba(30, 48, 38, .20), inset 0 1px 0 rgba(255, 255, 255, .10) !important;
+}
+:root[data-theme="light"] body .home-overview-frame #segmentedPillsBar .home-filter-btn.active {
+  background: #3f5b4b !important;
+  border-color: #354e40 !important;
+}
+
+/* Inset capsule track with quiet depth and generous corner clearance. */
+:root body .ios-item-card .card-status-progress > .card-progress-bar {
+  position: relative;
+  width: auto;
+  height: 4px;
+  min-height: 4px;
+  flex-shrink: 0;
+  margin: 5px 0 2px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .10);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .08);
+}
+:root[data-theme="light"] body .ios-item-card .card-status-progress > .card-progress-bar {
+  background: rgba(63, 91, 75, .09) !important;
+  box-shadow: inset 0 1px 2px rgba(63, 91, 75, .06);
+}
+:root body .ios-item-card .card-status-progress > .card-progress-bar .card-progress-fill {
+  border-radius: 999px !important;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15);
+}
+
+/* Keep the progress track close to its status text. */
+:root body .ios-item-card { justify-content: flex-start; }
+:root body .ios-item-card .card-metric-sub { margin-bottom: 0; }
+
+:root body .ios-item-card .card-status-progress {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+[data-screen-fit="tablet"] .card-summary > .card-status-progress { grid-column: 1; }
+
+/* Consistent spacing between item form sections and reminder panels. */
+:root body #itemForm { --item-section-gap: 16px; gap: var(--item-section-gap); }
+:root body #itemForm .active-tracking {
+  display: flex;
+  flex-direction: column;
+  gap: var(--item-section-gap);
+}
+:root body #itemForm #fieldReminderWrap { gap: var(--item-section-gap); }
+:root body #itemForm :is(#customReminderDateTimeWrap, #showNotesHomeContainer, #itemPendingBox) { margin: 0 !important; }
+:root body #itemForm .ios-input-group-fields { gap: var(--item-section-gap); }
+
+/* Keep category and subtype names readable on narrow item cards. */
+:root body .ios-item-card .card-category-tag {
+  text-align: left;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+/* Android WebView: resize sheets with the keyboard and keep controls reachable. */
+:root[data-platform="android"] body .ios-modal-backdrop {
+  height: var(--android-viewport-height, 100dvh);
+  box-sizing: border-box;
+}
+:root[data-platform="android"] body .ios-modal-card {
+  max-height: calc(var(--android-viewport-height, 100dvh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+}
+:root[data-platform="android"] body .ios-modal-header { flex-shrink: 0; }
+:root[data-platform="android"] body .ios-modal-scroll { scroll-padding-block: 16px; }
+@media (max-width: 360px) {
+  :root[data-platform="android"] body .ios-modal-header { padding-inline: 12px; }
+  :root[data-platform="android"] body .ios-modal-header h2 { font-size: 1rem !important; }
+}
+
+/* Progress first, then centered remaining/overdue status. */
+:root body .ios-item-card .card-status-progress {
+  display: flex;
+  flex-direction: column;
+}
+:root body .ios-item-card .card-status-progress > .card-progress-bar {
+  order: -1;
+  margin: 8px 0 0;
+}
+:root body .ios-item-card .card-status-progress > .card-metric-sub {
+  width: 100%;
+  text-align: center;
+  margin: 6px 0 0;
+}
+
+/* Fixed thumbnail with corners concentric to the card outline. */
+:root body .ios-item-card .card-icon-box {
+  width: 52px;
+  height: 64px;
+  border-radius: var(--radius-item-media) !important;
+}
+
+/* Use the same inset on every item card, including pending items. */
+:root body .ios-item-card { padding: var(--item-card-inset); }

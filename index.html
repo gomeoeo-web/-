@@ -3,14 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <script>
+    if (/Android/i.test(navigator.userAgent)) {
+      document.documentElement.dataset.platform = 'android';
+      let viewportFrame = 0;
+      const updateAndroidViewport = () => {
+        if (viewportFrame) return;
+        viewportFrame = requestAnimationFrame(() => {
+          viewportFrame = 0;
+          const height = window.visualViewport?.height || window.innerHeight;
+          document.documentElement.style.setProperty('--android-viewport-height', height + 'px');
+        });
+      };
+      window.visualViewport?.addEventListener('resize', updateAndroidViewport, { passive: true });
+      window.addEventListener('resize', updateAndroidViewport, { passive: true });
+      updateAndroidViewport();
+    }
+  </script>
   <title>期效管家</title>
   <meta name="description" content="極簡物品生命週期與保固管家：更換濾網耗材、食品效期、保固時間、日化開封天數。">
-  <meta name="theme-color" content="#d9e8d5" id="metaThemeColor">
+  <meta name="theme-color" content="#e3ebdc" id="metaThemeColor">
   <meta name="color-scheme" content="dark light">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <link rel="stylesheet" href="style.css?v=1.9.21">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="style.css?v=1.9.22">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -42,10 +59,10 @@
   --ios-blue: #0a84ff;
 
   /* Geometry */
-  --radius-pill: 9999px;
-  --radius-card: 22px;
-  --radius-subcard: 16px;
-  --radius-sm: 10px;
+  --radius-pill: 18px;
+  --radius-card: 28px;
+  --radius-subcard: 18px;
+  --radius-sm: 18px;
 
   --transition-ios: 0.22s cubic-bezier(0.32, 0.72, 0, 1);
   --app-max-width: 440px;
@@ -241,7 +258,7 @@ body {
 .btn-circle-dark {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: var(--ios-surface-elevated);
   color: var(--ios-text-primary);
   border: none;
@@ -261,7 +278,7 @@ body {
 .btn-circle-white {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: #ffffff;
   color: #000000;
   border: none;
@@ -285,7 +302,7 @@ body {
   right: 2px;
   width: 9px;
   height: 9px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: var(--ios-green);
   border: 2px solid var(--ios-bg);
   box-shadow: 0 0 4px rgba(52, 199, 89, 0.6);
@@ -348,7 +365,7 @@ body {
   transform: translateY(-50%);
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--ios-text-secondary);
   border: none;
@@ -378,7 +395,7 @@ body {
   transform: translateY(-50%);
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.18);
   color: var(--ios-text-primary);
   border: none;
@@ -443,7 +460,7 @@ body {
   right: max(20px, env(safe-area-inset-right, 0px));
   width: 58px;
   height: 58px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background-color: #FFFFFF !important;
   background: #FFFFFF !important;
   color: #000000 !important;
@@ -535,7 +552,7 @@ body {
   height: 85vh;
   max-height: 720px;
   background: #000000;
-  border-radius: 28px;
+  border-radius: var(--radius-container);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -576,7 +593,7 @@ body {
 .camera-btn-close {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
   border: none;
@@ -627,7 +644,7 @@ body {
   max-width: 320px;
   position: relative;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
-  border-radius: 18px;
+  border-radius: var(--radius-container);
 }
 
 .viewfinder-corner {
@@ -642,28 +659,28 @@ body {
   top: 0;
   left: 0;
   border-width: 3.5px 0 0 3.5px;
-  border-top-left-radius: 12px;
+  border-top-left-radius: var(--radius-control);
 }
 
 .viewfinder-corner.top-right {
   top: 0;
   right: 0;
   border-width: 3.5px 3.5px 0 0;
-  border-top-right-radius: 12px;
+  border-top-right-radius: var(--radius-control);
 }
 
 .viewfinder-corner.bottom-left {
   bottom: 0;
   left: 0;
   border-width: 0 0 3.5px 3.5px;
-  border-bottom-left-radius: 12px;
+  border-bottom-left-radius: var(--radius-control);
 }
 
 .viewfinder-corner.bottom-right {
   bottom: 0;
   right: 0;
   border-width: 0 3.5px 3.5px 0;
-  border-bottom-right-radius: 12px;
+  border-bottom-right-radius: var(--radius-control);
 }
 
 .camera-scan-laser {
@@ -674,7 +691,7 @@ body {
   height: 2px;
   background: linear-gradient(90deg, transparent, #34c759, #30d158, transparent);
   box-shadow: 0 0 10px #34c759;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   animation: scanLaserMove 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
 }
 
@@ -700,7 +717,7 @@ body {
   color: rgba(255, 255, 255, 0.85);
   background: rgba(0, 0, 0, 0.6);
   padding: 6px 14px;
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -713,7 +730,7 @@ body {
   width: 68px;
   height: 68px;
   border: 2px solid #ffd60a;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   pointer-events: none;
   transform: translate(-50%, -50%) scale(1.2);
   opacity: 0;
@@ -759,7 +776,7 @@ body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: 4px 6px;
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   border: 1px solid rgba(255, 255, 255, 0.18);
   z-index: 15;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -769,7 +786,7 @@ body {
 .camera-zoom-btn {
   width: 38px;
   height: 38px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.85);
@@ -831,7 +848,7 @@ body {
   padding: 20px 20px;
   background: rgba(28, 28, 32, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
+  border-radius: var(--radius-container);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -853,7 +870,7 @@ body {
   width: 100%;
   height: 110px;
   max-height: 110px;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   margin-bottom: 16px;
   background: rgba(0, 0, 0, 0.5);
@@ -940,7 +957,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 6px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: rgba(255, 255, 255, 0.35);
   font-size: 0.8rem;
@@ -977,7 +994,7 @@ body {
   font-size: 0.72rem;
   font-weight: 600;
   padding: 3px 9px;
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   background: rgba(52, 199, 89, 0.16);
   color: #34c759;
   border: 1px solid rgba(52, 199, 89, 0.35);
@@ -999,7 +1016,7 @@ body {
   font-size: 0.76rem;
   font-weight: 600;
   padding: 4px 11px;
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   background: rgba(52, 199, 89, 0.15);
   color: #34c759;
   border: 1px solid rgba(52, 199, 89, 0.3);
@@ -1023,7 +1040,7 @@ body {
   padding: 20px 20px;
   background: rgba(28, 28, 32, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
+  border-radius: var(--radius-container);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1045,7 +1062,7 @@ body {
   width: 100%;
   height: 110px;
   max-height: 110px;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   margin-bottom: 16px;
   background: rgba(0, 0, 0, 0.5);
@@ -1132,7 +1149,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 6px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: rgba(255, 255, 255, 0.35);
   font-size: 0.8rem;
@@ -1169,7 +1186,7 @@ body {
   font-size: 0.72rem;
   font-weight: 600;
   padding: 3px 9px;
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   background: rgba(52, 199, 89, 0.16);
   color: #34c759;
   border: 1px solid rgba(52, 199, 89, 0.35);
@@ -1191,7 +1208,7 @@ body {
   font-size: 0.76rem;
   font-weight: 600;
   padding: 4px 11px;
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   background: rgba(52, 199, 89, 0.15);
   color: #34c759;
   border: 1px solid rgba(52, 199, 89, 0.3);
@@ -1216,7 +1233,7 @@ body {
   padding: 0.85rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
+  border-radius: var(--radius-container);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -1265,7 +1282,7 @@ body {
   font-size: 0.65rem;
   font-weight: 700;
   padding: 2px 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   background: rgba(10, 132, 255, 0.2);
   color: #0a84ff;
   border: 1px solid rgba(10, 132, 255, 0.35);
@@ -1275,7 +1292,7 @@ body {
   font-size: 0.65rem;
   font-weight: 600;
   padding: 2px 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   background: rgba(48, 209, 88, 0.16);
   color: #30d158;
   border: 1px solid rgba(48, 209, 88, 0.3);
@@ -1293,7 +1310,7 @@ body {
   width: 100%;
   height: 8px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   margin: 0.6rem 0 0.45rem 0;
   position: relative;
@@ -1303,7 +1320,7 @@ body {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #0a84ff, #5e5ce6, #30d158);
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   transition: width 0.22s cubic-bezier(0.32, 0.72, 0, 1);
   position: relative;
   overflow: hidden;
@@ -1349,7 +1366,7 @@ body {
 .vlm-hint-note {
   margin-top: 0.55rem;
   padding: 0.4rem 0.6rem;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.68rem;
@@ -1456,7 +1473,7 @@ body {
 .camera-shutter-btn {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   border: 4px solid #ffffff;
   background: transparent;
   padding: 4px;
@@ -1475,7 +1492,7 @@ body {
 .camera-shutter-btn .shutter-inner {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: #ffffff;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
@@ -1553,7 +1570,7 @@ body {
   width: 32px;
   height: 32px;
   min-width: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: rgba(52, 199, 89, 0.14);
   color: var(--ios-green);
   display: inline-flex;
@@ -1652,7 +1669,7 @@ body {
   width: 32px;
   height: 32px;
   min-width: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: rgba(255, 69, 58, 0.12);
   color: #ff453a;
   border: 1px solid rgba(255, 69, 58, 0.28);
@@ -1882,7 +1899,7 @@ body {
   color: var(--ios-text-secondary);
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   font-size: 0.75rem;
   cursor: pointer;
   display: flex;
@@ -2199,7 +2216,7 @@ body {
   width: 100%;
   height: 4px;
   background-color: rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   margin-top: auto;
 }
@@ -2207,7 +2224,7 @@ body {
 .progress-bar-fill,
 .card-progress-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   transition: width 0.3s ease, background-color 0.2s ease;
 }
 
@@ -2250,7 +2267,7 @@ body {
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.65rem;
-  border-radius: var(--radius-pill, 9999px);
+  border-radius: var(--radius-pill, var(--radius-control));
   background: var(--ios-surface-elevated, #2c2c2e);
   border: 1px solid var(--ios-border, rgba(255, 255, 255, 0.12));
   color: var(--ios-text-secondary, #8e8e93);
@@ -2284,7 +2301,7 @@ body {
 .empty-icon-circle {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: var(--ios-surface);
   color: var(--ios-text-secondary);
   display: flex;
@@ -2316,7 +2333,7 @@ body {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 40px;
+  border-radius: var(--radius-container);
   padding: 0.32rem 0.42rem;
   display: flex;
   align-items: center;
@@ -2388,7 +2405,7 @@ body {
   justify-content: center;
   gap: 0.15rem;
   padding: 0.52rem 1.6rem;
-  border-radius: 32px;
+  border-radius: var(--radius-container);
   background: transparent;
   color: var(--ios-text-secondary);
   border: none;
@@ -2578,6 +2595,23 @@ body {
   width: 100%;
 }
 
+#itemModal .ios-modal-header {
+  gap: 0.5rem;
+}
+
+#itemModal .ios-modal-header > div {
+  flex-shrink: 0;
+}
+
+#itemModal #modalTitle {
+  font-size: clamp(0.95rem, 4vw, 1.2rem);
+}
+
+@media (max-width: 360px) {
+  #itemModal .ios-modal-header { padding-inline: 0.75rem; }
+  #itemModal #autoSaveBadge { font-size: 0.65rem !important; padding-inline: 0.35rem !important; }
+}
+
 .ios-modal-header h2 {
   font-size: 1.2rem;
   font-weight: 700;
@@ -2586,12 +2620,35 @@ body {
   white-space: nowrap;
 }
 
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btn-ios-primary.btn-header-save {
+  width: auto;
+  min-width: 76px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#nlpConfirmModal .ios-modal-header { gap: 0.5rem; }
+#nlpConfirmModal .nlp-confirm-header-wrap { min-width: 0; }
+
 .btn-modal-close {
   background: var(--ios-surface-elevated);
   border: none;
   width: 34px;
   height: 34px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   color: var(--ios-text-secondary);
   font-size: 1rem;
   cursor: pointer;
@@ -2932,7 +2989,7 @@ body {
   background-color: var(--ios-surface-elevated, #39393d);
   border: 1.5px solid var(--ios-border, rgba(255, 255, 255, 0.15));
   transition: all 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-  border-radius: 31px;
+  border-radius: var(--radius-container);
 }
 
 .ios-switch-slider::before {
@@ -2944,7 +3001,7 @@ body {
   bottom: 1.5px;
   background-color: #ffffff;
   transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
 }
 
@@ -3375,7 +3432,7 @@ input[type="time"]::-webkit-date-and-time-value {
   text-align: center;
   background: var(--ios-surface-elevated);
   border: 1px solid var(--ios-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   color: #ffffff;
   font-size: 1.15rem;
   outline: none;
@@ -3489,7 +3546,7 @@ input[type="time"]::-webkit-date-and-time-value {
 
 .ios-action-sheet {
   background: var(--ios-surface);
-  border-radius: 26px;
+  border-radius: var(--radius-container);
   width: 100%;
   max-width: 500px;
   max-height: min(85vh, calc(100vh - 2.5rem));
@@ -3524,7 +3581,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .sheet-drag-handle {
   width: 36px;
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   background: var(--ios-border-strong);
   margin: 0 auto 0.75rem auto;
   cursor: grab;
@@ -3535,6 +3592,7 @@ input[type="time"]::-webkit-date-and-time-value {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   margin-bottom: 0.85rem;
   touch-action: none;
   cursor: grab;
@@ -3545,6 +3603,12 @@ input[type="time"]::-webkit-date-and-time-value {
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sheet-item-info > div:last-child {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .sheet-emoji {
@@ -3565,9 +3629,20 @@ input[type="time"]::-webkit-date-and-time-value {
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: -0.015em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#btnCloseSheet.btn-modal-close {
+  width: 42px;
+  height: 42px;
+  color: var(--ios-text-primary);
+  background: var(--ios-surface-secondary);
+  border: 1px solid var(--ios-border-strong);
+  font-size: 1.35rem;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
 }
 
 .sheet-tag {
@@ -4202,7 +4277,7 @@ input[type="time"]::-webkit-date-and-time-value {
   appearance: none;
   width: 100%;
   height: 6px;
-  border-radius: 3px;
+  border-radius: var(--radius-control);
   background: var(--ios-surface-elevated);
   outline: none;
   margin: 0.4rem 0;
@@ -4214,7 +4289,7 @@ input[type="time"]::-webkit-date-and-time-value {
   appearance: none;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   cursor: pointer;
@@ -4264,7 +4339,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .category-create-card {
   background: var(--ios-surface-secondary);
   border: 1.5px solid var(--ios-border);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   padding: 0.85rem 1rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
@@ -4319,7 +4394,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .quick-emoji-btn {
   background: var(--ios-surface);
   border: 1px solid var(--ios-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   font-size: 1.15rem;
   padding: 0.3rem 0.55rem;
   cursor: pointer;
@@ -4345,7 +4420,7 @@ input[type="time"]::-webkit-date-and-time-value {
   gap: 0.4rem;
   background: var(--ios-surface-secondary);
   border: 1px solid var(--ios-border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 0.55rem 0.75rem;
   transition: background 0.15s ease;
   box-sizing: border-box;
@@ -4406,7 +4481,7 @@ input[type="time"]::-webkit-date-and-time-value {
   font-size: 0.76rem;
   font-weight: 600;
   padding: 0.28rem 0.55rem;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -4438,7 +4513,7 @@ input[type="time"]::-webkit-date-and-time-value {
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0.35rem 0.65rem;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -4474,7 +4549,7 @@ input[type="time"]::-webkit-date-and-time-value {
   color: var(--ios-text-secondary);
   background: rgba(255, 255, 255, 0.08);
   padding: 0.25rem 0.55rem;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-weight: 600;
 }
 
@@ -4656,7 +4731,7 @@ input[type="time"]::-webkit-date-and-time-value {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   border: 1.5px solid var(--ios-border);
   color: transparent;
   font-size: 0.85rem;
@@ -4716,7 +4791,7 @@ input[type="time"]::-webkit-date-and-time-value {
 
 .custom-order-items-list::-webkit-scrollbar-thumb {
   background: var(--ios-border-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
 }
 
 .order-item-row {
@@ -4749,7 +4824,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .order-item-thumb {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: var(--ios-surface-elevated);
   display: flex;
   align-items: center;
@@ -4784,7 +4859,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .btn-move-order {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-control);
   border: 1px solid var(--ios-border);
   background: var(--ios-surface-elevated);
   color: var(--ios-text-primary);
@@ -5164,7 +5239,7 @@ input[type="time"]::-webkit-date-and-time-value {
   padding: 0.45rem 0.75rem;
   background: var(--ios-surface-secondary);
   border: 1px solid var(--ios-border);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   margin-top: 0;
   margin-bottom: 0;
   box-shadow: none;
@@ -5416,7 +5491,7 @@ input[type="time"]::-webkit-date-and-time-value {
   padding: 0.65rem 0.85rem;
   background: var(--ios-surface-secondary);
   border: 1.5px solid var(--ios-border);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   user-select: none;
   transition: all 0.15s ease;
@@ -5450,7 +5525,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .picker-checkbox {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   border: 2px solid var(--ios-text-secondary);
   display: flex;
   align-items: center;
@@ -5477,7 +5552,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .picker-item-thumb {
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: #2a2a2d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
@@ -5525,7 +5600,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .picker-cat-tag {
   background: rgba(255, 255, 255, 0.08);
   padding: 0.1rem 0.45rem;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font-size: 0.75rem;
 }
 
@@ -5544,7 +5619,7 @@ input[type="time"]::-webkit-date-and-time-value {
 .btn-cat-order {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--ios-border);
   color: var(--ios-text-primary);
@@ -5737,7 +5812,7 @@ body.modal-open .view-panel {
   width: 88%;
   text-align: center;
   padding: 1.75rem 1.35rem 1.45rem 1.35rem;
-  border-radius: 22px;
+  border-radius: var(--radius-container);
   background: var(--ios-surface);
   border: 1px solid var(--ios-border);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
@@ -5843,7 +5918,7 @@ body.modal-open .view-panel {
   background: rgba(10, 132, 255, 0.14);
   border: 1px solid rgba(10, 132, 255, 0.28);
   padding: 0.2rem 0.55rem;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   white-space: nowrap;
 }
 
@@ -5868,7 +5943,7 @@ body.modal-open .view-panel {
   font-size: 0.78rem;
   font-weight: 600;
   padding: 0.3rem 1.4rem 0.3rem 0.6rem;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   outline: none;
   font-family: inherit;
@@ -5926,7 +6001,7 @@ body.modal-open .view-panel {
   .ios-modal-card {
     max-width: calc(100% - 0.5rem);
     margin: 0 auto;
-    border-radius: 20px;
+    border-radius: var(--radius-container);
     max-height: 90vh;
   }
 
@@ -6072,7 +6147,7 @@ body.modal-open .view-panel {
   font-size: 1.6rem;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--ios-surface-elevated);
   display: flex;
   align-items: center;
@@ -6211,7 +6286,7 @@ body.modal-open .view-panel {
 [data-theme="amoled"] .settings-icon {
   background: #282834;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   width: 34px;
   height: 34px;
   display: inline-flex;
@@ -6585,7 +6660,7 @@ body.modal-open .view-panel {
   gap: 0.55rem;
   background: rgba(255, 149, 0, 0.09);
   border: 1px solid rgba(255, 149, 0, 0.28);
-  border-radius: var(--radius-card, 16px);
+  border-radius: var(--radius-card, var(--radius-container));
   padding: 0.7rem 0.85rem;
   margin-bottom: 0.95rem;
   transition: all 0.25s ease;
@@ -6608,7 +6683,7 @@ body.modal-open .view-panel {
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 4px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 
 .nlp-mode-pill {
@@ -6617,7 +6692,7 @@ body.modal-open .view-panel {
   justify-content: center;
   gap: 0.35rem;
   padding: 0.55rem 0.5rem;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
   background: transparent;
   color: #a1a1a6;
@@ -6672,7 +6747,7 @@ body.modal-open .view-panel {
   background: rgba(10, 132, 255, 0.12);
   border: 1px solid rgba(10, 132, 255, 0.28);
   color: #0a84ff;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
@@ -6705,7 +6780,7 @@ body.modal-open .view-panel {
   box-sizing: border-box;
   background: var(--ios-surface-secondary);
   border: 1px solid var(--ios-border-strong);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   padding: 0 0.75rem;
   color: var(--ios-text-primary);
   font-family: inherit;
@@ -6822,7 +6897,7 @@ input[type="datetime-local"].nlp-confirm-input {
   padding: 0 10px !important;
   background-color: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 10px !important;
+  border-radius: var(--radius-control) !important;
   color: #FFFFFF !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -6979,7 +7054,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 3px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   margin-bottom: 0;
 }
 
@@ -6988,7 +7063,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   align-items: center;
   justify-content: center;
   padding: 0.38rem 0.25rem;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
   background: transparent;
   color: #a1a1a6;
@@ -7042,6 +7117,8 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
 /* 物品複製按鈕樣式 */
 .btn-modal-duplicate {
+  white-space: nowrap;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 0.32rem;
@@ -7049,7 +7126,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
   padding: 0.32rem 0.65rem;
-  border-radius: var(--radius-pill, 9999px);
+  border-radius: var(--radius-pill, var(--radius-control));
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
@@ -7080,7 +7157,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 
 .nlp-time-pill {
   padding: 3px 8px;
-  border-radius: var(--radius-pill, 9999px);
+  border-radius: var(--radius-pill, var(--radius-control));
   border: 1px solid var(--ios-border-strong);
   background: var(--ios-surface-secondary);
   color: var(--ios-text-secondary);
@@ -7157,7 +7234,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   height: 4px;
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   margin-top: 0.5rem;
 }
@@ -7166,7 +7243,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #0a84ff, #30d158);
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   transition: width 0.22s ease;
 }
 
@@ -7201,7 +7278,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   max-width: 360px;
   background: linear-gradient(180deg, rgba(30, 32, 44, 0.96) 0%, rgba(18, 20, 28, 0.98) 100%);
   border: 1px solid rgba(99, 102, 241, 0.35);
-  border-radius: 22px;
+  border-radius: var(--radius-container);
   padding: 1.35rem 1.45rem;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(99, 102, 241, 0.2);
   display: flex;
@@ -7250,7 +7327,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   font-size: 0.68rem;
   font-weight: 700;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   background: rgba(99, 102, 241, 0.2);
   color: #818cf8;
   border: 1px solid rgba(99, 102, 241, 0.4);
@@ -7283,7 +7360,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   width: 100%;
   height: 9px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -7293,7 +7370,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #6366f1 0%, #3b82f6 50%, #10b981 100%);
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -7409,7 +7486,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 .nlp-confirm-icon-preview {
   width: 88px;
   height: 88px;
-  border-radius: 16px;
+  border-radius: var(--radius-container);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7490,13 +7567,13 @@ select.flat-icon-select {padding-left:46px!important;background-image:var(--flat
 .icon-picker-trigger .flat-item-icon{width:28px;height:28px;}
 .icon-picker-chevron{opacity:.6;}
 .icon-picker-trigger:focus-visible,.icon-picker-option:focus-visible{outline:2px solid #5bafff;outline-offset:-3px;}
-.icon-picker-dialog{margin:auto;box-sizing:border-box;width:min(440px,calc(100vw - 28px));max-height:min(620px,80dvh);padding:0;border:1px solid #48484b;border-radius:20px;background:#242426;color:#f7f7f9;box-shadow:0 16px 60px #0005;}
+.icon-picker-dialog{margin:auto;box-sizing:border-box;width:min(440px,calc(100vw - 28px));max-height:min(620px,80dvh);padding:0;border:1px solid #48484b;border-radius:var(--radius-container);background:#242426;color:#f7f7f9;box-shadow:0 16px 60px #0005;}
 .icon-picker-dialog::backdrop{background:#0008;}
 .icon-picker-dialog header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #ffffff20;}
 .icon-picker-dialog h2{font:600 18px/1.4 system-ui;margin:0;}
-.icon-picker-dialog header button{border:0;border-radius:50%;width:34px;height:34px;font-size:24px;background:#ffffff12;color:inherit;cursor:pointer;}
+.icon-picker-dialog header button{border:0;border-radius:var(--radius-control);width:34px;height:34px;font-size:24px;background:#ffffff12;color:inherit;cursor:pointer;}
 .icon-picker-options{max-height:min(520px,calc(80dvh - 75px));overflow:auto;overscroll-behavior:contain;padding:8px;}
-.icon-picker-option{display:flex;align-items:center;gap:14px;width:100%;min-height:54px;padding:10px 14px;border:0;border-radius:12px;background:transparent;color:inherit;text-align:left;font:500 16px/1.5 system-ui;cursor:pointer;}
+.icon-picker-option{display:flex;align-items:center;gap:14px;width:100%;min-height:54px;padding:10px 14px;border:0;border-radius:var(--radius-control);background:transparent;color:inherit;text-align:left;font:500 16px/1.5 system-ui;cursor:pointer;}
 .icon-picker-option .flat-item-icon{width:30px;height:30px;}
 .icon-picker-option>span:nth-child(2){flex:1;}
 .icon-picker-option[aria-selected=true]{background:#68aef322;}
@@ -7508,7 +7585,7 @@ select.flat-icon-select {padding-left:46px!important;background-image:var(--flat
 </style>
 <style>
 .app-ui-icon{width:20px;height:20px;display:inline-block;vertical-align:-4px;flex-shrink:0;pointer-events:none;}
-.settings-icon{color:var(--ios-text-secondary,#a9bac6)!important;background:transparent!important;border-radius:10px;}
+.settings-icon{color:var(--ios-text-secondary,#a9bac6)!important;background:transparent!important;border-radius:var(--radius-control);}
 .settings-icon .app-ui-icon{width:25px;height:25px;}
 .btn-modal-close .app-ui-icon{width:20px;height:20px;}
 .pill-btn-icon .app-ui-icon{width:20px;height:20px;}
@@ -7519,7 +7596,7 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 .card-icon-box .flat-item-icon{width:42px;height:42px;}
 </style><style>
 /* 1.9.13: circular camera affordance and pending inventory */
-#btnCameraScan { width:42px;height:42px;right:6px;border-radius:50%;background:#237be8;color:#fff;box-shadow:0 3px 12px #237be844; }
+#btnCameraScan { width:42px;height:42px;right:6px;border-radius:var(--radius-control);background:#237be8;color:#fff;box-shadow:0 3px 12px #237be844; }
 #btnCameraScan svg { width:22px;height:22px;stroke-width:2.2; }
 #smartQuickAddInput { min-height:54px;padding-right:56px; }
 #smartQuickAddInput.has-clear { padding-right:90px; }
@@ -7533,14 +7610,14 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 .tracking-mode-form-row .mode-pill { flex:1;text-align:center;padding:6px 4px;font-size:0.84rem;font-weight:600;white-space:nowrap;border-radius:var(--radius-pill);border:none;cursor:pointer;background:transparent;color:var(--ios-text-secondary);transition:all var(--transition-ios);position:relative; }
 .tracking-mode-form-row .mode-pill.active { background:#ffffff;color:#000000;box-shadow:0 2px 8px rgba(0,0,0,0.2); }
 [data-theme="light"] .tracking-mode-form-row .mode-pill.active { background:#007aff;color:#ffffff; }
-.pending-box { border:1px solid #6aa9ef55;background:#6aa9ef12;border-radius:18px;padding:14px;margin:8px 0; }
+.pending-box { border:1px solid #6aa9ef55;background:#6aa9ef12;border-radius:var(--radius-container);padding:14px;margin:8px 0; }
 .pending-toggle { display:flex;align-items:center;gap:12px;font-weight:650;cursor:pointer; }
 .pending-toggle input { width:22px;height:22px;accent-color:#237be8;flex-shrink:0; }
 .pending-box p,.pending-intro p,.pending-dates { color:var(--ios-text-secondary);line-height:1.6;font-size:.9rem; }
 .pending-fields { display:grid;gap:12px;margin-top:4px; }
 .pending-fields[hidden] { display:none; }
 .pending-fields label { display:grid;gap:6px; }
-.pending-fields input { width:100%;min-width:0;box-sizing:border-box;padding:12px;border:1px solid #8885;border-radius:12px;background:var(--ios-surface);color:var(--ios-text-primary);font:inherit; }
+.pending-fields input { width:100%;min-width:0;box-sizing:border-box;padding:12px;border:1px solid #8885;border-radius:var(--radius-control);background:var(--ios-surface);color:var(--ios-text-primary);font:inherit; }
 .pending-error { color:#ff6961!important; }
 .pending-enabled .active-tracking { display:none!important; }
 .pending-intro { padding:18px 4px; }
@@ -7558,7 +7635,7 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 .btn-sheet-action.pending-start:active {
   background: #0062cc !important;
 }
-.pending-card { background:var(--ios-surface);border:1px solid #8883;border-radius:22px;padding:18px;margin-bottom:14px; }
+.pending-card { background:var(--ios-surface);border:1px solid #8883;border-radius:var(--radius-container);padding:18px;margin-bottom:14px; }
 .pending-card-head { display:flex;align-items:center;gap:14px; }
 .pending-card-head .flat-item-icon { width:44px;height:44px;flex-shrink:0; }
 .pending-card h3 { margin:0;overflow-wrap:anywhere; }
@@ -7570,13 +7647,13 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 <style>
 /* 1.9.13: consistent tracking pills and breathing room at both ends of the chip rail. */
 #trackingModeRow { flex-direction:column;align-items:stretch;gap:8px; }
-#modeSegment,#nlpTrackingModeSelector { display:flex;width:100%;box-sizing:border-box;gap:4px;padding:4px;border-radius:28px; }
-#modeSegment button,#nlpTrackingModeSelector button { flex:1;min-width:0;white-space:nowrap;font-size:clamp(11px,3.2vw,14px);padding:12px 3px;border-radius:24px; }
+#modeSegment,#nlpTrackingModeSelector { display:flex;width:100%;box-sizing:border-box;gap:4px;padding:4px;border-radius:var(--radius-container); }
+#modeSegment button,#nlpTrackingModeSelector button { flex:1;min-width:0;white-space:nowrap;font-size:clamp(11px,3.2vw,14px);padding:12px 3px;border-radius:var(--radius-container); }
 #categoryChipRow { box-sizing:border-box;padding:10px 12px 14px;scroll-padding-inline:12px; }
 #categoryChipRow .category-chip { scroll-margin-inline:12px; }
 .pending-intro { display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 14px;padding:20px 4px 24px; }
 .pending-intro h2 { display:flex;align-items:center;gap:10px;font-size:1.5rem; }
-#pendingCount { display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 7px;border-radius:10px;background:#6aa9ef22;color:var(--ios-blue,#398ce8);font-size:14px; }
+#pendingCount { display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 7px;border-radius:var(--radius-control);background:#6aa9ef22;color:var(--ios-blue,#398ce8);font-size:14px; }
 .pending-intro p { grid-column:1/-1;margin:0; }
 #btnAddPending { grid-column:2;grid-row:1;min-height:42px;padding:10px 14px;font-size:.85rem;white-space:nowrap; }
 #pendingItemsGrid { display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;align-items:start;padding-bottom:130px; }
@@ -7590,8 +7667,8 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 .pending-date-grid span { display:block;font-size:.76rem;color:var(--ios-text-secondary);margin-bottom:5px; }
 .pending-card-notes { margin-top:2px;padding-top:8px;border-top:1px solid var(--ios-border);color:var(--ios-text-secondary);font-size:.9rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere; }
 .pending-date-grid strong { font-size:.9rem;font-weight:600; }
-#pendingEmpty { margin:10px 0 130px;padding:48px 18px;text-align:center;border:1px dashed var(--ios-border);border-radius:24px;background:var(--ios-surface);color:var(--ios-text-secondary); }
-#pendingEmpty::before { content:'＋';display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto 16px;border-radius:18px;background:#6aa9ef14;color:var(--ios-blue,#398ce8);font-size:28px; }
+#pendingEmpty { margin:10px 0 130px;padding:48px 18px;text-align:center;border:1px dashed var(--ios-border);border-radius:var(--radius-container);background:var(--ios-surface);color:var(--ios-text-secondary); }
+#pendingEmpty::before { content:'＋';display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto 16px;border-radius:var(--radius-container);background:#6aa9ef14;color:var(--ios-blue,#398ce8);font-size:28px; }
 </style><style>
 .views-slider-viewport { overflow-anchor:none; }
 .view-panel { transition:none; }
@@ -7612,7 +7689,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 </style><style>
 /* 1.9.16 compact pending cards and expandable inventory search */
 #inventorySearchField[hidden] { display:none!important; }
-#btnToggleInventorySearch { flex:0 0 44px;width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ios-border);background:var(--ios-surface);color:var(--ios-text-primary); }
+#btnToggleInventorySearch { flex:0 0 44px;width:44px;height:44px;border-radius:var(--radius-control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ios-border);background:var(--ios-surface);color:var(--ios-text-primary); }
 #btnToggleInventorySearch[aria-expanded="true"] { color:var(--ios-blue);background:var(--ios-bg); }
 #pendingItemsGrid .pending-card { padding:9px 16px; }
 #pendingItemsGrid .card-top-row { margin-bottom:5px; }
@@ -7642,7 +7719,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 .settings-row > button,.settings-row > .ios-switch,.settings-row > .settings-quota-pill,.settings-row-actions,.settings-row-btn > .settings-chevron { grid-column:3;grid-row:1;justify-self:end; }
 .settings-row-actions { display:inline-flex;align-items:center;gap:8px;white-space:nowrap; }
 .settings-row-actions .settings-chevron { line-height:1; }
-.settings-row > button { appearance:none;font:inherit;font-size:.8rem;font-weight:600;white-space:nowrap;min-height:44px;padding:8px 12px;border:1px solid var(--ios-border);border-radius:22px;background:var(--ios-surface-elevated);color:var(--ios-text-primary); }
+.settings-row > button { appearance:none;font:inherit;font-size:.8rem;font-weight:600;white-space:nowrap;min-height:44px;padding:8px 12px;border:1px solid var(--ios-border);border-radius:var(--radius-container);background:var(--ios-surface-elevated);color:var(--ios-text-primary); }
 .settings-row > .settings-quota-pill { font-size:.72rem;padding:5px 8px;white-space:nowrap; }
 #rowScreenFit { display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:4px 10px;padding:14px 16px; }
 #rowScreenFit .settings-title { grid-column:2 / -1; }
@@ -7673,19 +7750,29 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
  .dock-tab:active,.btn-modal-close:active,#btnToggleInventorySearch:active { transform:none; }
 }
 </style>
-  <link rel="stylesheet" href="theme-overrides.css?v=1.9.21">
+  <link rel="stylesheet" href="theme-overrides.css?v=1.9.22-ui12">
+  <style>
+    [data-theme="light"] body {
+      background-color: #f3efe6;
+      background-image: linear-gradient(180deg, #e3ebdc 0%, #e3ebdc 1%, #e8eee2 18%, #eef1e8 34%, #f0f1e9 45%, #f3efe6 50%, #f3efe6 100%);
+      background-attachment: fixed;
+      background-size: 100% 100lvh;
+      background-repeat: no-repeat;
+    }
+  </style>
 </head>
 <body>
   <div class="ios-app-container">
     <!-- Top Header -->
     <header class="ios-header">
-      <!-- Header Natural Language Input Form (純文字簡潔外觀，無前綴圖示，Enter送出) -->
+      <!-- Smart entry and utility controls share one quiet toolbar surface. -->
       <form class="header-smart-input-form" id="smartQuickAddForm" onsubmit="return false;">
+        <span class="header-entry-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>
         <input
           type="text"
           id="smartQuickAddInput"
           class="header-smart-input"
-          placeholder="智慧輸入：鮮奶 5 天"
+          placeholder="新增物品：鮮奶 5 天"
           autocomplete="off"
           aria-label="智慧輸入"
           title="智慧輸入"
@@ -7717,6 +7804,37 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 
           <!-- View Panel 1: 主頁 (Today) -->
           <div class="view-panel active-panel" id="viewPanelToday">
+            <section class="journal-heading" aria-label="生活手帳">
+              <div class="journal-heading-copy">
+                <span class="journal-eyebrow">THE EVERYDAY JOURNAL</span>
+                <h1>把日子，照顧好。</h1>
+                <p>記下物品的期限，留住生活的餘裕。</p>
+              </div>
+              <svg class="journal-botanical" viewBox="0 0 100 120" fill="none" aria-hidden="true">
+                <circle cx="56" cy="59" r="38" fill="currentColor" opacity=".07"/>
+                <g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M39 106C42 84 59 55 64 17M49 79C35 76 26 64 28 53C43 56 50 67 49 79ZM57 59C72 57 82 45 80 34C66 37 57 46 57 59ZM62 37C50 33 43 22 46 12C59 17 64 27 62 37ZM42 94C57 94 68 87 70 76C55 76 46 83 42 94Z"/>
+                  <path d="M24 107H73" opacity=".35"/>
+                </g>
+              </svg>
+            </section>
+            <div class="home-overview-frame">
+            <!-- Home Filter Buttons Bar (全部 / 將到期 / 已過期) -->
+            <section class="home-filter-buttons-row" id="segmentedPillsBar">
+              <button type="button" class="home-filter-btn active" data-filter="all" id="pillAll">
+                <span class="filter-btn-text">全部</span>
+                <span class="filter-btn-badge" id="pillCountAll"><span class="filter-btn-badge-value">0</span></span>
+              </button>
+              <button type="button" class="home-filter-btn" data-filter="urgent" id="pillUrgent">
+                <span class="filter-btn-text">將到期</span>
+                <span class="filter-btn-badge urgent" id="pillCountUrgent"><span class="filter-btn-badge-value">0</span></span>
+              </button>
+              <button type="button" class="home-filter-btn" data-filter="expired" id="pillExpired">
+                <span class="filter-btn-text">已過期</span>
+                <span class="filter-btn-badge expired" id="pillCountExpired"><span class="filter-btn-badge-value">0</span></span>
+              </button>
+            </section>
+
             <!-- Status Notice Card (提醒欄：顯示週期、即將到期與已過期通知，不可點擊) -->
             <section class="status-notice-card" id="statusNoticeCard">
               <div class="notice-top-row notice-left-group" id="noticeTopRow">
@@ -7745,21 +7863,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
               </div>
             </section>
 
-            <!-- Home Filter Buttons Bar (全部 / 將到期 / 已過期) -->
-            <section class="home-filter-buttons-row" id="segmentedPillsBar">
-              <button type="button" class="home-filter-btn active" data-filter="all" id="pillAll">
-                <span class="filter-btn-text">全部</span>
-                <span class="filter-btn-badge" id="pillCountAll">0</span>
-              </button>
-              <button type="button" class="home-filter-btn" data-filter="urgent" id="pillUrgent">
-                <span class="filter-btn-text">將到期</span>
-                <span class="filter-btn-badge urgent" id="pillCountUrgent">0</span>
-              </button>
-              <button type="button" class="home-filter-btn" data-filter="expired" id="pillExpired">
-                <span class="filter-btn-text">已過期</span>
-                <span class="filter-btn-badge expired" id="pillCountExpired">0</span>
-              </button>
-            </section>
+            </div>
 
             <!-- Home Sort Toolbar (彈出式菜單) -->
             <div class="home-sort-toolbar" id="homeSortToolbar">
@@ -7891,10 +7995,11 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           <h2 id="modalTitle">新增物品</h2>
           <span id="autoSaveBadge" class="auto-save-pill" style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; color: var(--ios-green); background: var(--ios-green-bg); padding: 0.18rem 0.6rem; border-radius: var(--radius-pill); font-weight: 600; flex-shrink: 0;">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            即時儲存
+            自動儲存
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <button type="submit" form="itemForm" id="btnSaveItem" class="btn-ios-primary btn-header-save" style="display:none;">儲存</button>
           <button type="button" id="btnDuplicateFromModal" class="btn-modal-duplicate" title="複製此物品" aria-label="複製" style="display:none;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             <span>複製</span>
@@ -8136,7 +8241,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             </button>
           </div>
 
-          <!-- Auto-saved in real-time, no buttons required -->
+          <!-- Form bottom spacing -->
           <div style="height: 1.25rem; flex-shrink: 0;"></div>
         </form>
       </div>
@@ -8311,6 +8416,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             <div class="settings-info"><span class="settings-title">雲端照片辨識</span>
               <span class="settings-desc">連線辨識商品與日期，無需下載模型。照片經同意後送至雲端。</span></div>
           </div>
+          <button type="button" id="btnRevokeCloudPhotoConsent" class="settings-row-btn" hidden onclick="window.revokeCloudPhotoConsent && window.revokeCloudPhotoConsent()">撤回照片上傳同意</button>
           <div class="settings-row" id="rowSmartCameraQuota">
             <div class="settings-icon">📷</div>
             <div class="settings-info">
@@ -8319,7 +8425,6 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             </div>
             <span class="settings-quota-pill" id="settingsSmartCameraQuota">剩餘 50 次</span>
           </div>
-          <button type="button" class="settings-row-btn" onclick="window.revokeCloudPhotoConsent && window.revokeCloudPhotoConsent()">撤回照片上傳同意</button>
         </div>
 
         <!-- Group 2: Archive & Recently Deleted Trash -->
@@ -8375,7 +8480,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.21</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.22</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -8508,7 +8613,10 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           <h2 id="nlpConfirmModalTitle" style="font-size: 1.15rem; font-weight: 700; margin: 0;">確認物品資訊</h2>
           <span id="nlpConfirmBadge" class="nlp-action-badge">✨ 智慧速記</span>
         </div>
-        <button type="button" id="btnCloseNlpConfirm" class="btn-modal-close" aria-label="關閉">✕</button>
+        <div class="modal-header-actions">
+          <button type="button" id="btnApplyNlpConfirm" class="btn-ios-primary btn-header-save">儲存</button>
+          <button type="button" id="btnCloseNlpConfirm" class="btn-modal-close" aria-label="關閉">✕</button>
+        </div>
       </div>
 
       <div class="ios-modal-scroll" style="padding: 0.75rem 1.25rem 1.5rem 1.25rem;">
@@ -8527,9 +8635,9 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
         <!-- Photo / Vector Icon Thumbnail Preview (相片縮圖或向量圖標預覽) -->
         <div id="nlpConfirmImageWrap" class="nlp-confirm-image-wrap" style="margin-bottom: 0.85rem; text-align: center;">
           <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
-            <img id="nlpConfirmImagePreview" src="" alt="物品相片縮圖" style="display: none; width: 84px; height: 84px; object-fit: cover; border-radius: 16px; border: 1.5px solid var(--ios-border-strong); box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+            <img id="nlpConfirmImagePreview" src="" alt="物品相片縮圖" style="display: none; width: 84px; height: 84px; object-fit: cover; border-radius: var(--radius-container); border: 1.5px solid var(--ios-border-strong); box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
             <div id="nlpConfirmIconPreview" class="nlp-confirm-icon-preview" style="display: none;"></div>
-            <button type="button" id="btnRemoveNlpImage" title="移除相片" aria-label="移除相片" style="display: none; position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: #ff453a; color: #ffffff; border: 2px solid var(--ios-surface, #222); font-size: 11px; font-weight: 700; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1;">✕</button>
+            <button type="button" id="btnRemoveNlpImage" title="移除相片" aria-label="移除相片" style="display: none; position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: var(--radius-control); background: #ff453a; color: #ffffff; border: 2px solid var(--ios-surface, #222); font-size: 11px; font-weight: 700; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1;">✕</button>
           </div>
         </div>
 
@@ -8573,26 +8681,22 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 <section class="pending-box" id="nlpPendingBox"><input type="checkbox" id="nlpPending" hidden><div class="pending-fields" id="nlpPendingFields" hidden><p>暫不計時、不提醒，日期可留空。</p><label>預定開始日期（選填）<input type="date" id="nlpPendingStart"></label><label>到期日期（選填）<input type="date" id="nlpPendingEnd"></label><p class="pending-error" id="nlpPendingError" role="status"></p></div></section><div class="active-tracking">
         <!-- Field 3: Expiry Date & Custom Expiration Days (到期日期與自訂天數) -->
         <div class="nlp-confirm-field" id="nlpConfirmDateWrap">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
-            <label class="nlp-confirm-label" for="nlpConfirmDate" style="margin-bottom: 0;">到期日期</label>
-            <label class="nlp-confirm-label" for="nlpConfirmDays" style="margin-bottom: 0; font-size: 0.8rem; color: var(--ios-text-secondary); font-weight: 500;">或自訂到期天數</label>
-          </div>
-          <div class="nlp-date-days-row" style="display: flex; gap: 8px; align-items: center;">
-            <input type="date" id="nlpConfirmDate" class="nlp-confirm-input date-picker-input" style="flex: 1.4; min-width: 0;">
-            <div class="nlp-days-input-wrap" style="position: relative; flex: 1; min-width: 0; display: flex; align-items: center;">
-              <input type="number" id="nlpConfirmDays" class="nlp-confirm-input" min="1" max="9999" placeholder="天數" style="padding-right: 1.85rem;">
-              <span style="position: absolute; right: 0.65rem; color: var(--ios-text-secondary); font-size: 0.84rem; pointer-events: none; font-weight: 600;">天</span>
+          <label class="nlp-confirm-label" for="nlpConfirmDate">到期日期</label>
+          <input type="date" id="nlpConfirmDate" class="nlp-confirm-input date-picker-input">
+          <div class="nlp-extra-options" id="nlpDateExtraOptions">
+            <label class="nlp-confirm-label" for="nlpConfirmDays">幾天後到期</label>
+            <div class="nlp-days-input-wrap">
+              <input type="number" id="nlpConfirmDays" class="nlp-confirm-input" min="1" max="9999" placeholder="輸入天數">
             </div>
-          </div>
-          <!-- Quick Day Presets (快捷天數膠囊) -->
-          <div class="nlp-quick-days-pills" style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-            <button type="button" class="nlp-day-pill" data-days="3">3天</button>
-            <button type="button" class="nlp-day-pill" data-days="7">7天</button>
-            <button type="button" class="nlp-day-pill" data-days="14">14天</button>
-            <button type="button" class="nlp-day-pill" data-days="30">30天</button>
-            <button type="button" class="nlp-day-pill" data-days="90">90天</button>
-            <button type="button" class="nlp-day-pill" data-days="180">半年</button>
-            <button type="button" class="nlp-day-pill" data-days="365">1年</button>
+            <div class="nlp-quick-days-pills">
+              <button type="button" class="nlp-day-pill" data-days="3">3天</button>
+              <button type="button" class="nlp-day-pill" data-days="7">7天</button>
+              <button type="button" class="nlp-day-pill" data-days="14">14天</button>
+              <button type="button" class="nlp-day-pill" data-days="30">30天</button>
+              <button type="button" class="nlp-day-pill" data-days="90">90天</button>
+              <button type="button" class="nlp-day-pill" data-days="180">半年</button>
+              <button type="button" class="nlp-day-pill" data-days="365">1年</button>
+            </div>
           </div>
           <div id="nlpConfirmDateHint" class="nlp-confirm-hint">還有 7 天到期</div>
         </div>
@@ -8612,7 +8716,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           <div class="nlp-reminder-time-grid" id="nlpReminderTimeGrid">
             <!-- 提醒通知排程 -->
             <div class="nlp-confirm-field-col" id="nlpConfirmReminderWrap">
-              <label class="nlp-confirm-label" for="nlpConfirmReminder">提醒通知排程</label>
+              <label class="nlp-confirm-label" for="nlpConfirmReminder">何時提醒</label>
               <div class="nlp-select-wrap">
                 <select id="nlpConfirmReminder" class="nlp-confirm-select">
                   <option value="-1">不提醒</option>
@@ -8645,16 +8749,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             <input type="date" id="nlpConfirmCustomDate" class="nlp-confirm-input date-picker-input">
           </div>
 
-          <!-- Field 5.2: 24小時制快捷時間膠囊 (統一為24小時制，取消12/24切換按鈕) -->
-          <div class="nlp-time-adjust-wrap" id="nlpTimeAdjustWrap" style="margin-top: 6px;">
-            <!-- Quick Time Pills (快捷時間膠囊) -->
-            <div class="nlp-quick-time-pills" id="nlpQuickTimePills">
-              <button type="button" class="nlp-time-pill active" data-time="09:00">09:00 上午</button>
-              <button type="button" class="nlp-time-pill" data-time="12:00">12:00 中午</button>
-              <button type="button" class="nlp-time-pill" data-time="15:00">15:00 下午</button>
-              <button type="button" class="nlp-time-pill" data-time="20:00">20:00 晚間</button>
-            </div>
-          </div>
+
         </div>
 
         <!-- Elapsed Mode Hint (謹記使用天數提示) -->
@@ -8666,7 +8761,6 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
         <!-- Action Buttons -->
         <div class="nlp-confirm-actions">
           <button type="button" id="btnCancelNlpConfirm" class="btn-ios-secondary" style="flex: 1;">取消</button>
-          <button type="button" id="btnApplyNlpConfirm" class="btn-ios-primary" style="flex: 2;">確定加入</button>
         </div>
       </div>
     </div>
@@ -9888,7 +9982,7 @@ var CapacitorBridgeBundle = (() => {
 */
 
 </script>
-  <script src="sheet-gestures.js?v=1.9.21"></script>
+  <script src="sheet-gestures.js?v=1.9.22"></script>
   <script id="appLogicInline">
   const { bindSheetDrag, animateModalClose, containModalScroll } = window.SheetGestures || {
     bindSheetDrag() {},
@@ -9912,7 +10006,7 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.9.21';
+  const APP_VERSION = '1.9.22';
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -11449,7 +11543,7 @@ var CapacitorBridgeBundle = (() => {
 
       let mediaHtml = '';
       if (item.image) {
-        mediaHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+        mediaHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-control);">`;
       } else {
         mediaHtml = getItemIcon({...item, iconHint: getAllCategories()[item.category]?.emoji});
       }
@@ -11636,7 +11730,7 @@ var CapacitorBridgeBundle = (() => {
       const catLabel = allCats[item.category]?.label || item.category || '未分類';
       let mediaHtml = '';
       if (item.image) {
-        mediaHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+        mediaHtml = `<img src="${item.image}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-control);">`;
       } else {
         mediaHtml = getItemIcon({...item, iconHint: getAllCategories()[item.category]?.emoji});
       }
@@ -11986,9 +12080,9 @@ var CapacitorBridgeBundle = (() => {
 
       const upcoming = Math.max(0, urgent - dueToday);
 
-      if (pillCountAll) pillCountAll.textContent = total;
-      if (pillCountUrgent) pillCountUrgent.textContent = urgent;
-      if (pillCountExpired) pillCountExpired.textContent = expired;
+      if (pillCountAll) pillCountAll.querySelector('.filter-btn-badge-value').textContent = total;
+      if (pillCountUrgent) pillCountUrgent.querySelector('.filter-btn-badge-value').textContent = urgent;
+      if (pillCountExpired) pillCountExpired.querySelector('.filter-btn-badge-value').textContent = expired;
 
     const noticeStatusTag = document.getElementById('noticeStatusTag');
     const noticeStatusText = document.getElementById('noticeStatusText');
@@ -12386,7 +12480,12 @@ var CapacitorBridgeBundle = (() => {
         </div>
 
         <!-- Sub Metric: 還有 1,085 天 或 持續使用中 -->
-        <div class="card-metric-sub ${subMetricClass}">${subMetricText}</div>
+        <div class="card-status-progress">
+          <div class="card-metric-sub ${subMetricClass}">${subMetricText}</div>
+          <div class="card-progress-bar progress-bar-container">
+            <div class="card-progress-fill progress-bar-fill ${progressFillClass}"></div>
+          </div>
+        </div>
 
         <!-- Card Note Preview on Home Page (主頁專屬備註標籤) -->
         ${(!isInventory && item.showNotesHome && item.notes && item.notes.trim()) ? `
@@ -12396,10 +12495,6 @@ var CapacitorBridgeBundle = (() => {
         ` : ''}
       </div>
 
-      <!-- Progress Bar at bottom of card -->
-      <div class="card-progress-bar progress-bar-container">
-        <div class="card-progress-fill progress-bar-fill ${progressFillClass}"></div>
-      </div>
     `;
 
     // 直接透過 JavaScript 計算並設定 element.style.backgroundColor 與 width
@@ -12667,6 +12762,10 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function openActionSheet(id) {
+    // The item tap commits the incoming page before its menu locks native scrolling.
+    if (navigationInProgress) finishNavigation(pendingNavTab || navTabs[
+      Math.max(0, Math.min(navTabs.length - 1, Math.round(viewsSliderViewport.scrollLeft / Math.max(1, viewsSliderViewport.clientWidth))))
+    ]);
     const item = items.find(it => it.id === id);
     if (!item) return;
 
@@ -12871,7 +12970,7 @@ var CapacitorBridgeBundle = (() => {
     clearResetConfirmation();
     clearDeleteConfirmation();
     activeSheetItemId = null;
-    if (immediate || !actionSheet || actionSheet.style.display === 'none') {
+    if (immediate === true || !actionSheet || actionSheet.style.display === 'none') {
       if (actionSheet) {
         actionSheet.style.display = 'none';
         actionSheet.classList.remove('modal-closing');
@@ -13058,7 +13157,7 @@ var CapacitorBridgeBundle = (() => {
     });
   }
 
-  btnCloseSheet.addEventListener('click', closeActionSheet);
+  btnCloseSheet.addEventListener('click', () => closeActionSheet());
   actionSheet.addEventListener('click', function (e) {
     if (e.target === actionSheet) {
       if (Date.now() - lastActionSheetOpenedAt < 400) return;
@@ -13145,7 +13244,7 @@ var CapacitorBridgeBundle = (() => {
       btnModeElapsed.classList.remove('active');
       if (fieldEndDateWrap) fieldEndDateWrap.style.display = 'block';
       if (fieldDurationWrap) fieldDurationWrap.style.display = 'block';
-      if (fieldReminderWrap) fieldReminderWrap.style.display = 'block';
+      if (fieldReminderWrap) fieldReminderWrap.style.display = 'flex';
       if (typeof updateReminderSectionVisibility === 'function') {
         updateReminderSectionVisibility();
         updateReminderToggleState(true);
@@ -13913,6 +14012,8 @@ var CapacitorBridgeBundle = (() => {
   function openAddModal() {
     hydratingItemForm = true;
     modalTitle.textContent = '新增物品';
+    document.getElementById('btnSaveItem').style.display = 'block';
+    document.getElementById('autoSaveBadge').style.display = 'none';
     itemForm.reset();
     itemIdInput.value = '';
     itemSubCategoryInput.value = '';
@@ -13961,7 +14062,9 @@ var CapacitorBridgeBundle = (() => {
     if (!item) return;
     hydratingItemForm = true;
 
-    modalTitle.textContent = '編輯物品資訊';
+    modalTitle.textContent = '編輯物品';
+    document.getElementById('btnSaveItem').style.display = 'none';
+    document.getElementById('autoSaveBadge').style.display = 'inline-flex';
     itemIdInput.value = item.id;
     itemNameInput.value = item.name || '';
     itemSubCategoryInput.value = item.subCategory || '';
@@ -14034,9 +14137,10 @@ var CapacitorBridgeBundle = (() => {
     lockBodyScroll();
   }
 
-  // 即時自動儲存表單改動（無需點擊儲存按鈕）
-  function autoSaveCurrentItem() {
-    if (hydratingItemForm) return;
+  // Existing items auto-save; new items require explicit submission.
+  function autoSaveCurrentItem(explicitSave = false) {
+    if (hydratingItemForm) return false;
+    if (!itemIdInput.value.trim() && explicitSave !== true) return false;
     syncPendingForm('item');
     const waiting = pendingData('item');
     if(waiting.error) return;
@@ -14133,7 +14237,7 @@ var CapacitorBridgeBundle = (() => {
     } else {
       const newId = 'item_' + Date.now();
       itemIdInput.value = newId;
-      modalTitle.textContent = '編輯物品資訊';
+      modalTitle.textContent = '編輯物品';
       const newItem = {
         id: newId,
         name,
@@ -14164,10 +14268,11 @@ var CapacitorBridgeBundle = (() => {
 
     saveItems();
     renderApp();
+    return true;
   }
 
   function closeModal() {
-    if(pendingData('item').error) { showToast('請修正日期後再關閉');return; }
+    if(itemIdInput.value.trim() && pendingData('item').error) { showToast('請修正日期後再關閉');return; }
     const id = itemIdInput.value.trim();
     const name = itemNameInput.value.trim();
     if (id && !name) {
@@ -14346,8 +14451,15 @@ var CapacitorBridgeBundle = (() => {
   itemForm.addEventListener('change', autoSaveCurrentItem);
   itemForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    autoSaveCurrentItem();
-    closeModal();
+    if (!itemNameInput.value.trim()) {
+      itemNameInput.setCustomValidity('請輸入物品名稱');
+      itemNameInput.reportValidity();
+      itemNameInput.setCustomValidity('');
+      return;
+    }
+    const waiting = pendingData('item');
+    if (waiting.error) { showToast(waiting.error); return; }
+    if (autoSaveCurrentItem(true)) closeModal();
   });
 
   btnCloseModal.addEventListener('click', closeModal);
@@ -14383,11 +14495,11 @@ var CapacitorBridgeBundle = (() => {
     const appleStatusBarStyle = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
     if (metaThemeColor) {
       if (validTheme === 'amoled') metaThemeColor.setAttribute('content', '#000000');
-      else if (validTheme === 'light') metaThemeColor.setAttribute('content', '#d9e8d5');
+      else if (validTheme === 'light') metaThemeColor.setAttribute('content', '#e3ebdc');
       else metaThemeColor.setAttribute('content', '#121212');
     }
     if (appleStatusBarStyle) {
-      appleStatusBarStyle.setAttribute('content', 'black');
+      appleStatusBarStyle.setAttribute('content', 'default');
     }
     if (settingsThemeText) {
       if (validTheme === 'amoled') settingsThemeText.textContent = '目前為 OLED純黑 模式';
@@ -14668,9 +14780,45 @@ var CapacitorBridgeBundle = (() => {
   // 頂部選單按鈕（全部 / 將到期 / 已過期）點擊切換與篩選
   const homeFilterBtns = document.querySelectorAll('.home-filter-btn');
   homeFilterBtns.forEach(btn => {
+    let pressAnimation;
+    const reduceFilterMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const animateFilterPress = (pressed) => {
+      if (reduceFilterMotion()) {
+        btn.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+        return;
+      }
+      if (typeof btn.animate !== 'function') return;
+      const from = getComputedStyle(btn).transform;
+      pressAnimation?.cancel();
+      pressAnimation = btn.animate(
+        [{ transform: from === 'none' ? 'scale(1)' : from }, { transform: pressed ? 'scale(.96)' : 'scale(1)' }],
+        { duration: pressed ? 90 : 180, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' }
+      );
+      if (!pressed) {
+        const releaseAnimation = pressAnimation;
+        releaseAnimation.finished.then(() => releaseAnimation.cancel()).catch(() => {});
+      }
+    };
+    btn.addEventListener('pointerdown', () => animateFilterPress(true));
+    btn.addEventListener('pointerup', () => animateFilterPress(false));
+    btn.addEventListener('pointercancel', () => animateFilterPress(false));
+    btn.addEventListener('pointerleave', () => animateFilterPress(false));
+    btn.addEventListener('blur', () => animateFilterPress(false));
     btn.addEventListener('click', function () {
       currentPillFilter = this.dataset.filter || 'all';
       homeFilterBtns.forEach(b => b.classList.toggle('active', b === btn));
+      if (reduceFilterMotion()) {
+        homeFilterBtns.forEach(b => b.getAnimations({ subtree: true }).forEach(animation => animation.cancel()));
+      }
+      if (!reduceFilterMotion() && typeof btn.animate === 'function') {
+        btn.querySelectorAll('.filter-btn-text, .filter-btn-badge').forEach(content => {
+          content.getAnimations().forEach(animation => animation.cancel());
+          content.animate(
+            [{ transform: 'translateY(2px)', opacity: .7 }, { transform: 'translateY(0)', opacity: 1 }],
+            { duration: 200, easing: 'cubic-bezier(.2,.8,.2,1)' }
+          );
+        });
+      }
       renderCards();
     });
   });
@@ -14881,25 +15029,55 @@ var CapacitorBridgeBundle = (() => {
   let pendingNavTab = null;
   let navigationInProgress = false;
   let navigationStartTab = 'today';
-  let navigationAnimationFrame = 0;
+  function stopNativePageScroll() {
+    // Cancel native smooth travel at its current position before a new owner takes over.
+    viewsSliderViewport.scrollTo({ left: viewsSliderViewport.scrollLeft, behavior: 'instant' });
+  }
   let dockDrag = null;
 
   const dockMotionElement = document.querySelector('.floating-island-dock');
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Tab' || (event.key.startsWith('Arrow') && dockMotionElement.contains(event.target)))
+      dockMotionElement.classList.add('keyboard-navigation');
+  });
+  document.addEventListener('pointerdown', () => dockMotionElement.classList.remove('keyboard-navigation'), true);
+  document.addEventListener('touchstart', () => dockMotionElement.classList.remove('keyboard-navigation'), { passive: true });
   const dockMotionButtons = navTabs.map(tab => dockMotionElement.querySelector(`[data-tab="${tab}"]`));
+  // Clip a white copy of the content to the moving pill, including partial overlaps.
+  dockMotionButtons.forEach(button => {
+    const highlight = document.createElement('span');
+    highlight.className = 'dock-highlight-content';
+    highlight.setAttribute('aria-hidden', 'true');
+    [...button.children].forEach(child => highlight.append(child.cloneNode(true)));
+    button.append(highlight);
+  });
+  let dockGeometry = [];
+  const dockReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const nativeDockTimeline = CSS.supports('animation-timeline: --app-pages') &&
+    CSS.supports('scroll-timeline-name: --app-pages') && CSS.supports('timeline-scope: --app-pages');
   function syncDockMotion() {
     const width = viewsSliderViewport.clientWidth;
-    if (!width) return;
+    if (!width || dockGeometry.length !== navTabs.length) return;
+    dockMotionElement.classList.add('dock-motion-ready');
+    const threaded = nativeDockTimeline && !dockReducedMotion.matches;
+    dockMotionElement.classList.toggle('dock-scroll-timeline', threaded);
+    if (threaded) return;
     let progress = Math.max(0, Math.min(navTabs.length - 1, viewsSliderViewport.scrollLeft / width));
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) progress = Math.round(progress);
+    if (dockReducedMotion.matches) progress = Math.round(progress);
     const start = Math.floor(progress), end = Math.min(start + 1, navTabs.length - 1);
     const fraction = progress - start;
-    const a = dockMotionButtons[start], b = dockMotionButtons[end];
+    const a = dockGeometry[start], b = dockGeometry[end];
     const blend = (x, y) => x + (y - x) * fraction;
-    dockMotionElement.style.setProperty('--dock-indicator-x', blend(a.offsetLeft, b.offsetLeft) + 'px');
-    dockMotionElement.style.setProperty('--dock-indicator-width', blend(a.offsetWidth, b.offsetWidth) + 'px');
-    dockMotionElement.style.setProperty('--dock-indicator-top', a.offsetTop + 'px');
-    dockMotionElement.style.setProperty('--dock-indicator-height', a.offsetHeight + 'px');
+    const indicatorX = blend(a.left, b.left);
+    const indicatorWidth = blend(a.width, b.width);
+    dockMotionElement.style.setProperty('--dock-indicator-x', indicatorX + 'px');
+    dockMotionElement.style.setProperty('--dock-indicator-width', indicatorWidth + 'px');
+    dockMotionElement.style.setProperty('--dock-indicator-top', a.top + 'px');
+    dockMotionElement.style.setProperty('--dock-indicator-height', a.height + 'px');
     dockMotionButtons.forEach((button, index) => {
+      const left = indicatorX - dockGeometry[index].left;
+      button.style.setProperty('--dock-highlight-left', left + 'px');
+      button.style.setProperty('--dock-highlight-right', (dockGeometry[index].width - left - indicatorWidth) + 'px');
       const weight = Math.max(0, 1 - Math.abs(progress - index));
       button.style.setProperty('--dock-emphasis', weight);
       const channel = base => Math.round(base + (255 - base) * weight);
@@ -14907,8 +15085,23 @@ var CapacitorBridgeBundle = (() => {
     });
     dockMotionElement.classList.add('dock-motion-ready');
   }
-  new ResizeObserver(syncDockMotion).observe(dockMotionElement);
-  requestAnimationFrame(syncDockMotion);
+  function measureDockMotion() {
+    dockGeometry = dockMotionButtons.map(button => ({ left: button.offsetLeft, top: button.offsetTop, width: button.offsetWidth, height: button.offsetHeight }));
+    const base = dockGeometry[0];
+    dockMotionElement.style.setProperty('--dock-indicator-top', base.top + 'px');
+    dockMotionElement.style.setProperty('--dock-indicator-height', base.height + 'px');
+    dockMotionElement.style.setProperty('--dock-base-width', base.width + 'px');
+    dockGeometry.forEach((geometry, index) => {
+      dockMotionElement.style.setProperty(`--dock-stop-${index}`, geometry.left + 'px');
+      dockMotionElement.style.setProperty(`--dock-scale-${index}`, String(geometry.width / Math.max(1, base.width)));
+    });
+    syncDockMotion();
+  }
+  const dockSizeObserver = new ResizeObserver(measureDockMotion);
+  dockSizeObserver.observe(dockMotionElement);
+  dockMotionButtons.forEach(button => dockSizeObserver.observe(button));
+  dockReducedMotion.addEventListener('change', syncDockMotion);
+  requestAnimationFrame(measureDockMotion);
 
   function setPanelsSwipingState(swiping) {
     viewsSliderViewport.classList.toggle('is-swiping', swiping);
@@ -14916,9 +15109,7 @@ var CapacitorBridgeBundle = (() => {
 
   function syncContainerHeight(tab) {
     if (!viewsSliderViewport) return;
-    if (tab === 'today') {
-      viewsSliderViewport.style.height = '';
-    } else if (navPanels[tab]) {
+    if (navPanels[tab]) {
       const panelH = navPanels[tab].scrollHeight;
       if (panelH > 0) {
         viewsSliderViewport.style.height = panelH + 'px';
@@ -14968,10 +15159,11 @@ var CapacitorBridgeBundle = (() => {
     if (headerSublabel) headerSublabel.textContent = { today: '主頁', inventory: '物品分類', pending: '待用物品' }[tab];
     if (headerMainTitle) headerMainTitle.textContent = { today: '期效管家', inventory: '分類清單', pending: '待用物品' }[tab];
     document.querySelector('.floating-island-dock')?.classList.remove('dock-hidden');
+    window.dispatchEvent(new Event('app:navigation-reveal'));
   }
 
   function finishNavigation(targetTab) {
-    if (navigationAnimationFrame || isAnyModalOpen()) return;
+    if (isAnyModalOpen()) return;
     const width = viewsSliderViewport.clientWidth;
     if (!width) return;
     const index = Math.max(0, Math.min(navTabs.length - 1, Math.round(viewsSliderViewport.scrollLeft / width)));
@@ -14984,6 +15176,7 @@ var CapacitorBridgeBundle = (() => {
 
     clearTimeout(panelSwitchSettleTimer);
     panelSwitchSettleTimer = null;
+    viewsSliderViewport.style.scrollSnapType = '';
     currentNavTab = tab;
     setActivePanel(tab);
     clearIncomingPanelTransform();
@@ -15015,12 +15208,12 @@ var CapacitorBridgeBundle = (() => {
 
     updateDockSelection(tab);
     updateNavigationLabels(tab);
+    if (isUserClick) window.scrollTo({ top: 0, behavior: 'instant' });
     prepareIncomingPanelForSwipe();
     pendingNavTab = tab;
     hasSwipedHorizontally = true;
 
-    cancelAnimationFrame(navigationAnimationFrame);
-    navigationAnimationFrame = 0;
+    stopNativePageScroll();
 
     const from = viewsSliderViewport.scrollLeft;
     const target = navTabs.indexOf(tab) * viewsSliderViewport.clientWidth;
@@ -15034,23 +15227,12 @@ var CapacitorBridgeBundle = (() => {
       return;
     }
 
-    const started = performance.now();
-    const duration = document.documentElement.dataset.motionProfile === 'one-ui' ? 260 : 240;
-    const tick = now => {
-      const elapsed = now - started;
-      const progress = Math.min(1, elapsed / duration);
-      const eased = 1 - Math.pow(1 - progress, 4);
-      viewsSliderViewport.scrollTo({ left: from + (target - from) * eased, behavior: 'instant' });
-      if (progress < 1) {
-        navigationAnimationFrame = requestAnimationFrame(tick);
-      } else {
-        navigationAnimationFrame = 0;
-        viewsSliderViewport.style.scrollSnapType = '';
-        viewsSliderViewport.scrollTo({ left: target, behavior: 'instant' });
-        finishNavigation(tab);
-      }
-    };
-    navigationAnimationFrame = requestAnimationFrame(tick);
+    // Safari can run native scrolling independently of JavaScript callback frequency.
+    viewsSliderViewport.scrollTo({ left: target, behavior: 'smooth' });
+    panelSwitchSettleTimer = setTimeout(() => {
+      viewsSliderViewport.dispatchEvent(new Event('scrollend'));
+    }, 100);
+
   }
 
   dockTabPending.addEventListener('click', () => switchViewTab('pending', true, true));
@@ -15074,8 +15256,7 @@ var CapacitorBridgeBundle = (() => {
     if (!dockDrag.moved) {
       if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
       dockDrag.moved = true;
-      cancelAnimationFrame(navigationAnimationFrame);
-      navigationAnimationFrame = 0;
+      stopNativePageScroll();
       clearTimeout(panelSwitchSettleTimer);
       panelSwitchSettleTimer = null;
       pendingNavTab = null;
@@ -15097,7 +15278,6 @@ var CapacitorBridgeBundle = (() => {
     const moved = dockDrag.moved;
     dockDrag = null;
     if (!moved) return;
-    viewsSliderViewport.style.scrollSnapType = '';
     const width = viewsSliderViewport.clientWidth;
     const index = Math.max(0, Math.min(navTabs.length - 1, Math.round(viewsSliderViewport.scrollLeft / width)));
     suppressDockClick = true;
@@ -16114,26 +16294,15 @@ var CapacitorBridgeBundle = (() => {
   function lockBodyScroll() {
     if (bodyScrollLock) return;
     const body = document.body;
-    const properties = ['position', 'top', 'left', 'width', 'overflow'];
-    // The transparent item sheet must leave the page in its normal painting
-    // position. Fixing body here makes iOS rebase the page and exposes the
-    // unpainted root around the safe area while the sheet opens.
-    const fixBody = actionSheet.style.display !== 'flex';
+    const properties = ['overflow'];
+    // Every overlay preserves the document painting origin, including settings.
     bodyScrollLock = {
       x: window.scrollX, y: window.scrollY,
-      fixBody,
       styles: properties.map(name => [name, body.style.getPropertyValue(name), body.style.getPropertyPriority(name)])
     };
-    cancelAnimationFrame(navigationAnimationFrame);
-    navigationAnimationFrame = 0;
+    stopNativePageScroll();
     clearTimeout(panelSwitchSettleTimer);
     panelSwitchSettleTimer = null;
-    if (fixBody) {
-      body.style.position = 'fixed';
-      body.style.top = `-${bodyScrollLock.y}px`;
-      body.style.left = `-${bodyScrollLock.x}px`;
-      body.style.width = '100%';
-    }
     body.style.overflow = 'hidden';
     document.documentElement.classList.add('modal-open');
     body.classList.add('modal-open');
@@ -16149,7 +16318,8 @@ var CapacitorBridgeBundle = (() => {
     }
     document.body.classList.remove('modal-open');
     document.documentElement.classList.remove('modal-open');
-    if (saved.fixBody) window.scrollTo({ left: saved.x, top: saved.y, behavior: 'instant' });
+    if (window.scrollX !== saved.x || window.scrollY !== saved.y)
+      window.scrollTo({ left: saved.x, top: saved.y, behavior: 'instant' });
     if (navigationInProgress) switchViewTab(pendingNavTab || currentNavTab, true);
   }
 
@@ -16168,6 +16338,11 @@ var CapacitorBridgeBundle = (() => {
   document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop').forEach(el => {
     modalObserver.observe(el, { attributes: true, attributeFilter: ['style', 'class'] });
   });
+
+  window.addEventListener('touchmove', event => {
+    if (bodyScrollLock && !event.target.closest('.ios-modal-backdrop, .ios-action-backdrop') && event.cancelable)
+      event.preventDefault();
+  }, { passive: false });
 
   // Contain edge overscroll while allowing scrolling inside each menu.
   document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop').forEach(containModalScroll);
@@ -16191,17 +16366,17 @@ var CapacitorBridgeBundle = (() => {
     }
 
     function checkSettled() {
-      if (touchActive || isMouseDragging || dockDrag?.moved || navigationAnimationFrame) {
+      if (touchActive || isMouseDragging || dockDrag?.moved) {
         settleAttempts = 0;
         return;
       }
       const width = viewsSliderViewport.clientWidth;
       if (!width) return;
       const scrollLeft = viewsSliderViewport.scrollLeft;
-      const index = Math.max(0, Math.min(navTabs.length - 1, Math.round(scrollLeft / width)));
+      const index = pendingNavTab ? navTabs.indexOf(pendingNavTab) : Math.max(0, Math.min(navTabs.length - 1, Math.round(scrollLeft / width)));
       const targetLeft = index * width;
       const dist = Math.abs(scrollLeft - targetLeft);
-      if (dist < 1.5) {
+      if (dist < 0.5) {
         settleAttempts = 0;
         settleStableSince = 0;
         finishNavigation(navTabs[index]);
@@ -16219,8 +16394,7 @@ var CapacitorBridgeBundle = (() => {
         if (settleStableSince && now - settleStableSince >= 80) {
           settleAttempts = 0;
           settleStableSince = 0;
-          viewsSliderViewport.scrollTo({ left: targetLeft, behavior: 'instant' });
-          finishNavigation(navTabs[index]);
+          switchViewTab(navTabs[index], true);
         } else {
           scheduleCheckSettled();
         }
@@ -16238,9 +16412,7 @@ var CapacitorBridgeBundle = (() => {
       if (!navigationInProgress) {
         hasSwipedHorizontally = false;
       }
-      cancelAnimationFrame(navigationAnimationFrame);
-      navigationAnimationFrame = 0;
-      pendingNavTab = null;
+      stopNativePageScroll();
       clearTimeout(panelSwitchSettleTimer);
     }, { passive: true });
 
@@ -16250,6 +16422,7 @@ var CapacitorBridgeBundle = (() => {
       const dx = Math.abs(touch.clientX - touchStartX);
       const dy = Math.abs(touch.clientY - touchStartY);
       if (dx > 20 && dx > dy * 1.5) {
+        pendingNavTab = null;
         hasSwipedHorizontally = true;
         prepareIncomingPanelForSwipe();
       }
@@ -16258,20 +16431,18 @@ var CapacitorBridgeBundle = (() => {
     viewsSliderViewport.addEventListener('touchcancel', () => {
       touchActive = false;
       viewsSliderViewport.style.scrollSnapType = '';
-      scheduleCheckSettled();
+      if (hasSwipedHorizontally || navigationInProgress) scheduleCheckSettled();
     }, { passive: true });
 
     viewsSliderViewport.addEventListener('touchend', () => {
       touchActive = false;
       viewsSliderViewport.style.scrollSnapType = '';
-      scheduleCheckSettled();
+      if (hasSwipedHorizontally || navigationInProgress) scheduleCheckSettled();
     }, { passive: true });
 
     viewsSliderViewport.addEventListener('scroll', () => {
       if (isAnyModalOpen()) return;
       syncDockMotion();
-      // The rAF animator owns completion. Avoid a timer and layout checks per frame.
-      if (navigationAnimationFrame) return;
       if (!navigationInProgress) {
         prepareIncomingPanelForSwipe();
       }
@@ -16296,9 +16467,7 @@ var CapacitorBridgeBundle = (() => {
       mouseStartPage = Math.max(0, Math.min(navTabs.length - 1, Math.round(mouseStartScrollLeft / Math.max(1, viewsSliderViewport.clientWidth))));
       settleAttempts = 0;
       settleStableSince = 0;
-      cancelAnimationFrame(navigationAnimationFrame);
-      navigationAnimationFrame = 0;
-      pendingNavTab = null;
+      stopNativePageScroll();
       clearTimeout(panelSwitchSettleTimer);
     });
 
@@ -16306,6 +16475,7 @@ var CapacitorBridgeBundle = (() => {
       if (!isMouseDragging) return;
       const dx = event.pageX - mouseStartX;
       if (Math.abs(dx) > 6) {
+        pendingNavTab = null;
         mouseMoved = true;
         hasSwipedHorizontally = true;
         prepareIncomingPanelForSwipe();
@@ -16319,7 +16489,6 @@ var CapacitorBridgeBundle = (() => {
     window.addEventListener('mouseup', event => {
       if (!isMouseDragging) return;
       isMouseDragging = false;
-      viewsSliderViewport.style.scrollSnapType = '';
       if (!mouseMoved) return;
       const dx = event.pageX - mouseStartX;
       const width = viewsSliderViewport.clientWidth;
@@ -16329,10 +16498,14 @@ var CapacitorBridgeBundle = (() => {
       switchViewTab(navTabs[targetIndex], true);
     });
 
+    let navigationViewportWidth = viewsSliderViewport.clientWidth;
     window.addEventListener('resize', () => {
+      const nextWidth = viewsSliderViewport.clientWidth;
+      // Safari toolbar and keyboard height changes must not interrupt horizontal travel.
+      if (nextWidth === navigationViewportWidth) return;
+      navigationViewportWidth = nextWidth;
       const tab = pendingNavTab || currentNavTab;
-      cancelAnimationFrame(navigationAnimationFrame);
-      navigationAnimationFrame = 0;
+      stopNativePageScroll();
       viewsSliderViewport.style.scrollSnapType = '';
       viewsSliderViewport.scrollTo({ left: navTabs.indexOf(tab) * viewsSliderViewport.clientWidth, behavior: 'instant' });
       if (navigationInProgress) finishNavigation(tab);
@@ -16344,65 +16517,96 @@ var CapacitorBridgeBundle = (() => {
   // 主頁與物品分類框 滾動自動隱藏與顯現 (頁面往上滑自動隱藏，往下滑自動出現)
   // ==========================================
   const floatingIslandDock = document.querySelector('.floating-island-dock');
-  if (floatingIslandDock) {
-    let lastScrollY = window.scrollY || window.pageYOffset || 0;
-    let scrollTicking = false;
-    let touchStartDockY = 0;
-
-    function updateDockVisibility() {
-      const currentScrollY = window.scrollY || window.pageYOffset || 0;
-      const scrollDiff = currentScrollY - lastScrollY;
-
-      // 靠近頁面頂部時始終保持可見
-      if (currentScrollY < 35) {
-        floatingIslandDock.classList.remove('dock-hidden');
-      } else if (scrollDiff > 8 && currentScrollY > 60) {
-        // 頁面往上滑 (向下滾動閱讀內容) 自動隱藏
-        floatingIslandDock.classList.add('dock-hidden');
-      } else if (scrollDiff < -8) {
-        // 頁面往下滑 (回滾至上方) 自動顯現
-        floatingIslandDock.classList.remove('dock-hidden');
-      }
-
-      lastScrollY = currentScrollY;
-      scrollTicking = false;
+  const stickyHeader = document.querySelector('.ios-header');
+  if (floatingIslandDock && stickyHeader) {
+    const reducedNavigationMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let lastY = Math.max(0, window.scrollY), direction = 0, intent = 0;
+    let headerDistance = 1, dockDistance = 1, viewportWidth = innerWidth;
+    let hidden = false, frame = 0, motions = [], motionVersion = 0;
+    const mobileNavigation = matchMedia('(max-width: 600px)');
+    function protectedNavigation() {
+      const focused = document.activeElement;
+      return isAnyModalOpen() || stickyHeader.contains(focused) ||
+        (floatingIslandDock.contains(focused) && focused.matches(':focus-visible'));
     }
-
-    window.addEventListener('scroll', function () {
-      if (isAnyModalOpen()) return;
-      if (!scrollTicking) {
-        window.requestAnimationFrame(updateDockVisibility);
-        scrollTicking = true;
+    function setHidden(next, immediate = false) {
+      if (next === hidden && !immediate) return;
+      hidden = next;
+      const version = ++motionVersion;
+      const elements = mobileNavigation.matches ? [stickyHeader, floatingIslandDock] : [floatingIslandDock];
+      const from = elements.map(element => getComputedStyle(element).transform);
+      motions.forEach(animation => animation.cancel());
+      motions = [];
+      stickyHeader.classList.remove('header-hidden');
+      floatingIslandDock.classList.remove('dock-hidden');
+      stickyHeader.style.setProperty('--nav-offset', next ? `${-headerDistance}px` : '0px');
+      floatingIslandDock.style.setProperty('--nav-offset', next ? `${dockDistance}px` : '0px');
+      for (const element of elements) {
+        element.style.setProperty('--nav-opacity', '1');
+        element.dataset.navigationState = next ? 'hidden' : 'visible';
       }
-    }, { passive: true });
-
-    // 支援行動裝置觸控即時手勢監聽，確保滑動手感完全同步
-    window.addEventListener('touchstart', function (e) {
-      if (e.touches && e.touches.length === 1) {
-        touchStartDockY = e.touches[0].clientY;
+      if (!immediate && !reducedNavigationMotion.matches) {
+        motions = elements.map((element, index) => element.animate([
+          { transform: from[index] },
+          { transform: element === stickyHeader ? `translate3d(0, ${next ? -headerDistance : 0}px, 0)` : `translate3d(-50%, ${next ? dockDistance : 0}px, 0)` }
+        ], { duration: next ? 380 : 300, easing: 'cubic-bezier(.4,0,.2,1)' }));
       }
+      Promise.all(motions.map(animation => animation.finished.catch(() => {}))).then(() => {
+        if (version !== motionVersion) return;
+        stickyHeader.classList.toggle('header-hidden', next && mobileNavigation.matches);
+        floatingIslandDock.classList.toggle('dock-hidden', next);
+        motions = [];
+      });
+    }
+    function measure() {
+      const nextHeader = stickyHeader.offsetHeight + (parseFloat(getComputedStyle(stickyHeader).top) || 0) + 10;
+      const nextDock = floatingIslandDock.offsetHeight + (parseFloat(getComputedStyle(floatingIslandDock).bottom) || 0) + 16;
+      if (nextHeader === headerDistance && nextDock === dockDistance) return;
+      headerDistance = nextHeader; dockDistance = nextDock;
+      setHidden(hidden, true);
+    }
+    function revealNavigation() {
+      direction = intent = 0;
+      lastY = Math.max(0, window.scrollY);
+      setHidden(false);
+    }
+    function update() {
+      frame = 0;
+      const maxY = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+      const y = Math.max(0, Math.min(window.scrollY, maxY));
+      const delta = y - lastY;
+      lastY = y;
+      if (protectedNavigation() || y <= 8 || maxY === 0) { revealNavigation(); return; }
+      if (!delta) return;
+      const nextDirection = Math.sign(delta);
+      intent = nextDirection === direction ? intent + delta : delta;
+      direction = nextDirection;
+      // Direction hysteresis avoids flicker from tiny reversals and rubber-band scroll.
+      if (Math.abs(intent) < 12) return;
+      if (intent < 0) setHidden(false);
+      else if (y > 32) setHidden(true);
+      intent = 0;
+    }
+    stickyHeader.classList.add('scroll-linked-navigation');
+    floatingIslandDock.classList.add('scroll-linked-navigation');
+    window.addEventListener('scroll', () => {
+      if (!frame) frame = requestAnimationFrame(update);
     }, { passive: true });
-
-    window.addEventListener('touchmove', function (e) {
-      if (isAnyModalOpen() || !e.touches || e.touches.length !== 1) return;
-      if (e.target && e.target.closest('.floating-island-dock')) return;
-      const currentTouchY = e.touches[0].clientY;
-      const touchDiff = touchStartDockY - currentTouchY;
-      const currentScrollY = window.scrollY || window.pageYOffset || 0;
-
-      // 手指往上推動超過 12px 且不在頂部：自動隱藏
-      if (touchDiff > 12 && currentScrollY > 50) {
-        floatingIslandDock.classList.add('dock-hidden');
-      } else if (touchDiff < -12) {
-        // 手指往下拉動超過 12px：自動顯現
-        floatingIslandDock.classList.remove('dock-hidden');
-      }
+    window.addEventListener('scrollend', () => {
+      if (frame) { cancelAnimationFrame(frame); update(); }
     }, { passive: true });
-
-    // 點擊底部導航分頁時立即恢復顯示
-    if (dockTabToday) dockTabToday.addEventListener('click', () => floatingIslandDock.classList.remove('dock-hidden'));
-    if (dockTabInventory) dockTabInventory.addEventListener('click', () => floatingIslandDock.classList.remove('dock-hidden'));
-    if (dockTabPending) dockTabPending.addEventListener('click', () => floatingIslandDock.classList.remove('dock-hidden'));
+    stickyHeader.addEventListener('focusin', revealNavigation);
+    floatingIslandDock.addEventListener('focusin', revealNavigation);
+    window.addEventListener('app:navigation-reveal', revealNavigation);
+    reducedNavigationMotion.addEventListener('change', () => setHidden(false, true));
+    window.addEventListener('resize', () => {
+      if (innerWidth === viewportWidth) return;
+      viewportWidth = innerWidth;
+      measure();
+    });
+    const sizeObserver = new ResizeObserver(measure);
+    sizeObserver.observe(stickyHeader); sizeObserver.observe(floatingIslandDock);
+    measure();
   }
 
   const inventorySearchField = document.getElementById('inventorySearchField');
@@ -16455,12 +16659,12 @@ var CapacitorBridgeBundle = (() => {
       setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(-10px)';
-        toast.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        toast.style.transition = 'opacity 160ms ease, transform 160ms ease';
         setTimeout(() => {
           toast.remove();
           visibleToastCount--;
           showQueuedToasts();
-        }, 200);
+        }, 160);
       }, 2200);
     }
   }
@@ -17167,6 +17371,8 @@ function extractCleanName(rawText) {
         updateNlpDateHint(dateInput.value);
       }
     }
+    // Keep all three buttons and their accessibility state in one sync path.
+    syncPendingForm('nlp');
   }
 
   function updateNlpDateHint(dateStr) {
@@ -17262,10 +17468,24 @@ function extractCleanName(rawText) {
     let cloudNotice = document.getElementById('cloudRecognitionNotice');
     if (!cloudNotice) {
       cloudNotice = document.createElement('p'); cloudNotice.id = 'cloudRecognitionNotice';
-      cloudNotice.style.cssText = 'margin:12px 20px;padding:12px;border-radius:12px;background:rgba(128,128,128,.12);white-space:pre-wrap;line-height:1.6;';
+      cloudNotice.style.cssText = 'margin:12px 20px;padding:12px;border-radius:var(--radius-control);background:rgba(128,128,128,.12);white-space:pre-wrap;line-height:1.6;';
       document.querySelector('#nlpConfirmModal .ios-modal-header')?.after(cloudNotice);
     }
     cloudNotice.textContent = parsed.recognitionNotice || '';
+    if (parsed.shelfLife?.sourceUrl) {
+      try {
+        const sourceUrl = new URL(parsed.shelfLife.sourceUrl);
+        if (sourceUrl.protocol === 'https:' && !sourceUrl.username && !sourceUrl.password) {
+          const sourceLink = document.createElement('a');
+          sourceLink.href = sourceUrl.href;
+          sourceLink.target = '_blank';
+          sourceLink.rel = 'noopener noreferrer';
+          sourceLink.textContent = `查閱來源：${parsed.shelfLife.sourceTitle || sourceUrl.hostname}`;
+          sourceLink.style.cssText = 'display:block;margin-top:8px;text-decoration:underline;';
+          cloudNotice.append(sourceLink);
+        }
+      } catch {}
+    }
     cloudNotice.hidden = !parsed.recognitionNotice;
     const modal = document.getElementById('nlpConfirmModal');
     const titleEl = document.getElementById('nlpConfirmModalTitle');
@@ -17329,7 +17549,7 @@ function extractCleanName(rawText) {
           badgeEl.classList.remove('update');
         }
         if (noticeText) noticeText.textContent = `將新增為獨立物品，保留現有「${currentNlpParsed.targetName || ''}」`;
-        if (applyBtn) applyBtn.textContent = '確定加入';
+        if (applyBtn) applyBtn.textContent = '儲存';
       }
     }
 
@@ -17682,6 +17902,9 @@ function extractCleanName(rawText) {
       target.category = confirmedCat;
       target.subCategory = subCat;
       target.emoji = emoji;
+      if (currentNlpParsed.notes && /^cloud/.test(currentNlpParsed.source || '')) {
+        target.notes = [target.notes, currentNlpParsed.notes].filter(Boolean).join('\n');
+      }
       if (currentNlpParsed.image) {
         target.image = currentNlpParsed.image;
       }
@@ -17728,6 +17951,7 @@ function extractCleanName(rawText) {
         subCategory: subCat,
         emoji: emoji,
         image: (currentNlpParsed && currentNlpParsed.image) || null,
+        notes: currentNlpParsed.notes || '',
         startDate: confirmedStartDate,
         hasEndDate: !isElapsedMode,
         endDate: isElapsedMode ? null : confirmedDate,
@@ -17850,7 +18074,7 @@ function extractCleanName(rawText) {
           badgeEl.classList.remove('update');
         }
         if (noticeText) noticeText.textContent = `將新增為獨立物品，保留現有「${currentNlpParsed.targetName || ''}」`;
-        if (applyBtnEl) applyBtnEl.textContent = '確定加入';
+        if (applyBtnEl) applyBtnEl.textContent = '儲存';
       });
     }
 
@@ -18049,78 +18273,84 @@ function extractCleanName(rawText) {
     }
   }
 
+  function cameraFocusSupport(track) {
+    const caps = track?.getCapabilities?.() || {};
+    const supported = navigator.mediaDevices?.getSupportedConstraints?.() || {};
+    const modes = Array.isArray(caps.focusMode) ? caps.focusMode : [];
+    return { modes, point: caps.pointsOfInterest !== undefined || supported.pointsOfInterest === true };
+  }
+
+  function cameraFocusPoint(video, clientX, clientY) {
+    // The transformed video rectangle includes CSS zoom. object-fit:cover crops
+    // the source around its center, so viewport fractions are not sensor fractions.
+    const rect = video.getBoundingClientRect();
+    const sw = video.videoWidth || rect.width, sh = video.videoHeight || rect.height;
+    const scale = Math.max(rect.width / sw, rect.height / sh);
+    const renderedW = sw * scale, renderedH = sh * scale;
+    return {
+      x: Math.max(0, Math.min(1, (clientX - rect.left + (renderedW - rect.width) / 2) / renderedW)),
+      y: Math.max(0, Math.min(1, (clientY - rect.top + (renderedH - rect.height) / 2) / renderedH))
+    };
+  }
+
   async function triggerCameraFocus(track, normX = 0.5, normY = 0.5) {
-    if (!track || typeof track.getCapabilities !== 'function') return;
+    if (!track || track.readyState === 'ended' || typeof track.applyConstraints !== 'function') return 'unsupported';
+    const { modes, point } = cameraFocusSupport(track);
+    const mode = modes.includes('single-shot') ? 'single-shot' : modes.includes('continuous') ? 'continuous' : null;
+    if (!point) return 'unsupported';
     try {
-      const caps = track.getCapabilities() || {};
-      const focusModes = Array.isArray(caps.focusMode) ? caps.focusMode : [];
-      const hasSingleShot = focusModes.includes('single-shot');
-      const hasContinuous = focusModes.includes('continuous');
-      const hasPOI = !!caps.pointsOfInterest;
-
-      const advanced = {};
-      if (hasPOI) {
-        advanced.pointsOfInterest = [{ x: normX, y: normY }];
+      clearTimeout(track._focusRestoreTimer);
+      const constraints = { pointsOfInterest: [{ x: normX, y: normY }] };
+      if (mode) constraints.focusMode = mode;
+      await track.applyConstraints({ advanced: [constraints] });
+      if (track.readyState === 'ended') return 'unsupported';
+      const settings = track.getSettings?.() || {};
+      if (Array.isArray(settings.pointsOfInterest) && settings.pointsOfInterest.length) {
+        const applied = settings.pointsOfInterest[0];
+        if (Math.abs(applied.x - normX) > 0.03 || Math.abs(applied.y - normY) > 0.03) return 'unsupported';
       }
-
-      // 若支援 single-shot，切換為 single-shot 觸發硬體鏡頭實體對焦步進
-      if (hasSingleShot) {
-        advanced.focusMode = 'single-shot';
-        await track.applyConstraints({ advanced: [advanced] });
-        // 對焦掃描完成後，2.5 秒平滑恢復 continuous 連續自動對焦
-        if (hasContinuous) {
-          clearTimeout(track._focusRestoreTimer);
-          track._focusRestoreTimer = setTimeout(() => {
-            track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
-          }, 2500);
-        }
-      } else if (hasContinuous) {
-        advanced.focusMode = 'continuous';
-        await track.applyConstraints({ advanced: [advanced] });
+      if (mode === 'single-shot' && modes.includes('continuous')) {
+        track._focusRestoreTimer = setTimeout(() => {
+          if (track.readyState !== 'ended') track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+        }, 2500);
       }
+      // Constraint acceptance does not prove the lens has finished focusing.
+      return 'requested';
     } catch (err) {
       console.warn('[Camera] Tap-to-focus constraints error:', err);
+      return 'failed';
     }
   }
 
   let lastFocusTapTime = 0;
-  function handleCameraTapToFocus(e) {
-    if (e.target.closest('.camera-zoom-controls') || e.target.closest('button')) return;
-
+  let cameraFocusRequest = 0;
+  async function handleCameraTapToFocus(e) {
+    if (e.target.closest('.camera-zoom-controls') || e.target.closest('button') || e.isPrimary === false) return;
     const now = Date.now();
     if (now - lastFocusTapTime < 250) return;
     lastFocusTapTime = now;
-
     const wrap = document.getElementById('cameraViewportWrap');
     const reticle = document.getElementById('cameraFocusReticle');
-    if (!wrap || !reticle) return;
-
+    const video = document.getElementById('cameraVideo');
+    const track = cameraStream?.getVideoTracks()[0];
+    if (!wrap || !reticle || !video || !track || !video.videoWidth) return;
+    const request = ++cameraFocusRequest;
+    const point = cameraFocusPoint(video, e.clientX, e.clientY);
+    const result = await triggerCameraFocus(track, point.x, point.y);
+    if (request !== cameraFocusRequest || cameraStream?.getVideoTracks()[0] !== track) return;
+    if (result !== 'requested') {
+      reticle.style.display = 'none';
+      showToast(result === 'failed' ? '對焦位置設定失敗，請調整距離後再拍攝' : '此裝置不支援點按對焦，請使用鏡頭自動對焦或原生相機拍攝');
+      return;
+    }
     const rect = wrap.getBoundingClientRect();
-    const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : 0));
-    const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : 0));
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-
-    reticle.style.left = `${x}px`;
-    reticle.style.top = `${y}px`;
+    reticle.style.left = (e.clientX - rect.left) + 'px';
+    reticle.style.top = (e.clientY - rect.top) + 'px';
     reticle.style.display = 'block';
     reticle.classList.remove('pulsing');
     void reticle.offsetWidth;
     reticle.classList.add('pulsing');
-
-    if (navigator.vibrate) {
-      try { navigator.vibrate(25); } catch (_) {}
-    }
-
-    if (cameraStream) {
-      const track = cameraStream.getVideoTracks()[0];
-      if (track) {
-        const normX = Math.max(0, Math.min(1, x / (rect.width || 1)));
-        const normY = Math.max(0, Math.min(1, y / (rect.height || 1)));
-        triggerCameraFocus(track, normX, normY);
-      }
-    }
-
+    reticle.setAttribute('aria-label', '已請求此位置對焦');
     clearTimeout(reticle._hideTimer);
     reticle._hideTimer = setTimeout(() => {
       reticle.style.display = 'none';
@@ -18270,6 +18500,15 @@ function extractCleanName(rawText) {
         video.srcObject = cameraStream;
         await video.play().catch(e => console.warn('Camera video play caught:', e));
       }
+      if (requestVersion !== cameraRequestVersion) return;
+      const track = cameraStream.getVideoTracks()[0];
+      const focus = cameraFocusSupport(track);
+      if (focus.modes.includes('continuous')) {
+        await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+      }
+      if (requestVersion !== cameraRequestVersion) return;
+      const hint = document.querySelector('.camera-viewfinder-hint');
+      if (hint) hint.textContent = focus.point ? '輕觸主體設定對焦位置 / 雙指縮放' : '鏡頭自動對焦 / 雙指縮放';
       setCameraZoom(currentCameraZoom);
     } catch (err) {
       console.warn('getUserMedia error:', err);
@@ -18279,8 +18518,12 @@ function extractCleanName(rawText) {
 
   function stopCameraStream() {
     cameraRequestVersion++;
+    cameraFocusRequest++;
+    const reticle = document.getElementById('cameraFocusReticle');
+    if (reticle) { clearTimeout(reticle._hideTimer); reticle.style.display = 'none'; }
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => {
+        clearTimeout(track._focusRestoreTimer);
         try { track.stop(); } catch(e){}
       });
       cameraStream = null;
@@ -18829,8 +19072,8 @@ function extractCleanName(rawText) {
 
 </script>
 
-  <script type="module" src="app.js?v=1.9.21"></script>
-  <script type="module" src="cloud-camera.js?v=1.9.21"></script>
+  <script type="module" src="app.js?v=1.9.22"></script>
+  <script type="module" src="cloud-camera.js?v=1.9.22-food4"></script>
 
 <script>
 // Native selects retain mobile accessibility; a shared SVG identifies the selection.
@@ -18864,6 +19107,7 @@ function extractCleanName(rawText) {
  refresh();
 })();
 </script>
+
 
 </body>
 </html>
