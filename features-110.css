@@ -1,0 +1,121 @@
+.feature-toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 18px;align-items:center}
+.feature-toolbar[hidden],.feature-toolbar [hidden],.feature-form [hidden],#lifecycleActions [hidden]{display:none!important}
+.feature-button{font:inherit;font-size:13px;border:1px solid rgba(128,128,128,.25);border-radius:16px;padding:9px 13px;background:var(--ios-surface,#fff);color:var(--ios-text-primary,#333);cursor:pointer;min-height:40px}
+.feature-button:disabled{opacity:.45;cursor:default}
+.feature-button:focus-visible,.features-dialog input:focus-visible,.features-dialog select:focus-visible,.features-dialog textarea:focus-visible{outline:3px solid #488aff;outline-offset:2px}
+.feature-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.feature-form{border:1px solid rgba(128,128,128,.25);border-radius:18px;margin:18px 0;padding:14px;min-width:0}
+.feature-form legend{font-size:14px;font-weight:600;padding:0 6px}
+.feature-form label,.features-dialog label{display:flex;flex-direction:column;gap:6px;margin:12px 0;font-size:14px}
+.feature-form label:has(input[type=checkbox]),.shopping-row label{flex-direction:row;align-items:center}
+.feature-form input:not([type=checkbox]),.features-dialog input:not([type=checkbox]),.features-dialog select,.features-dialog textarea{box-sizing:border-box;width:100%;max-width:100%;font:inherit;border-radius:12px;border:1px solid rgba(128,128,128,.3);padding:11px;background:var(--ios-surface,#fff);color:inherit;min-height:44px}
+.feature-form p,.feature-settings p,.feature-sheet-detail{font-size:12px;line-height:1.7;opacity:.8;overflow-wrap:anywhere}
+.feature-settings{padding:12px!important}.feature-settings details{padding:12px 4px;border-bottom:1px solid rgba(128,128,128,.16)}
+.feature-settings summary{cursor:pointer;padding:6px 0;font-size:15px;font-weight:600}.feature-settings .feature-button{margin:4px}
+:root body #settingsModal .feature-settings{padding:0!important;overflow:hidden}
+#manageSharedSpace::before{content:'⇄';display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--ios-surface-elevated);color:var(--ios-text-secondary);font-size:23px}
+#manageSharedSpace .shared-settings-copy{grid-column:2;display:flex;flex-direction:column;gap:4px;text-align:left;min-width:0}
+#manageSharedSpace .settings-subtitle{font-size:12px;line-height:1.5;color:var(--ios-text-secondary)}
+#manageSharedSpace .shared-settings-chevron{grid-column:3;color:var(--ios-text-secondary);font-size:24px}
+.shared-sync-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid var(--ios-border)}
+.shared-sync-footer #syncStatus{margin:0;min-width:0;flex:1}
+.shared-sync-footer .feature-button{margin:0;flex-shrink:0;border-radius:999px}
+#featuresDialog[data-purpose="shared"] .ios-modal-scroll{padding:18px 22px 24px}
+#featuresDialog[data-purpose="shared"] .shared-invite-panel{margin:0 0 20px;padding:20px;border:1px solid var(--ios-border);border-radius:24px;background:var(--ios-surface-elevated);box-shadow:0 6px 20px rgba(0,0,0,.04)}
+#featuresDialog[data-purpose="shared"] :is(input,textarea){border-radius:18px;border-color:var(--ios-border);padding:14px;background:var(--ios-surface)}
+#featuresDialog[data-purpose="shared"] .feature-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0 0}
+#featuresDialog[data-purpose="shared"] .feature-button{min-height:46px;border-radius:999px;padding:12px 16px;font-weight:600}
+#featuresDialog[data-purpose="shared"] :is(#copyInvite,#joinSpace){background:#38383c!important;color:#fffaf2!important;-webkit-text-fill-color:#fffaf2!important;border-color:transparent}
+#featuresDialog[data-purpose="shared"] #deleteSpace{grid-column:1/-1;color:#b54236!important;-webkit-text-fill-color:#b54236!important;background:transparent!important}
+#featuresDialog[data-purpose="shared"] :is(#sharedDetail,#featureDialogError):empty{display:none}
+:root body #featuresDialog{position:fixed;inset:0;margin:0!important;box-sizing:border-box;width:100%;height:100dvh;max-width:none;max-height:none;border:0;border-radius:0;padding:16px;overflow:hidden;color:var(--ios-text-primary);box-shadow:none;background:var(--overlay-dim,rgba(0,0,0,.42));align-items:center;justify-content:center}
+.features-dialog::backdrop{background:transparent}.feature-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px}.feature-dialog-header h2{font-size:19px;margin:0}
+#featuresDialog .ios-modal-card{width:100%;max-width:480px;max-height:85dvh;margin:0}
+#featuresDialog .ios-modal-scroll{min-height:0;padding:0 20px 20px;overflow:auto}
+.features-dialog p{font-size:13px;line-height:1.65;overflow-wrap:anywhere}#featureDialogError{color:#d74c3c}
+.compact-list-mode #itemsGrid,.compact-list-mode #inventoryItemsGrid,.compact-list-mode #pendingItemsGrid,.compact-list-mode #sharedItemsGrid{display:flex!important;flex-direction:column!important;gap:9px!important;align-items:stretch!important}
+.compact-list-mode #itemsGrid>*,.compact-list-mode #inventoryItemsGrid>*,.compact-list-mode #pendingItemsGrid>*,.compact-list-mode #sharedItemsGrid>*{box-sizing:border-box;min-height:0!important;height:auto!important;width:100%!important;flex:none!important;padding:14px 16px!important}
+.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .ios-item-card{display:block!important}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-summary{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-top-row{grid-column:1/-1;margin:0!important}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-item-title{margin:0!important;font-size:16px!important}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-metric-main{margin:0!important;font-size:13px!important}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-status-progress{grid-column:1/-1;margin:0!important}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-icon-box{width:32px!important;height:32px!important}.compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#pendingItemsGrid,#sharedItemsGrid) .card-note-preview{margin-top:6px!important}
+[data-screen-fit="tablet"] .compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#sharedItemsGrid) .card-item-title{grid-column:1/-1;grid-row:2}
+[data-screen-fit="tablet"] .compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#sharedItemsGrid) .card-metric-main{grid-column:2;grid-row:3;justify-self:end;align-self:start;white-space:nowrap}
+[data-screen-fit="tablet"] .compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#sharedItemsGrid) .card-summary>.card-note-preview{grid-column:1/-1;grid-row:4;justify-self:start;align-self:start;text-align:left}
+[data-screen-fit="tablet"] .compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#sharedItemsGrid)>.ios-item-card:not(:has(.card-note-preview)) .card-summary{row-gap:2px}
+[data-screen-fit="tablet"] .compact-list-mode :is(#itemsGrid,#inventoryItemsGrid,#sharedItemsGrid)>.ios-item-card:not(:has(.card-note-preview)) .card-metric-main{grid-row:2;align-self:center}
+@media(prefers-reduced-motion:reduce){.features-dialog{scroll-behavior:auto}}
+
+.shared-invite-panel{padding:16px;border:2px solid var(--ios-blue,#488aff);border-radius:18px;background:var(--ios-surface-elevated,#8881);margin:16px 0}.shared-invite-panel h3{margin:0;font-size:18px}.shared-invite-panel #sharedInviteCode{font-family:monospace;font-size:15px;line-height:1.6;overflow-wrap:anywhere;resize:none}.shared-invite-panel #copyInvite{width:100%;font-weight:600}
+
+/* Shared pages inherit the journal palette and card geometry, with independent view controls. */
+.shared-heading .journal-heading-copy{max-width:none}
+.shared-space-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 18px 16px;padding:18px;background:var(--ios-surface);border:1px solid var(--ios-border,rgba(128,128,128,.2));border-radius:var(--radius-container)}
+.shared-space-summary h2{font-size:19px;margin:0 0 6px}.shared-space-summary h2 span{font-size:13px;color:var(--ios-text-secondary);margin-left:6px}
+.shared-space-summary p{font-size:12px;line-height:1.6;margin:0;color:var(--ios-text-secondary);overflow-wrap:anywhere}.shared-space-summary .feature-actions{margin:0;flex-shrink:0;flex-direction:column}
+.shared-tools{margin-bottom:14px}.shared-tools .btn-ios-primary{min-height:42px;font:inherit;font-size:13px;padding:10px 16px}
+/* Overview and sorting use the same rules as the home page in theme-overrides.css. */
+#sharedCleanExpired[hidden]{display:none!important}
+#btnAddSharedEmpty,#btnAddPendingEmpty{padding:0;border:1px solid var(--ios-border);font:inherit;font-size:32px;cursor:pointer;border-radius:50%!important}
+#pendingEmpty[hidden]{display:none!important}
+#pendingEmpty,#sharedEmpty{box-sizing:border-box;height:280px;min-height:280px;padding:32px 24px;justify-content:center}
+.pending-intro{grid-template-columns:1fr}
+/* Reserve the same header space above both empty-state prompts. */
+#viewPanelPending:has(#pendingEmpty:not([hidden])) .pending-intro,
+#viewPanelShared:has(#sharedEmpty:not([hidden])) .shared-page-header{box-sizing:border-box;min-height:240px}
+#viewPanelPending:has(#pendingEmpty:not([hidden])) .pending-intro{align-content:start}
+#itemDestinationRow[hidden]{display:none!important}
+#itemDestinationPills .mode-pill:focus-visible{outline:2px solid var(--ios-blue);outline-offset:2px}
+.shared-tools .btn-ios-primary{background:#38383c!important;border-color:#38383c!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.shared-filters{display:flex;flex-wrap:wrap;gap:6px;margin:14px 18px}
+:root body .shared-filters .feature-button.active{background:var(--button-selected)!important;color:var(--button-text)!important;border-color:var(--button-selected-border)!important;box-shadow:inset 0 0 0 1px var(--button-selected-border);font-weight:600}
+.shared-search-controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 18px 18px}
+.shared-search-controls input,.shared-search-controls select{min-width:0;min-height:42px;font:inherit;font-size:13px;border:1px solid var(--ios-border,rgba(128,128,128,.2));padding:10px 14px;background:var(--ios-surface);color:var(--ios-text-primary)}
+.shared-search-controls input{width:100%;box-sizing:border-box}.shared-search-controls select{flex:1;width:0}.shared-search-controls .feature-button{padding-inline:10px}
+.shared-search-controls [hidden]{display:none!important}
+#featuresDialog .sort-option-card:not(.active) .sort-card-check{color:transparent!important;-webkit-text-fill-color:transparent!important}
+/* Both sort menus use the same shell and the home page's option markup. */
+:root body :is(#homeSortModal,#featuresDialog[data-purpose="sharedSort"]){padding:16px}
+:root body :is(#homeSortModal,#featuresDialog[data-purpose="sharedSort"]) .ios-modal-card{width:100%;max-width:min(420px,92vw);max-height:90dvh;margin:0}
+#featuresDialog[data-purpose="sharedSort"] #featureDialogBody{display:contents}
+#featuresDialog[data-purpose="sharedSort"] #featureDialogError:empty{display:none}
+#featuresDialog[data-purpose="sharedSort"] .feature-dialog-header{gap:normal}
+#featuresDialog[data-purpose="sharedSort"] .sheet-drag-handle{display:none}
+#featuresDialog[data-purpose="sharedSort"] .feature-dialog-header h2{font-size:1.2rem}
+#featuresDialog[data-purpose="sharedSort"] .modal-section-intro{font-size:inherit;line-height:inherit}
+#featuresDialog[data-purpose="sharedSort"] .custom-order-desc{font-size:.78rem;line-height:inherit}
+#sharedItemsGrid .shared-card-date{font-size:12px;line-height:1.6;color:var(--ios-text-secondary);overflow-wrap:anywhere}
+#sharedItemsGrid .shared-item-card:focus-visible{outline:2px solid var(--ink-green,var(--ios-green));outline-offset:3px}
+#sharedItemsGrid.shared-list-mode{display:flex!important;flex-direction:column!important;gap:9px!important}
+#sharedItemsGrid.shared-list-mode>*{min-height:0!important;height:auto!important;flex:none!important;width:100%!important;box-sizing:border-box;padding:14px 16px!important}
+#sharedItemsGrid.shared-list-mode .card-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+#sharedItemsGrid.shared-list-mode .card-top-row,#sharedItemsGrid.shared-list-mode .card-status-progress,#sharedItemsGrid.shared-list-mode .shared-card-date,#sharedItemsGrid.shared-list-mode .card-note-preview{grid-column:1/-1}
+#sharedItemsGrid.shared-list-mode .card-icon-box{width:32px!important;height:32px!important}
+.shared-photo-preview img{display:block;width:100%;max-height:160px;object-fit:contain;border-radius:var(--radius-control)}
+.features-dialog .shared-estimate{flex-direction:row;align-items:center;line-height:1.6}
+.features-dialog{overscroll-behavior:contain}
+:root body #itemModal{align-items:center;justify-content:center;padding:16px}
+:root body #itemModal .ios-modal-card{margin:0;height:min(90dvh,calc(var(--android-viewport-height,100dvh) - 32px));max-height:min(90dvh,calc(var(--android-viewport-height,100dvh) - 32px))}
+#btnSheetAddShared[hidden]{display:none!important}
+@media(max-width:360px){.shared-space-summary{padding:14px;margin-inline:12px}.shared-space-summary h2{font-size:17px}.shared-space-summary .feature-button{padding-inline:10px}.shared-filters{gap:5px}.shared-filters .feature-button{font-size:12px;padding-inline:10px}}
+
+#sharedSettingsButton{display:none;position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(100px + env(safe-area-inset-bottom));z-index:100;width:48px;height:48px;align-items:center;justify-content:center;border:0;border-radius:50%;background:var(--ios-surface);color:var(--ios-text-primary);cursor:pointer}
+body.shared-page-active #sharedSettingsButton{display:flex}
+#sharedSettingsButton:focus-visible{outline:2px solid var(--ios-blue);outline-offset:3px}
+#btnSheetPending[hidden]{display:none!important}
+#featuresDialog[data-purpose="sharedSettings"] #featureDialogBody{display:flex;flex-direction:column;gap:12px}
+.shared-record-row{width:100%;margin-bottom:8px;text-align:left;overflow-wrap:anywhere}
+
+:root body #sharedSettingsButton{width:54px;height:54px;background:#38383c!important;color:#fffaf2!important;border:2px solid #fffaf2!important;box-shadow:0 5px 16px #0004}
+#sharedSettingsButton svg{width:26px;height:26px}
+#sharedSettingsButton svg circle{fill:#38383c}
+:root body #sharedSettingsButton:active{transform:scale(.95)}
+#featuresDialog:is([data-purpose="sharedSettings"],[data-purpose="sharedRecords"],[data-purpose="sharedRecord"]) .ios-modal-card{height:auto;min-height:0}
+#featuresDialog:is([data-purpose="sharedSettings"],[data-purpose="sharedRecords"],[data-purpose="sharedRecord"]) .ios-modal-scroll{flex:0 1 auto;gap:0;padding-top:14px!important}
+#featuresDialog:is([data-purpose="sharedSettings"],[data-purpose="sharedRecords"],[data-purpose="sharedRecord"]) #featureDialogError:empty{display:none}
+#sharedRecordList{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+:root body .shared-record-row{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;margin:0;padding:14px;border:1px solid var(--ios-border,#ddd);border-radius:16px;background:var(--ios-surface-elevated,#f7f3eb);color:var(--ios-text-primary,#333);font:inherit;text-align:left;cursor:pointer;box-sizing:border-box}
+.shared-record-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0;color:var(--ios-text-secondary)}
+.shared-record-icon svg,.shared-record-icon img{width:36px;height:36px;object-fit:cover;border-radius:8px}
+.shared-record-copy{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.shared-record-name{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.shared-record-meta{font-size:12px;line-height:1.5;color:var(--ios-text-secondary);overflow-wrap:anywhere}
+.shared-record-chevron{font-size:24px;color:var(--ios-text-secondary)}
+.shared-record-row:focus-visible{outline:2px solid var(--ios-blue);outline-offset:2px}

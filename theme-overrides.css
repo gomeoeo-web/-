@@ -26,7 +26,7 @@
 
 /* Equal top/side insets keep the thumbnail concentric with the card corner. */
 :root body .ios-item-card {
-  padding: var(--item-card-inset);
+  padding: var(--item-card-inset) var(--item-card-inset) 10px;
 }
 :root body .ios-item-card .card-icon-box {
   border-radius: var(--radius-item-media) !important;
@@ -112,7 +112,7 @@ html {
   padding-bottom: max(1.25rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
 }
 
-.card-metric-main .metric-highlight-number { font-size: 1.75rem; }
+.card-metric-main .metric-highlight-number { font-size: 1.55rem; }
 .card-metric-main { flex-wrap: wrap; }
 .card-metric-main .metric-pretext { white-space: nowrap; flex-shrink: 0; }
 .card-metric-value {
@@ -132,7 +132,7 @@ html {
   width: auto;
   margin: 0;
 }
-#rowScreenFit .screen-fit-select { width: auto; font-size: .85rem; }
+:root body #settingsModal #rowScreenFit .screen-fit-select { width: auto; font: inherit; font-size: .8rem !important; font-weight: 600; line-height: 1.4 !important; }
 
 /* 將裁切邊界移到內容外，為卡片與篩選按鈕陰影保留空間。 */
 .views-slider-viewport {
@@ -146,8 +146,8 @@ html {
 
 /* Compact the header-to-list spacing while keeping clear touch targets. */
 .ios-header { margin-bottom: 10px; }
-#statusNoticeCard { margin-bottom: 8px; padding-block: 10px; }
-#homeSortToolbar { margin-bottom: 10px; }
+:is(#statusNoticeCard, #sharedStatusNoticeCard) { margin-bottom: 8px; padding-block: 10px; }
+:is(#homeSortToolbar, #sharedSortToolbar) { margin-bottom: 10px; }
 #inventoryControls { gap: 11px; margin-bottom: 15px; }
 
 /* 留白放在捲動區外，避免靠左對齊時露出上一個膠囊。 */
@@ -165,7 +165,7 @@ html {
   font-weight: 700;
   transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
-#segmentedPillsBar {
+:is(#segmentedPillsBar, #sharedSegmentedPillsBar) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   box-sizing: border-box;
@@ -173,7 +173,7 @@ html {
   padding: 6px 2px;
   margin-bottom: 8px;
 }
-#segmentedPillsBar .home-filter-btn {
+:is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -183,7 +183,7 @@ html {
   height: 40px;
   gap: .25rem;
 }
-#segmentedPillsBar .filter-btn-badge {
+:is(#segmentedPillsBar, #sharedSegmentedPillsBar) .filter-btn-badge {
   display: inline-flex;
   flex: 0 0 1.5rem;
   align-self: center;
@@ -196,7 +196,7 @@ html {
   justify-content: center;
   font-variant-numeric: tabular-nums;
 }
-#segmentedPillsBar .filter-btn-badge-value { position: static; }
+:is(#segmentedPillsBar, #sharedSegmentedPillsBar) .filter-btn-badge-value { position: static; }
 
 :root {
   --ink-green: #49c775;
@@ -560,11 +560,11 @@ html {
 .settings-row > button,
 .mode-pill.active,
 [data-theme="light"] .home-filter-btn[data-filter="all"].active,
-[data-theme="light"] #pillAll.active,
+[data-theme="light"] :is(#pillAll, #sharedPillAll).active,
 [data-theme="light"] .home-filter-btn[data-filter="urgent"].active,
-[data-theme="light"] #pillUrgent.active,
+[data-theme="light"] :is(#pillUrgent, #sharedPillUrgent).active,
 [data-theme="light"] .home-filter-btn[data-filter="expired"].active,
-[data-theme="light"] #pillExpired.active,
+[data-theme="light"] :is(#pillExpired, #sharedPillExpired).active,
 [data-theme="light"] .dock-tab.active {
   background: var(--button-gray) !important;
   background-image: none !important;
@@ -616,7 +616,7 @@ html {
 .card-progress-fill.status-expired,
 .card-progress-fill.expired { background-color: var(--expired-red) !important; }
 
-#pillCountUrgent, #pillUrgent.active #pillCountUrgent,
+:is(#pillCountUrgent, #sharedBadgeUrgent), :is(#pillUrgent, #sharedPillUrgent).active :is(#pillCountUrgent, #sharedBadgeUrgent),
 .pill-counter.urgent {
   background: #fff4e5 !important;
   background-image: none !important;
@@ -624,7 +624,7 @@ html {
   -webkit-text-fill-color: var(--due-amber) !important;
   border: 1px solid currentColor !important;
 }
-#pillCountExpired, #pillExpired.active #pillCountExpired,
+:is(#pillCountExpired, #sharedBadgeExpired), :is(#pillExpired, #sharedPillExpired).active :is(#pillCountExpired, #sharedBadgeExpired),
 .pill-counter.expired {
   background: #fff0ed !important;
   background-image: none !important;
@@ -632,13 +632,13 @@ html {
   -webkit-text-fill-color: var(--expired-red) !important;
   border: 1px solid currentColor !important;
 }
-#pillCountUrgent, #pillCountExpired { font-size: .88rem; font-weight: 900; }
-:root:not([data-theme="light"]) #pillCountUrgent,
-:root:not([data-theme="light"]) #pillCountExpired {
+:is(#pillCountUrgent, #sharedBadgeUrgent), :is(#pillCountExpired, #sharedBadgeExpired) { font-size: .88rem; font-weight: 900; }
+:root:not([data-theme="light"]) :is(#pillCountUrgent, #sharedBadgeUrgent),
+:root:not([data-theme="light"]) :is(#pillCountExpired, #sharedBadgeExpired) {
   background: var(--button-gray) !important;
   background-image: none !important;
 }
-:root:not([data-theme="light"]) #pillAll.active #pillCountAll {
+:root:not([data-theme="light"]) :is(#pillAll, #sharedPillAll).active :is(#pillCountAll, #sharedBadgeAll) {
   background: #4b4b4b !important;
   background-image: none !important;
   border-color: #777 !important;
@@ -661,11 +661,12 @@ html {
 [data-screen-fit="tablet"] .card-summary > .card-metric-main,
 [data-screen-fit="tablet"] .card-summary > .card-metric-sub { grid-column: 1; }
 [data-screen-fit="tablet"] .card-summary > .card-note-preview {
-  grid-column: 2;
-  grid-row: 3 / 5;
-  align-self: center;
+  grid-column: 1 / -1;
+  grid-row: 4;
+  align-self: start;
   min-width: 0;
   align-items: flex-start;
+  margin-top: 4px;
 }
 [data-screen-fit="tablet"] .card-note-text {
   white-space: pre-wrap;
@@ -736,9 +737,9 @@ html {
 /* 明亮模式：主要操作與上下選單的選中按鈕使用深灰。 */
 [data-theme="light"] .home-filter-btn.active,
 [data-theme="light"] .home-filter-btn[data-filter="all"].active,
-[data-theme="light"] #pillAll.active,
-[data-theme="light"] #pillUrgent.active,
-[data-theme="light"] #pillExpired.active,
+[data-theme="light"] :is(#pillAll, #sharedPillAll).active,
+[data-theme="light"] :is(#pillUrgent, #sharedPillUrgent).active,
+[data-theme="light"] :is(#pillExpired, #sharedPillExpired).active,
 [data-theme="light"] .category-chip.active,
 [data-theme="light"] .pill-segment.active,
 [data-theme="light"] .mode-pill.active,
@@ -795,7 +796,7 @@ html {
   color: #38332f !important;
   -webkit-text-fill-color: #38332f !important;
 }
-[data-theme="light"] #pillAll.active #pillCountAll {
+[data-theme="light"] :is(#pillAll, #sharedPillAll).active :is(#pillCountAll, #sharedBadgeAll) {
   background: #383838 !important;
   background-image: none !important;
   border-color: #686868 !important;
@@ -885,19 +886,6 @@ html {
   stroke: currentColor !important;
 }
 
-#pendingEmpty::before { content: none; }
-#btnAddPendingEmpty {
-  display: block;
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 16px;
-  border: 1px solid var(--button-border);
-  border-radius: var(--radius-container);
-  background: var(--button-gray);
-  color: var(--button-text);
-  font-size: 28px;
-  cursor: pointer;
-}
 .custom-category-emoji { display: inline-block; line-height: 1.2; }
 
 #cameraScanModal {
@@ -1217,16 +1205,16 @@ html {
   color: var(--button-danger-ink) !important;
   -webkit-text-fill-color: currentColor !important;
 }
-:root body :is(#pillCountExpired, .pill-counter.expired) {
+:root body :is(:is(#pillCountExpired, #sharedBadgeExpired), .pill-counter.expired) {
   color: var(--button-danger-ink) !important;
   -webkit-text-fill-color: currentColor !important;
 }
-:root body :is(#pillCountUrgent, .pill-counter.urgent) {
+:root body :is(:is(#pillCountUrgent, #sharedBadgeUrgent), .pill-counter.urgent) {
   color: var(--button-warning-ink) !important;
   -webkit-text-fill-color: currentColor !important;
 }
-:root[data-theme="light"] body :is(#pillCountExpired, .pill-counter.expired) { background: #fff0ed !important; }
-:root[data-theme="light"] body :is(#pillCountUrgent, .pill-counter.urgent) { background: #fff4e5 !important; }
+:root[data-theme="light"] body :is(:is(#pillCountExpired, #sharedBadgeExpired), .pill-counter.expired) { background: #fff0ed !important; }
+:root[data-theme="light"] body :is(:is(#pillCountUrgent, #sharedBadgeUrgent), .pill-counter.urgent) { background: #fff4e5 !important; }
 :root body #btnCameraScan,
 :root body .sheet-actions-group #btnSheetStart {
   background: #1765c4 !important;
@@ -1333,13 +1321,75 @@ html {
   text-align: left !important;
 }
 :root body .ios-modal-backdrop select { padding-right: 36px !important; }
+/* Reserve room for the unit without native number steppers overlapping it. */
+:root body .ios-modal-backdrop .duration-input-wrapper #itemDuration {
+  padding-right: 44px !important;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+:root body .duration-input-wrapper input[type="number"]::-webkit-inner-spin-button,
+:root body .duration-input-wrapper input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+:root body .duration-input-wrapper .duration-unit { right: 16px; }
+/* Custom item artwork shares the same thumbnail frame as automatic icons. */
+:root body .ios-avatar-picker-section { align-items: flex-start; }
+:root body .avatar-controls { min-width: 0; }
+.item-save-error[hidden] { display: none !important; }
+.item-save-error { padding: 12px; border: 1px solid var(--form-border); border-radius: var(--radius-control); }
+.item-save-error p { margin: 0 0 8px; font-size: 14px; }
+:root body #avatarPreviewBox { position: relative; }
+:root body .ios-modal-backdrop #avatarPreviewBox #itemIconText {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: transparent;
+  text-align: center !important;
+  font-size: 24px !important;
+  font-weight: 400;
+  cursor: text;
+}
+:root body #avatarPreviewBox:focus-within { outline: 2px solid var(--ios-text-secondary); outline-offset: 2px; }
+:root body #avatarPreviewBox:focus-within > :is(#previewEmojiChar, #previewImageEl) { visibility: hidden; }
+:root body .ios-modal-backdrop #avatarPreviewBox #itemIconText:focus {
+  outline: none;
+  color: var(--ios-text-primary) !important;
+  -webkit-text-fill-color: currentColor !important;
+  caret-color: var(--ios-text-primary);
+}
+.custom-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  line-height: 1;
+  white-space: nowrap;
+  font-weight: 400;
+  font-family: 'jf-openhuninn', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+}
+.custom-item-icon-pair { font-size: .65em; }
+:root body #previewEmojiChar { width: 100%; height: 100%; align-items: center; justify-content: center; }
+.compact-list-mode .card-icon-box .custom-item-icon,
+.shared-list-mode .card-icon-box .custom-item-icon { font-size: 22px; }
+.compact-list-mode .card-icon-box .custom-item-icon-pair,
+.shared-list-mode .card-icon-box .custom-item-icon-pair { font-size: 14px; }
 :root body .ios-modal-backdrop .icon-picker-trigger {
   gap: 12px;
   background-image: none !important;
 }
 :root body .icon-picker-trigger .flat-item-icon { width: 24px; height: 24px; flex: 0 0 24px; }
 :root body :is(.nlp-select-wrap, .nlp-time-input-container) { height: var(--form-control-height); }
-:root body :is(.nlp-select-wrap, .ios-select-wrapper):has(.icon-picker-trigger) > .select-arrow { display: none; }
+:root body :is(.nlp-select-wrap, .ios-select-wrapper):has(.icon-picker-trigger) > :is(.select-arrow, .select-chevron) { display: none; }
 :root body .ios-modal-backdrop :is(input[type="date"], input[type="time"])::-webkit-datetime-edit {
   color: var(--ios-text-primary) !important;
   -webkit-text-fill-color: currentColor !important;
@@ -1637,20 +1687,25 @@ html {
     animation-timeline: --app-pages;
   }
   :root body .floating-island-dock.dock-scroll-timeline .dock-tab:nth-child(2) .dock-highlight-content {
-    animation-name: dockNativeMiddle;
+    animation-name: dockNativeSecond;
   }
   :root body .floating-island-dock.dock-scroll-timeline .dock-tab:nth-child(3) .dock-highlight-content {
+    animation-name: dockNativeThird;
+  }
+  :root body .floating-island-dock.dock-scroll-timeline .dock-tab:nth-child(4) .dock-highlight-content {
     animation-name: dockNativeLast;
   }
 }
 @keyframes dockNativeTravel {
   0% { transform: translate3d(var(--dock-stop-0), 0, 0); }
-  50% { transform: translate3d(var(--dock-stop-1), 0, 0); }
-  100% { transform: translate3d(var(--dock-stop-2), 0, 0); }
+  33.333% { transform: translate3d(var(--dock-stop-1), 0, 0); }
+  66.667% { transform: translate3d(var(--dock-stop-2), 0, 0); }
+  100% { transform: translate3d(var(--dock-stop-3), 0, 0); }
 }
-@keyframes dockNativeFirst { 0% { opacity: 1; } 35%, 100% { opacity: 0; } }
-@keyframes dockNativeMiddle { 0%, 15%, 85%, 100% { opacity: 0; } 50% { opacity: 1; } }
-@keyframes dockNativeLast { 0%, 65% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes dockNativeFirst { 0% { opacity: 1; } 33.333%, 100% { opacity: 0; } }
+@keyframes dockNativeSecond { 0%, 66.667%, 100% { opacity: 0; } 33.333% { opacity: 1; } }
+@keyframes dockNativeThird { 0%, 33.333%, 100% { opacity: 0; } 66.667% { opacity: 1; } }
+@keyframes dockNativeLast { 0%, 66.667% { opacity: 0; } 100% { opacity: 1; } }
 
 /* Secondary overlays share the quicker entry/exit rhythm. */
 :root body :is(.cloud-consent-dialog, .icon-picker-dialog, .ai-scan-loading-card, .model-loading-card) {
@@ -1731,7 +1786,7 @@ html {
   margin-top: 3px;
 }
 .journal-botanical { width: 48px; height: 60px; flex-shrink: 0; color: var(--ink-green); }
-:root body #statusNoticeCard {
+:root body :is(#statusNoticeCard, #sharedStatusNoticeCard) {
   position: relative;
   border: 1px solid var(--ios-border);
   border-radius: 20px;
@@ -1740,13 +1795,13 @@ html {
   margin-bottom: 12px;
   box-shadow: none;
 }
-:root body #statusNoticeCard .notice-title { font-size: 14px; line-height: 1.4; }
-:root body #statusNoticeCard .notice-num { font-size: 17px; margin-inline: 2px; }
-:root body #statusNoticeCard .notice-left-group { gap: 8px; }
-:root body #noticeIconWrapper { width: 28px; height: 28px; min-width: 28px; }
-:root body #noticeIconWrapper svg { width: 15px; height: 15px; }
-:root body #btnCleanExpired { width: 44px; height: 44px; min-width: 44px; }
-:root body #segmentedPillsBar {
+:root body :is(#statusNoticeCard, #sharedStatusNoticeCard) .notice-title { font-size: 14px; line-height: 1.4; }
+:root body :is(#statusNoticeCard, #sharedStatusNoticeCard) .notice-num { font-size: 17px; margin-inline: 2px; }
+:root body :is(#statusNoticeCard, #sharedStatusNoticeCard) .notice-left-group { gap: 8px; }
+:root body :is(#noticeIconWrapper, #sharedNoticeIconWrapper) { width: 28px; height: 28px; min-width: 28px; }
+:root body :is(#noticeIconWrapper, #sharedNoticeIconWrapper) svg { width: 15px; height: 15px; }
+:root body :is(#btnCleanExpired, #sharedCleanExpired) { width: 44px; height: 44px; min-width: 44px; }
+:root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) {
   gap: 5px;
   padding: 5px;
   border-radius: 22px;
@@ -1754,7 +1809,7 @@ html {
   background: var(--ios-surface-secondary);
   margin-bottom: 14px;
 }
-:root body #segmentedPillsBar .home-filter-btn {
+:root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn {
   height: 44px;
   border: 0 !important;
   border-radius: 17px !important;
@@ -1763,26 +1818,32 @@ html {
   font-size: 14px;
   gap: 6px;
 }
-:root body #segmentedPillsBar .home-filter-btn.active {
+:root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn.active {
   background: var(--button-green) !important;
   color: #fffaf2 !important;
   box-shadow: 0 2px 5px rgba(30, 48, 38, .12) !important;
 }
-:root body #segmentedPillsBar .home-filter-btn.active .filter-btn-text { color: #fffaf2 !important; }
-:root body #segmentedPillsBar .filter-btn-badge {
+:root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn.active .filter-btn-text { color: #fffaf2 !important; }
+:root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .filter-btn-badge {
   border: 0 !important;
   background: rgba(128, 128, 128, .09) !important;
   font-size: 12px;
   min-width: 23px;
   height: 23px;
 }
-:root body #segmentedPillsBar .active .filter-btn-badge {
+:root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .active .filter-btn-badge {
   background: rgba(255,255,255,.16) !important;
   color: #fffaf2 !important;
 }
-:root body #homeSortToolbar { padding-inline: 4px; margin-bottom: 2px; }
-:root body #sortToolbarCount { font-size: 12px; font-weight: 400; letter-spacing: .04em; }
-:root body #btnOpenCustomSort {
+:root body :is(#pillAll, #sharedPillAll).active :is(#pillCountAll, #sharedBadgeAll) {
+  border-width: 1px !important;
+  border-style: solid !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+:root body :is(#homeSortToolbar, #sharedSortToolbar) { padding-inline: 4px; margin-bottom: 2px; }
+:root body :is(#sortToolbarCount, #sharedSortCount) { font-size: 12px; font-weight: 400; letter-spacing: .04em; }
+:root body :is(#btnOpenCustomSort, #btnOpenInventorySort, #sharedSort) {
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
@@ -1796,32 +1857,32 @@ html {
   border-color: #d9ded1;
   box-shadow: 0 3px 12px rgba(61, 77, 54, .035);
 }
-:root[data-theme="light"] body #statusNoticeCard {
+:root[data-theme="light"] body :is(#statusNoticeCard, #sharedStatusNoticeCard) {
   background: #fbfaf5;
   border-color: #dadfd2;
 }
-:root[data-theme="light"] body #statusNoticeCard.expired {
+:root[data-theme="light"] body :is(#statusNoticeCard, #sharedStatusNoticeCard).expired {
   background: #faf1e9;
   border-color: #e6d5c7;
 }
-:root[data-theme="light"] body #statusNoticeCard.warning {
+:root[data-theme="light"] body :is(#statusNoticeCard, #sharedStatusNoticeCard).warning {
   background: #faf4e6;
   border-color: #e5dac0;
 }
-:root[data-theme="light"] body #noticeIconWrapper {
+:root[data-theme="light"] body :is(#noticeIconWrapper, #sharedNoticeIconWrapper) {
   background: #e8eee1;
   color: #52715b;
 }
-:root[data-theme="light"] body #statusNoticeCard.expired #noticeIconWrapper {
+:root[data-theme="light"] body :is(#statusNoticeCard, #sharedStatusNoticeCard).expired :is(#noticeIconWrapper, #sharedNoticeIconWrapper) {
   background: #f0ded4;
   color: #a76559;
 }
-:root[data-theme="light"] body #segmentedPillsBar { background: #e5eadf; border-color: #d8dfd1; }
-:root[data-theme="light"] body #segmentedPillsBar .home-filter-btn.active { background: #3f5b4b !important; }
+:root[data-theme="light"] body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) { background: #e5eadf; border-color: #d8dfd1; }
+:root[data-theme="light"] body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn.active { background: #3f5b4b !important; }
 @media (max-width: 350px) {
   .journal-botanical { width: 55px; }
   .journal-heading p { font-size: 11px; }
-  :root body #segmentedPillsBar .home-filter-btn { gap: 3px; font-size: 13px; }
+  :root body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn { gap: 3px; font-size: 13px; }
 }
 
 /* Filters and the compact notice share one surface. */
@@ -1836,13 +1897,13 @@ html {
   background: #e5eadf;
   border-color: #d8dfd1;
 }
-:root body .home-overview-frame #segmentedPillsBar {
+:root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) {
   padding: 0;
   margin: 0;
   border: 0;
   background: transparent;
 }
-:root body .home-overview-frame #statusNoticeCard {
+:root body .home-overview-frame :is(#statusNoticeCard, #sharedStatusNoticeCard) {
   min-height: 28px;
   padding: 0 8px;
   margin: 3px 0 0;
@@ -1852,19 +1913,19 @@ html {
   background: transparent;
   gap: 6px;
 }
-:root body .home-overview-frame #statusNoticeCard .notice-title {
+:root body .home-overview-frame :is(#statusNoticeCard, #sharedStatusNoticeCard) .notice-title {
   font-size: 12px;
   font-weight: 500;
 }
-:root body .home-overview-frame #statusNoticeCard .notice-num { font-size: 14px; }
-:root body .home-overview-frame #noticeIconWrapper {
+:root body .home-overview-frame :is(#statusNoticeCard, #sharedStatusNoticeCard) .notice-num { font-size: 14px; }
+:root body .home-overview-frame :is(#noticeIconWrapper, #sharedNoticeIconWrapper) {
   width: 22px;
   height: 22px;
   min-width: 22px;
   background: transparent;
 }
-:root body .home-overview-frame #noticeIconWrapper svg { width: 14px; height: 14px; }
-:root body .home-overview-frame #btnCleanExpired {
+:root body .home-overview-frame :is(#noticeIconWrapper, #sharedNoticeIconWrapper) svg { width: 14px; height: 14px; }
+:root body .home-overview-frame :is(#btnCleanExpired, #sharedCleanExpired) {
   position: relative;
   width: 26px;
   height: 26px;
@@ -1873,27 +1934,27 @@ html {
   background: transparent !important;
   box-shadow: none;
 }
-:root body .home-overview-frame #btnCleanExpired::after {
+:root body .home-overview-frame :is(#btnCleanExpired, #sharedCleanExpired)::after {
   content: "";
   position: absolute;
   inset: -9px;
 }
 
-:root body .home-overview-frame #segmentedPillsBar .home-filter-btn {
+:root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn {
   height: 36px;
   min-height: 36px;
   padding-block: 3px;
   transition: background-color 180ms ease, color 180ms ease;
 }
-:root body .home-overview-frame #segmentedPillsBar .home-filter-btn::after {
+:root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn::after {
   content: "";
   position: absolute;
   inset: -4px 0;
 }
-:root body .home-overview-frame #segmentedPillsBar .home-filter-btn { position: relative; }
+:root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn { position: relative; }
 @media (prefers-reduced-motion: reduce) {
-  :root body .home-overview-frame #segmentedPillsBar .home-filter-btn,
-  :root body .home-overview-frame #segmentedPillsBar .home-filter-btn * {
+  :root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn,
+  :root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn * {
     transition: none !important;
     animation: none !important;
   }
@@ -1923,20 +1984,20 @@ html {
 }
 
 /* Subtle definition for the home filter capsules. */
-:root body .home-overview-frame #segmentedPillsBar .home-filter-btn {
+:root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn {
   border: 1px solid rgba(255, 255, 255, .12) !important;
   background: rgba(255, 255, 255, .05) !important;
 }
-:root[data-theme="light"] body .home-overview-frame #segmentedPillsBar .home-filter-btn {
+:root[data-theme="light"] body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn {
   border-color: rgba(63, 91, 75, .16) !important;
   background: rgba(255, 255, 255, .32) !important;
 }
-:root body .home-overview-frame #segmentedPillsBar .home-filter-btn.active {
+:root body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn.active {
   background: var(--button-green) !important;
   border-color: rgba(255, 255, 255, .24) !important;
   box-shadow: 0 3px 8px rgba(30, 48, 38, .20), inset 0 1px 0 rgba(255, 255, 255, .10) !important;
 }
-:root[data-theme="light"] body .home-overview-frame #segmentedPillsBar .home-filter-btn.active {
+:root[data-theme="light"] body .home-overview-frame :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn.active {
   background: #3f5b4b !important;
   border-color: #354e40 !important;
 }
@@ -2018,7 +2079,7 @@ html {
 }
 :root body .ios-item-card .card-status-progress > .card-progress-bar {
   order: -1;
-  margin: 8px 0 0;
+  margin: 2px 0 0;
 }
 :root body .ios-item-card .card-status-progress > .card-metric-sub {
   width: 100%;
@@ -2034,7 +2095,7 @@ html {
 }
 
 /* Use the same inset on every item card, including pending items. */
-:root body .ios-item-card { padding: var(--item-card-inset); }
+:root body .ios-item-card { padding: var(--item-card-inset) var(--item-card-inset) 10px; }
 
 /* Full item names wrap naturally, including long brands and model numbers. */
 :root body .ios-item-card .card-item-title {
@@ -2049,6 +2110,100 @@ html {
   -webkit-line-clamp: unset;
   max-height: none;
   height: auto;
+}
+
+/* Share content rows across adjacent cards so wrapped names keep metrics aligned. */
+@supports (grid-template-rows: subgrid) {
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) > .ios-item-card {
+    display: grid;
+    grid-row: span 5;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    /* Layout containment prevents a card from inheriting its parent's rows. */
+    contain: style;
+  }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) > .ios-item-card > .card-summary {
+    display: grid;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    min-width: 0;
+  }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-top-row { grid-row: 1; }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-item-title { grid-row: 2; }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-metric-main { grid-row: 3; }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-note-preview { grid-row: 4; }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-status-progress { grid-row: 5; }
+}
+
+/* Reference card proportions: generous white space and a prominent day count.
+   Compact tablet lists retain their existing layout. */
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) {
+  row-gap: 0;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) > .ios-item-card {
+  min-height: 190px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-category-tag {
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-item-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-metric-main {
+  margin-top: 8px;
+  gap: 4px;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .metric-highlight-number {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-status-progress > .card-progress-bar {
+  margin-top: 2px;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-status-progress > .card-metric-sub {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  margin-top: 6px;
+}
+:root[data-theme="light"] body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) > .ios-item-card {
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(66, 55, 41, .06);
+}
+
+/* Shared sliding capsule surface, matching the bottom navigation rhythm. */
+.pill-motion-ready { position: relative; isolation: isolate; }
+.pill-motion-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 3px 8px rgba(30,48,38,.16);
+  transition: transform 300ms cubic-bezier(.2,.8,.2,1), width 300ms cubic-bezier(.2,.8,.2,1), height 300ms cubic-bezier(.2,.8,.2,1), background-color 180ms ease;
+}
+.pill-motion-indicator[hidden] { display: none !important; }
+.pill-motion-ready > button { position: relative; z-index: 1; }
+:root[data-theme] body :is(#segmentedPillsBar, #sharedSegmentedPillsBar, #modeSegment, #itemDestinationPills, #nlpTrackingModeSelector, #nlpActionModeSelector, #categoryChipRow, #nlpQuickTimePills, .pill-motion-ready).pill-motion-ready.pill-motion-ready > button.active {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-motion-indicator { transition: none !important; }
 }
 
 /* One compact status message, away from dialog headings and controls. */

@@ -1,6 +1,6 @@
 /**
  * 期效管家 - 純本機智慧自然語言速記與 RoBERTa-Tiny / BERT-Tiny 命名實體識別引擎
- * Smart Quick Add & On-Device NER Parser v1.9.21
+ * Smart Quick Add & On-Device NER Parser v1.10.0
  *
  * 特性：
  * 1. 支援 Transformers.js 於瀏覽器本地離線執行微型中文命名實體模型 (Xenova/bert-tiny-chinese-ner / RoBERTa-Tiny)。
@@ -34,8 +34,6 @@ function isCameraDebug() {
 
 let nerPipeline = null;
 let isModelLoading = false;
-let modelStatus = 'idle'; // 'idle' | 'loading' | 'ready' | 'fallback'
-let lastCreatedItem = null; // 最近一筆新增或編輯之物品快取 (Context Continuity)
 
 // 中文數字轉換輔助
 const cnNumMap = {
@@ -652,9 +650,7 @@ function inferItemLifespanOrUsageDate(name, category, subCategory, baseDate = ne
 // ==========================================
 // 2. UI 狀態指示器 (輸入框 Placeholder)
 // ==========================================
-function updateNerStatus(status) {
-  modelStatus = status;
-  if (typeof document === 'undefined') return;
+function updateNerStatus(status) {  if (typeof document === 'undefined') return;
 
   const input = document.getElementById('smartQuickAddInput');
 
@@ -764,9 +760,7 @@ async function initModel() {
       nerPipeline = await pipelineFn('token-classification', 'Xenova/bert-tiny-chinese-ner', {
         aggregation_strategy: 'simple'
       });
-      isModelLoading = false;
-      modelStatus = 'ready';
-      updateNerStatus('ready');
+      isModelLoading = false;      updateNerStatus('ready');
       console.log('[NLP] ✅ 微型中文實體模型 (RoBERTa/BERT-Tiny) 初始化完成！');
       return nerPipeline;
     } else {
@@ -774,9 +768,7 @@ async function initModel() {
     }
   } catch (err) {
     console.warn('[NLP] 實體模型載入未完成或處於離線環境，啟用正則表達式備援：', err);
-    isModelLoading = false;
-    modelStatus = 'fallback';
-    updateNerStatus('fallback');
+    isModelLoading = false;    updateNerStatus('fallback');
     return null;
   }
 }
@@ -1185,7 +1177,7 @@ async function parseWithLocalNER(rawInput, baseDate = new Date(), existingItems 
   }
 
   // 上下文參照取得
-  const targetLast = lastCreated || (typeof window !== 'undefined' && window.getLastCreatedItem ? window.getLastCreatedItem() : lastCreatedItem);
+  const targetLast = lastCreated || (typeof window !== 'undefined' && window.getLastCreatedItem ? window.getLastCreatedItem() : null);
   const itemsList = (Array.isArray(existingItems) && existingItems.length > 0)
     ? existingItems
     : (typeof window !== 'undefined' && window.getItems ? window.getItems() : []);
@@ -1614,112 +1606,6 @@ async function parseNaturalInputAsync(rawInput, baseDate = new Date(), existingI
 }
 
 // ==========================================
-// 7. 物品新增與更新操作
-// ==========================================
-function addItem(itemData) {
-  if (!itemData || typeof itemData !== 'object') return null;
-
-  const newId = itemData.id || ('item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4));
-  const hasEndDate = (itemData.hasEndDate !== false);
-  const startDate = itemData.startDate || formatDate(new Date());
-  const endDate = hasEndDate ? (itemData.endDate || startDate) : null;
-  const warnDays = hasEndDate ? ((typeof itemData.warnDays === 'number') ? itemData.warnDays : 3) : -1;
-  const reminderType = hasEndDate ? (itemData.reminderType || ((warnDays >= 0) ? 'preset' : 'none')) : 'none';
-  const reminderDate = (hasEndDate && warnDays >= 0) ? (itemData.reminderDate || formatDate(offsetDays(new Date(endDate + 'T00:00:00'), -warnDays))) : null;
-  const reminderTime = hasEndDate ? (itemData.reminderTime || '09:00') : '09:00';
-  const durationDays = hasEndDate ? Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) || 1) : 1;
-
-  const newItem = {
-    id: newId,
-    name: (itemData.name || '未命名物品').trim(),
-    category: itemData.category || 'other',
-    subCategory: (itemData.subCategory || '').trim(),
-    emoji: itemData.emoji || '📌',
-    image: itemData.image || null,
-    startDate: startDate,
-    hasEndDate: hasEndDate,
-    durationDays: durationDays,
-    endDate: endDate,
-    reminderType: reminderType,
-    reminderDate: reminderDate,
-    reminderTime: reminderTime,
-    warnDays: warnDays,
-    location: (itemData.location || '').trim(),
-    brand: (itemData.brand || '').trim(),
-    notes: (itemData.notes || '').trim(),
-    history: Array.isArray(itemData.history) ? itemData.history : [],
-    createdAt: itemData.createdAt || Date.now()
-  };
-
-  if (typeof items !== 'undefined' && Array.isArray(items)) {
-    items.unshift(newItem);
-  }
-
-  lastCreatedItem = newItem;
-  if (typeof window !== 'undefined' && window.setLastCreatedItem) {
-    window.setLastCreatedItem(newItem);
-  }
-
-  if (typeof saveItems === 'function') saveItems();
-  if (typeof scheduleItemNotification === 'function') {
-    scheduleItemNotification(newItem);
-  }
-  if (typeof renderApp === 'function') renderApp();
-
-  return newItem;
-}
-
-function updateItemByNlp(targetId, updates) {
-  if (!updates || typeof updates !== 'object') return null;
-  let target = null;
-  if (typeof items !== 'undefined' && Array.isArray(items)) {
-    target = items.find(i => i.id === targetId);
-  }
-  if (!target && lastCreatedItem) {
-    target = lastCreatedItem;
-  }
-  if (!target) return null;
-
-  if (updates.name) target.name = updates.name.trim();
-  if (updates.expiryDate) {
-    target.endDate = updates.expiryDate;
-    if (typeof diffDays === 'function' && target.startDate) {
-      target.durationDays = Math.max(1, diffDays(target.startDate, target.endDate));
-    }
-  }
-
-  if (typeof updates.remindDaysBefore === 'number') {
-    target.warnDays = updates.remindDaysBefore;
-    target.reminderType = updates.reminderType || ((target.warnDays >= 0) ? 'preset' : 'none');
-    target.reminderDate = updates.reminderDate || ((target.warnDays >= 0) ? formatDate(offsetDays(new Date(target.endDate + 'T00:00:00'), -target.warnDays)) : null);
-    target.reminderTime = updates.remindTime || target.reminderTime || '15:00';
-  }
-
-  if (updates.category) {
-    target.category = updates.category;
-  }
-  if (updates.subCategory !== undefined) {
-    target.subCategory = updates.subCategory;
-  }
-  if (updates.emoji) {
-    target.emoji = updates.emoji;
-  }
-
-  lastCreatedItem = target;
-  if (typeof window !== 'undefined' && window.setLastCreatedItem) {
-    window.setLastCreatedItem(target);
-  }
-
-  if (typeof saveItems === 'function') saveItems();
-  if (typeof scheduleItemNotification === 'function') {
-    scheduleItemNotification(target);
-  }
-  if (typeof renderApp === 'function') renderApp();
-
-  return target;
-}
-
-// ==========================================
 // 7.5 卡片效期狀態與進度條判定模組 (v1.8.7)
 // ==========================================
 /**
@@ -1841,14 +1727,15 @@ function renderProgressBar(progressBarFill, item) {
 
 function getItemStatusConfig(item, todayStr) {
   const theme = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'dark';
-  const isLight = theme === 'light';
   const inkGreen = typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--ink-green').trim() || '#355c50' : '#355c50';
   const dueAmber = typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--due-amber').trim() || '#a65b10' : '#a65b10';
-  const colors = theme === 'light'
-    ? { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen, text: '#7d756d' }
-    : theme === 'amoled'
-      ? { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen, text: '#b6c5bd' }
-      : { normal: inkGreen, warning: dueAmber, expired: '#ff453a', muted: inkGreen, text: 'rgba(255,255,255,.72)' };
+  const colors = {
+    normal: inkGreen,
+    warning: dueAmber,
+    expired: '#ff453a',
+    muted: inkGreen,
+    text: theme === 'light' ? '#7d756d' : theme === 'amoled' ? '#b6c5bd' : 'rgba(255,255,255,.72)'
+  };
   const expDateStr = item ? (item.expiryDate || item.endDate) : null;
   const isCountUp = !item || item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
 

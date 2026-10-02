@@ -27,7 +27,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css?v=1.9.22">
+  <link rel="stylesheet" href="style.css?v=1.10.0">
   <style>
 /* ==========================================================================
    期效管家 - 極簡 iOS 設計語彙 (Apple Dark Minimalist)
@@ -2207,7 +2207,7 @@ body {
   overflow: visible;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 /* Minimalist Progress Bar */
@@ -6827,6 +6827,7 @@ body.modal-open .view-panel {
 
 #rowScreenFit {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
@@ -7547,7 +7548,7 @@ input[type="datetime-local"]::-webkit-inner-spin-button {
 }
 
 </style>
-<script src="icons.js?v=1.9.32"></script>
+<script src="icons.js?v=1.10.0-ui39"></script>
 <style>
 /* Flat icon system: consistent silhouettes, no gradients, highlights or shadows. */
 .flat-item-icon {color:color-mix(in srgb,var(--icon-color) 70%,white);width:24px;height:24px;flex-shrink:0;vertical-align:middle;filter:none!important;}
@@ -7646,16 +7647,15 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 </style>
 <style>
 /* 1.9.13: consistent tracking pills and breathing room at both ends of the chip rail. */
-#trackingModeRow { flex-direction:column;align-items:stretch;gap:8px; }
-#modeSegment,#nlpTrackingModeSelector { display:flex;width:100%;box-sizing:border-box;gap:4px;padding:4px;border-radius:var(--radius-container); }
-#modeSegment button,#nlpTrackingModeSelector button { flex:1;min-width:0;white-space:nowrap;font-size:clamp(11px,3.2vw,14px);padding:12px 3px;border-radius:var(--radius-container); }
+#trackingModeRow,#itemDestinationRow { flex-direction:column;align-items:stretch;gap:8px; }
+#modeSegment,#itemDestinationPills,#nlpTrackingModeSelector { display:flex;width:100%;box-sizing:border-box;gap:4px;padding:4px;border-radius:var(--radius-container); }
+#modeSegment button,#itemDestinationPills button,#nlpTrackingModeSelector button { flex:1;min-width:0;white-space:nowrap;font-size:clamp(11px,3.2vw,14px);padding:12px 3px;border-radius:var(--radius-container); }
 #categoryChipRow { box-sizing:border-box;padding:10px 12px 14px;scroll-padding-inline:12px; }
 #categoryChipRow .category-chip { scroll-margin-inline:12px; }
 .pending-intro { display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 14px;padding:20px 4px 24px; }
 .pending-intro h2 { display:flex;align-items:center;gap:10px;font-size:1.5rem; }
 #pendingCount { display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 7px;border-radius:var(--radius-control);background:#6aa9ef22;color:var(--ios-blue,#398ce8);font-size:14px; }
 .pending-intro p { grid-column:1/-1;margin:0; }
-#btnAddPending { grid-column:2;grid-row:1;min-height:42px;padding:10px 14px;font-size:.85rem;white-space:nowrap; }
 #pendingItemsGrid { display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;align-items:start;padding-bottom:130px; }
 #pendingItemsGrid:empty { display:none; }
 /* Inactive panels preserve card layout; height is cleanly bounded via viewport without reflow thrashing */
@@ -7667,8 +7667,6 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 .pending-date-grid span { display:block;font-size:.76rem;color:var(--ios-text-secondary);margin-bottom:5px; }
 .pending-card-notes { margin-top:2px;padding-top:8px;border-top:1px solid var(--ios-border);color:var(--ios-text-secondary);font-size:.9rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere; }
 .pending-date-grid strong { font-size:.9rem;font-weight:600; }
-#pendingEmpty { margin:10px 0 130px;padding:48px 18px;text-align:center;border:1px dashed var(--ios-border);border-radius:var(--radius-container);background:var(--ios-surface);color:var(--ios-text-secondary); }
-#pendingEmpty::before { content:'＋';display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto 16px;border-radius:var(--radius-container);background:#6aa9ef14;color:var(--ios-blue,#398ce8);font-size:28px; }
 </style><style>
 .views-slider-viewport { overflow-anchor:none; }
 .view-panel { transition:none; }
@@ -7750,7 +7748,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
  .dock-tab:active,.btn-modal-close:active,#btnToggleInventorySearch:active { transform:none; }
 }
 </style>
-  <link rel="stylesheet" href="theme-overrides.css?v=1.9.22-ui23">
+  <link rel="stylesheet" href="theme-overrides.css?v=1.10.0-ui41">
   <style>
     [data-theme="light"] body {
       background-color: #f3efe6;
@@ -7946,8 +7944,36 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           </div>
 
           <div class="view-panel" id="viewPanelPending" style="visibility:hidden;">
-            <section class="pending-intro"><h2>待用物品 <span id="pendingCount">0</span></h2><p>暫存物品，啟用時移回主頁。</p><button type="button" class="btn-ios-primary" id="btnAddPending">＋ 新增待用物品</button></section>
-            <div class="items-compact-grid" id="pendingItemsGrid"></div><div id="pendingEmpty"><button type="button" id="btnAddPendingEmpty" aria-label="新增待用物品">＋</button><p>尚無待用物品</p></div>
+            <section class="pending-intro"><h2>待用物品 <span id="pendingCount">0</span></h2><p>暫存物品，啟用時移回主頁。</p></section>
+            <div class="items-compact-grid" id="pendingItemsGrid"></div><div class="ios-empty-view" id="pendingEmpty"><button type="button" class="empty-icon-circle" id="btnAddPendingEmpty" aria-label="新增待用物品">＋</button><h3>尚無待用物品</h3><p>點擊「＋」新增物品，啟用時開始計算。</p></div>
+          </div>
+          <div class="view-panel" id="viewPanelShared" style="visibility:hidden;">
+            <div class="shared-page-header">
+            <section class="journal-heading shared-heading">
+              <div class="journal-heading-copy"><h1>一起，把生活照顧好。</h1><p>和家人一起記下期限，照顧日常。</p></div>
+              <svg class="journal-botanical" viewBox="0 0 100 120" fill="none" aria-hidden="true">
+                <circle cx="56" cy="59" r="38" fill="currentColor" opacity=".07"/>
+                <g stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M39 106C42 84 59 55 64 17M49 79C35 76 26 64 28 53C43 56 50 67 49 79ZM57 59C72 57 82 45 80 34C66 37 57 46 57 59ZM62 37C50 33 43 22 46 12C59 17 64 27 62 37ZM42 94C57 94 68 87 70 76C55 76 46 83 42 94Z"/>
+                  <path d="M24 107H73" opacity=".35"/>
+                </g>
+              </svg>
+            </section>
+            <div class="home-overview-frame shared-overview-frame">
+              <section class="home-filter-buttons-row shared-filter-buttons-row" id="sharedSegmentedPillsBar" aria-label="共享物品期限篩選">
+                <button type="button" class="home-filter-btn active" data-shared-filter="all" id="sharedPillAll"><span class="filter-btn-text">全部</span><span class="filter-btn-badge" id="sharedBadgeAll"><span class="filter-btn-badge-value" id="sharedPillCountAll">0</span></span></button>
+                <button type="button" class="home-filter-btn" data-shared-filter="urgent" id="sharedPillUrgent"><span class="filter-btn-text">將到期</span><span class="filter-btn-badge urgent" id="sharedBadgeUrgent"><span class="filter-btn-badge-value" id="sharedPillCountUrgent">0</span></span></button>
+                <button type="button" class="home-filter-btn" data-shared-filter="expired" id="sharedPillExpired"><span class="filter-btn-text">已過期</span><span class="filter-btn-badge expired" id="sharedBadgeExpired"><span class="filter-btn-badge-value" id="sharedPillCountExpired">0</span></span></button>
+              </section>
+              <section class="status-notice-card" id="sharedStatusNoticeCard" aria-live="polite">
+                <div class="notice-top-row notice-left-group"><div class="notice-icon-wrapper" id="sharedNoticeIconWrapper" aria-hidden="true"></div><div class="notice-text-group"><h3 class="notice-title" id="sharedNoticeTitle">今天都在週期內</h3></div></div>
+                <div class="notice-right-actions"><button type="button" class="btn-clean-expired" id="sharedCleanExpired" title="將已過期共享物品移至最近刪除" aria-label="將已過期共享物品移至最近刪除" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>
+              </section>
+            </div>
+            <div class="home-sort-toolbar shared-sort-toolbar" id="sharedSortToolbar"><span class="sort-toolbar-count" id="sharedSortCount">共 0 項物品</span><button type="button" class="btn-sort-menu-trigger" id="sharedSort" aria-label="共享物品排序"><span class="sort-trigger-icon">⇅</span><span class="sort-trigger-label" id="sharedSortLabel">到期日 升冪</span><span class="sort-trigger-chevron">▾</span></button></div>
+            </div>
+            <div class="items-compact-grid" id="sharedItemsGrid"></div>
+            <div class="ios-empty-view" id="sharedEmpty"><button type="button" class="empty-icon-circle" id="btnAddSharedEmpty" aria-label="新增共享物品">＋</button><h3 id="sharedEmptyTitle">建立屬於你們的共享空間</h3><p id="sharedEmptyDescription">建立新空間，或使用邀請碼加入家人的空間。</p></div>
           </div>
         </div>
       </div>
@@ -7982,6 +8008,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
         <span class="dock-label">物品分類</span>
       </button>
       <button class="dock-tab" id="dockTabPending" data-tab="pending"><div class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18v13H3zM2 3h20v5H2zM9 12h6"/></svg></div><span class="dock-label">待用物品</span></button>
+      <button class="dock-tab" id="dockTabShared" data-tab="shared"><div class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-4-5.65"/></svg></div><span class="dock-label">共享空間</span></button>
     </nav>
   </div>
 
@@ -8011,6 +8038,20 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
         <form id="itemForm" autocomplete="off">
           <input type="hidden" id="itemId">
           <input type="hidden" id="itemSubCategory" value="">
+          <div id="itemSaveError" class="item-save-error" hidden role="alert">
+            <p>變更尚未儲存。請釋出儲存空間後重試，或放棄未儲存變更。</p>
+            <button type="button" id="btnDiscardItemChanges">放棄未儲存變更</button>
+          </div>
+
+          <div class="ios-form-row tracking-mode-form-row" id="itemDestinationRow">
+              <label class="ios-label" id="itemDestinationLabel">新增至</label>
+              <input type="hidden" id="itemDestination" value="local">
+              <div class="ios-mode-segment" id="itemDestinationPills" role="group" aria-labelledby="itemDestinationLabel">
+                <button type="button" class="mode-pill active" data-destination="local" aria-pressed="true">本機物品</button>
+                <button type="button" class="mode-pill" data-destination="pending" aria-pressed="false">待用物品</button>
+                <button type="button" class="mode-pill" data-destination="shared" aria-pressed="false">共享空間</button>
+              </div>
+          </div>
 
           <!-- Name (物品名稱為最上層) -->
           <div class="ios-form-row">
@@ -8025,10 +8066,11 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             <div class="avatar-preview-box" id="avatarPreviewBox">
               <span id="previewEmojiChar">🪑</span>
               <img id="previewImageEl" src="" alt="縮圖預覽" style="display:none;">
+              <input type="text" id="itemIconText" aria-label="圖片文字或表情符號" aria-describedby="itemIconTextHint" autocomplete="off" spellcheck="false">
             </div>
 
             <div class="avatar-controls">
-              <span class="avatar-hint" id="avatarHintText">輸入名稱自動配圖，或自行上傳相片</span>
+              <span class="avatar-hint" id="avatarHintText">自動配圖、上傳相片，或使用表情符號／文字</span>
               <div class="avatar-buttons-row">
                 <label for="itemImageInput" class="btn-ios-upload">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
@@ -8040,11 +8082,9 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
                   <span>✨ 智慧去背</span>
                 </button>
                 <button type="button" id="btnRemoveImage" class="btn-ios-remove-photo" style="display:none;">✕ 移除照片</button>
-                <div class="emoji-direct-input-wrap">
-                  <label for="itemEmoji" class="sr-only">圖標依分類與細項同步</label>
-                  <input type="text" id="itemEmoji" class="emoji-input-box" value="🪑" maxlength="4" title="手動圖標依分類與細項同步">
-                </div>
+                <input type="hidden" id="itemEmoji" value="🪑">
               </div>
+              <span class="avatar-hint" id="itemIconTextHint">點圖片輸入表情符號或最多兩個字</span>
             </div>
           </div>
 
@@ -8100,7 +8140,8 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             </div>
           </div>
 
-<!-- Tracking Mode Switcher (並列追蹤方式與待用物品) -->
+          <input type="checkbox" id="itemPending" hidden>
+<!-- Tracking Mode Switcher -->
           <div class="ios-form-row tracking-mode-form-row" id="trackingModeRow">
             <label class="ios-label">追蹤方式</label>
             <div class="ios-mode-segment" id="modeSegment">
@@ -8109,10 +8150,6 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
               </button>
               <button type="button" class="mode-pill" data-mode="elapsed" id="btnModeElapsed">
                 <span>謹記使用天數</span>
-              </button>
-              <button type="button" class="mode-pill" data-mode="pending" id="btnModePending">
-                <input type="checkbox" id="itemPending" style="position:absolute;opacity:0;pointer-events:none;">
-                <span>待用物品</span>
               </button>
             </div>
           </div>
@@ -8188,12 +8225,6 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Live Preview Banner for Expiry Mode -->
-          <div class="ios-preview-bar" id="previewExpiryBar">
-            <span>預計到期：<strong id="previewEndDateText">2026-09-09</strong></span>
-            <span class="preview-badge" id="previewDaysText">剩餘 180 天</span>
           </div>
 
           <!-- Helper Banner for Elapsed Only Mode -->
@@ -8320,6 +8351,10 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           </button>
 
           <!-- 4. Move to Pending Action (移入待用物品) -->
+          <button type="button" class="btn-sheet-action" id="btnSheetAddShared">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M6 9l6 6 6-6M4 17v4h16v-4"/></svg>
+            <span>加入共享空間</span>
+          </button>
           <button type="button" class="btn-sheet-action" id="btnSheetPending">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18v13H3zM2 3h20v5H2zM9 12h6"/></svg>
             <span>移入待用物品</span>
@@ -8450,12 +8485,19 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
         </div>
 
         <!-- Group 3: Backup & Restore -->
-        <div class="settings-group">
+        <div class="settings-group" id="groupBackupSafety">
+          <div class="settings-row">
+            <div class="settings-icon">🛡️</div>
+            <div class="settings-info">
+              <span class="settings-title">備份與資料安全</span>
+              <span class="settings-desc" id="lastBackupText">尚未備份，建議定期匯出</span>
+            </div>
+          </div>
           <button type="button" class="settings-row-btn" id="btnExportJson">
             <div class="settings-icon">📤</div>
             <div class="settings-info">
               <span class="settings-title">匯出資料備份</span>
-              <span class="settings-desc">將所有追蹤物品下載到本機儲存</span>
+              <span class="settings-desc">下載物品、照片、分類、排序與顯示設定</span>
             </div>
           </button>
 
@@ -8463,7 +8505,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             <div class="settings-icon">📥</div>
             <div class="settings-info">
               <span class="settings-title">匯入備份檔案</span>
-              <span class="settings-desc">從備份 JSON 恢復物品資料</span>
+              <span class="settings-desc">預覽備份 JSON，選擇合併或取代現有資料</span>
             </div>
             <input type="file" id="importJsonFile" accept=".json" style="display:none;">
           </label>
@@ -8479,7 +8521,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 
         <!-- Bottom Left Version Badge (設置裡的左下角版本號碼) -->
         <div class="settings-version-wrap">
-          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.9.22</span>
+          <span class="app-version-badge settings-version-badge" id="appVersionBadge">v1.10.0</span>
         </div>
 
         <!-- Extra bottom clearance to prevent bottom card frame from clipping text -->
@@ -8673,7 +8715,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           <label class="nlp-confirm-label">追蹤方式</label>
           <div class="nlp-action-mode-selector" id="nlpTrackingModeSelector">
             <button type="button" id="btnNlpTrackExpiry" class="nlp-mode-pill active">設定到期日</button>
-            <button type="button" id="btnNlpTrackElapsed" class="nlp-mode-pill">謹記使用天數</button><button type="button" class="nlp-mode-pill" id="btnNlpTrackPending">待用物品</button>
+            <button type="button" id="btnNlpTrackElapsed" class="nlp-mode-pill">謹記使用天數</button>
           </div>
         </div>
 
@@ -9981,7 +10023,10 @@ var CapacitorBridgeBundle = (() => {
 */
 
 </script>
-  <script src="sheet-gestures.js?v=1.9.22-ui22"></script>
+  <link rel="stylesheet" href="features-110.css?v=1.10.0-ui42">
+  <script src="lifecycle.js?v=1.10.0"></script>
+  <script src="features-110.js?v=1.10.0-ui42"></script>
+  <script src="sheet-gestures.js?v=1.10.0-ui22"></script>
   <script id="appLogicInline">
   const { bindSheetDrag, animateModalClose, containModalScroll } = window.SheetGestures || {
     bindSheetDrag() {},
@@ -10005,7 +10050,9 @@ var CapacitorBridgeBundle = (() => {
 
   // ==========================================
   // 1. 常數與預設範本
-  const APP_VERSION = '1.9.22';
+  const APP_VERSION = '1.10.0';
+  let features110 = null;
+  function autoSyncIfLoggedIn() { features110?.changed(); }
   const STORAGE_KEY = 'lifespan_tracker_ios_v10';
   const OLD_STORAGE_KEY_V9 = 'lifespan_tracker_ios_v9';
   const THEME_KEY = 'lifespan_tracker_theme';
@@ -10916,8 +10963,9 @@ var CapacitorBridgeBundle = (() => {
   let currentSortMode = localStorage.getItem(HOME_SORT_KEY) || 'expiry_asc';
   let searchQuery = '';
   let activeSheetItemId = null;
+  let activeSheetScope = 'local';
   let hasSwipedHorizontally = false;
-  function bindItemCardActivation(card, id) {
+  function bindItemCardActivation(card, id, activate = () => openActionSheet(id)) {
     let startX = 0, startY = 0, moved = false;
     card.addEventListener('pointerdown', event => {
       startX = event.clientX; startY = event.clientY; moved = !event.isPrimary;
@@ -10929,7 +10977,7 @@ var CapacitorBridgeBundle = (() => {
     card.addEventListener('click', event => {
       event.stopPropagation();
       if (moved) return;
-      openActionSheet(id);
+      activate();
     });
   }
   let lastActionSheetOpenedAt = 0;
@@ -10981,6 +11029,9 @@ var CapacitorBridgeBundle = (() => {
     const validModes = ['standard', 'plus', 'tablet', 'full'];
     const mode = validModes.includes(fitMode) ? fitMode : 'plus';
     document.documentElement.setAttribute('data-screen-fit', mode);
+    const compactList = mode === 'tablet';
+    document.body.classList.toggle('compact-list-mode', compactList);
+    document.getElementById('sharedItemsGrid')?.classList.toggle('shared-list-mode', compactList);
     const selectScreenFit = document.getElementById('selectScreenFit');
     const settingsScreenFitText = document.getElementById('settingsScreenFitText');
     if (selectScreenFit) selectScreenFit.value = mode;
@@ -10989,11 +11040,13 @@ var CapacitorBridgeBundle = (() => {
       localStorage.setItem(SCREEN_FIT_KEY, mode);
       showToast(`已套用視窗比例：${SCREEN_FIT_LABELS[mode]}`);
     }
+    window.expiry110?.refresh?.();
   }
 
   // 新增/編輯 Modal 暫存狀態
   let currentModalMode = 'expiry'; // 'expiry' 或 'elapsed'
   let currentUploadedImage = null; // base64 string or null
+  let itemImageOperation = 0;
   let isManualEmojiSet = false; // 是否手動指定過 emoji
 
   function isDeviceAlreadyInitialized() {
@@ -11113,6 +11166,7 @@ var CapacitorBridgeBundle = (() => {
   // 當使用者在 App 內新增或修改物品到期日、且設定中開啟通知時，自動向手機系統註冊排程通知
   async function scheduleItemNotification(item) {
     if (!item || !item.id) return;
+    window.ExpiryLifecycle.normalize(item);
     if (isPending(item)) { await cancelItemNotification(item.id); return; }
 
     const isEnabled = localStorage.getItem(PUSH_NOTIFICATION_KEY) === 'true';
@@ -11133,11 +11187,12 @@ var CapacitorBridgeBundle = (() => {
       reminderDate = getOffsetDateString(item.endDate, -warnDays);
     }
 
-    const targetDate = new Date(`${reminderDate}T${reminderTime}:00`);
+    const targetDate = window.ExpiryLifecycle.nextReminder(item);
+    if (!targetDate) { await cancelItemNotification(item.id); return; }
     const now = new Date();
 
     // 若提醒時間已過，先取消可能存在的舊排程，不重新排程
-    if (targetDate.getTime() <= now.getTime()) {
+    if (!Number.isFinite(targetDate.getTime()) || targetDate.getTime() <= now.getTime()) {
       await cancelItemNotification(item.id);
       return;
     }
@@ -11371,10 +11426,14 @@ var CapacitorBridgeBundle = (() => {
 
   function saveItems() {
     try {
+      items.forEach(item => window.ExpiryLifecycle.normalize(item));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      document.dispatchEvent(new Event('expiry-data-change'));
+      return true;
     } catch (e) {
       console.error('Save failed:', e);
       showToast('儲存失敗，可能超過儲存空間上限');
+      return false;
     }
   }
 
@@ -11408,6 +11467,7 @@ var CapacitorBridgeBundle = (() => {
   function saveRecentlyDeleted(notifyBadge = true) {
     try {
       localStorage.setItem(RECENTLY_DELETED_KEY, JSON.stringify(recentlyDeletedItems));
+      document.dispatchEvent(new Event('expiry-data-change'));
     } catch (e) {
       console.error('Failed to save recently deleted items:', e);
     }
@@ -11548,7 +11608,7 @@ var CapacitorBridgeBundle = (() => {
       }
 
       return `
-        <div class="trash-item-card" data-id="${item.id}">
+        <div class="trash-item-card" data-id="${escapeHtml(item.id)}">
           <div class="trash-item-left">
             <div class="trash-item-emoji">${mediaHtml}</div>
             <div class="trash-item-info">
@@ -11560,8 +11620,8 @@ var CapacitorBridgeBundle = (() => {
             </div>
           </div>
           <div class="trash-item-actions">
-            <button type="button" class="btn-restore-item" data-id="${item.id}" title="復原此項目">復原</button>
-            <button type="button" class="btn-delete-perm" data-id="${item.id}" title="立即永久刪除">永久刪除</button>
+            <button type="button" class="btn-restore-item" data-id="${escapeHtml(item.id)}" title="復原此項目">復原</button>
+            <button type="button" class="btn-delete-perm" data-id="${escapeHtml(item.id)}" title="立即永久刪除">永久刪除</button>
           </div>
         </div>
       `;
@@ -11580,6 +11640,7 @@ var CapacitorBridgeBundle = (() => {
   // ==========================================
   function closeModalWithAnimation(modalEl, onClosed) {
     animateModalClose(modalEl, () => {
+      if (modalEl === document.getElementById('itemModal')) { itemEditorScope = 'local'; modalEl.dataset.scope = 'local'; }
       if (typeof onClosed === 'function') onClosed();
       unlockBodyScroll();
     });
@@ -11616,6 +11677,7 @@ var CapacitorBridgeBundle = (() => {
   function saveArchivedItems(notifyBadge = true) {
     try {
       localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedItems));
+      document.dispatchEvent(new Event('expiry-data-change'));
     } catch (e) {
       console.error('Failed to save archived items:', e);
     }
@@ -11671,6 +11733,8 @@ var CapacitorBridgeBundle = (() => {
     const [archiveEntry] = archivedItems.splice(idx, 1);
     const restoredItem = { ...archiveEntry };
     delete restoredItem.archivedAt;
+    delete restoredItem.completionStatus;
+    delete restoredItem.completedAt;
 
     items.unshift(restoredItem);
     saveItems();
@@ -11692,6 +11756,8 @@ var CapacitorBridgeBundle = (() => {
     archivedItems.forEach(r => {
       const restored = { ...r };
       delete restored.archivedAt;
+      delete restored.completionStatus;
+      delete restored.completedAt;
       if (!currentIdSet.has(restored.id)) {
         items.unshift(restored);
         currentIdSet.add(restored.id);
@@ -11737,19 +11803,20 @@ var CapacitorBridgeBundle = (() => {
       const archiveDateStr = item.archivedAt ? new Date(item.archivedAt).toLocaleDateString() : '';
 
       return `
-        <div class="trash-item-card" data-id="${item.id}">
+        <div class="trash-item-card" data-id="${escapeHtml(item.id)}">
           <div class="trash-item-left">
             <div class="trash-item-emoji">${mediaHtml}</div>
             <div class="trash-item-info">
               <span class="trash-item-title">${escapeHtml(item.name)}</span>
               <div class="trash-item-meta">
                 <span>${escapeHtml(catLabel)}</span>
+                ${item.completionStatus ? `<span>• ${item.completionStatus==='used'?'已用完':'已丟棄'}</span>` : ''}
                 ${archiveDateStr ? `<span>• 封存於 ${archiveDateStr}</span>` : ''}
               </div>
             </div>
           </div>
           <div class="trash-item-actions">
-            <button type="button" class="btn-unarchive" data-action="unarchive" data-id="${item.id}" title="解除封存並移回清單">
+            <button type="button" class="btn-unarchive" data-action="unarchive" data-id="${escapeHtml(item.id)}" title="解除封存並移回清單">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
               <span>解除封存</span>
             </button>
@@ -11935,33 +12002,21 @@ var CapacitorBridgeBundle = (() => {
     if (prefix === 'item' && box) box.style.display = enabled ? 'block' : 'none';
     if (prefix === 'nlp' && box) box.style.display = enabled ? 'block' : 'none';
     if(prefix === 'nlp') {
-      ['btnNlpTrackExpiry','btnNlpTrackElapsed','btnNlpTrackPending'].forEach((id,index)=>{
-        const active=enabled ? index===2 : index===(currentNlpTrackingMode==='expiry'?0:1);
+      ['btnNlpTrackExpiry','btnNlpTrackElapsed'].forEach((id,index)=>{
+        const active=index===(currentNlpTrackingMode==='expiry'?0:1);
         document.getElementById(id).classList.toggle('active',active);
         document.getElementById(id).setAttribute('aria-pressed',String(active));
       });
     }
     document.getElementById(prefix === 'item' ? 'itemForm' : 'nlpConfirmModal').classList.toggle('pending-enabled',enabled);
     if (prefix === 'item') {
-      const btnModePending = document.getElementById('btnModePending');
       const btnModeExpiry = document.getElementById('btnModeExpiry');
       const btnModeElapsed = document.getElementById('btnModeElapsed');
-      if (btnModePending && btnModeExpiry && btnModeElapsed) {
-        if (enabled) {
-          btnModePending.classList.add('active');
-          btnModeExpiry.classList.remove('active');
-          btnModeElapsed.classList.remove('active');
-        } else {
-          btnModePending.classList.remove('active');
-          if (currentModalMode === 'elapsed') {
-            btnModeElapsed.classList.add('active');
-            btnModeExpiry.classList.remove('active');
-          } else {
-            btnModeExpiry.classList.add('active');
-            btnModeElapsed.classList.remove('active');
-          }
-        }
+      if (btnModeExpiry && btnModeElapsed) {
+        btnModeExpiry.classList.toggle('active',currentModalMode==='expiry');
+        btnModeElapsed.classList.toggle('active',currentModalMode==='elapsed');
       }
+      syncItemDestination();
     }
   }
   function resetPendingForm(prefix,item,enabled) {
@@ -12026,6 +12081,7 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function renderApp() {
+    items.forEach(item => window.ExpiryLifecycle.normalize(item));
     renderPendingItems();
     updateDockSelection(pendingNavTab || currentNavTab);
     if(currentNavTab==='pending') {
@@ -12035,6 +12091,7 @@ var CapacitorBridgeBundle = (() => {
     updateNoticeCardAndPillCounts();
     renderCategoryChips();
     renderCards();
+    features110?.refresh();
   }
 
   function updateNoticeCardAndPillCounts() {
@@ -12256,41 +12313,41 @@ var CapacitorBridgeBundle = (() => {
     return filtered;
   }
 
-  function sortItemsList(arr) {
+  function sortItemsList(arr, mode = currentSortMode, order = getCustomItemOrder()) {
     return [...arr].sort((a, b) => {
       const ma = calculateMetrics(a);
       const mb = calculateMetrics(b);
 
-      if (currentSortMode === 'custom') {
-        const order = getCustomItemOrder();
+      if (mode === 'custom') {
         const idxA = order.indexOf(a.id);
         const idxB = order.indexOf(b.id);
         const posA = idxA === -1 ? 9999 : idxA;
         const posB = idxB === -1 ? 9999 : idxB;
         return posA - posB;
-      } else if (currentSortMode === 'expiry_asc') {
+      } else if (mode === 'expiry_asc') {
         if (ma.hasEndDate && !mb.hasEndDate) return -1;
         if (!ma.hasEndDate && mb.hasEndDate) return 1;
         if (!ma.hasEndDate && !mb.hasEndDate) {
           return (a.createdAt || 0) - (b.createdAt || 0);
         }
         return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
-      } else if (currentSortMode === 'expiry_desc') {
+      } else if (mode === 'expiry_desc') {
         if (ma.hasEndDate && !mb.hasEndDate) return -1;
         if (!ma.hasEndDate && mb.hasEndDate) return 1;
         if (!ma.hasEndDate && !mb.hasEndDate) {
           return (b.createdAt || 0) - (a.createdAt || 0);
         }
         return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
-      } else if (currentSortMode === 'created_desc') {
+      } else if (mode === 'created_desc') {
         const ta = a.createdAt || (a.startDate ? new Date(a.startDate).getTime() : 0);
         const tb = b.createdAt || (b.startDate ? new Date(b.startDate).getTime() : 0);
         return tb - ta;
-      } else if (currentSortMode === 'created_asc') {
+      } else if (mode === 'created_asc') {
         const ta = a.createdAt || (a.startDate ? new Date(a.startDate).getTime() : 0);
         const tb = b.createdAt || (b.startDate ? new Date(b.startDate).getTime() : 0);
         return ta - tb;
       }
+      if (mode === 'name_asc') return a.name.localeCompare(b.name, 'zh-TW');
       return 0;
     });
   }
@@ -12387,7 +12444,7 @@ var CapacitorBridgeBundle = (() => {
   window.renderCardProgressBar = renderProgressBar;
   window.applyProgressBarStatus = renderProgressBar;
 
-  function createCardElement(item, isInventory = false) {
+  function createCardElement(item, isInventory = false, presentation = {}) {
     if (!item) return null;
     try {
       const itemCategory = item.category || 'other';
@@ -12398,7 +12455,9 @@ var CapacitorBridgeBundle = (() => {
       card.dataset.id = item.id || '';
 
     // 縮圖：優先顯示相片，無相片則調用現代向量 SVG 圖標 (支援自訂分類圖示與 emoji)
-    const iconContent = renderItemIconHtml(item) || (typeof getCategoryIcon === 'function' ? getCategoryIcon(item.category) : '');
+    const iconContent = presentation.iconHtml || renderItemIconHtml(item) || (typeof getCategoryIcon === 'function' ? getCategoryIcon(item.category) : '');
+    const categoryLabel = presentation.categoryLabel || getCategoryShortLabel(item.category);
+    const activate = presentation.activate || (() => openActionSheet(item.id));
 
     const expDateStr = item.expiryDate || item.endDate;
     const isCountUp = item.trackingType === 'count_up' || !expDateStr || item.hasEndDate === false;
@@ -12466,7 +12525,7 @@ var CapacitorBridgeBundle = (() => {
           <div class="card-icon-box">
             ${iconContent}
           </div>
-          <span class="card-category-tag">${escapeHtml(item.subCategory ? `${getCategoryShortLabel(item.category)} · ${item.subCategory}` : getCategoryShortLabel(item.category))}</span>
+          <span class="card-category-tag">${escapeHtml(item.subCategory ? `${categoryLabel} · ${item.subCategory}` : categoryLabel)}</span>
         </div>
 
         <!-- Item Title -->
@@ -12478,6 +12537,13 @@ var CapacitorBridgeBundle = (() => {
           <span class="card-metric-value"><span class="metric-highlight-number">${m.elapsedDays}</span><span class="metric-unit">天</span></span>
         </div>
 
+        <!-- Card Note Preview on Home Page (主頁專屬備註標籤) -->
+        ${(!isInventory && item.showNotesHome && item.notes && item.notes.trim()) ? `
+          <div class="card-note-preview" title="${escapeHtml(item.notes)}">
+            <span class="card-note-text">${escapeHtml(item.notes)}</span>
+          </div>
+        ` : ''}
+
         <!-- Sub Metric: 還有 1,085 天 或 持續使用中 -->
         <div class="card-status-progress">
           <div class="card-metric-sub ${subMetricClass}">${subMetricText}</div>
@@ -12486,12 +12552,6 @@ var CapacitorBridgeBundle = (() => {
           </div>
         </div>
 
-        <!-- Card Note Preview on Home Page (主頁專屬備註標籤) -->
-        ${(!isInventory && item.showNotesHome && item.notes && item.notes.trim()) ? `
-          <div class="card-note-preview" title="${escapeHtml(item.notes)}">
-            <span class="card-note-text">${escapeHtml(item.notes)}</span>
-          </div>
-        ` : ''}
       </div>
 
     `;
@@ -12519,18 +12579,18 @@ var CapacitorBridgeBundle = (() => {
     card.addEventListener('keydown', function (event) {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        openActionSheet(item.id);
+        activate();
       }
     });
 
-    bindItemCardActivation(card, item.id);
+    bindItemCardActivation(card, item.id, activate);
     return card;
     } catch (createErr) {
       console.error('[createCardElement] Error rendering card for item:', item, createErr);
       const fallbackDiv = document.createElement('div');
       fallbackDiv.className = 'ios-item-card';
       fallbackDiv.innerHTML = `<div class="card-item-title">${escapeHtml((item && item.name) || '物品')}</div>`;
-      fallbackDiv.onclick = () => { if (item && item.id) openActionSheet(item.id); };
+      fallbackDiv.onclick = () => { if (item && item.id) (presentation.activate || (() => openActionSheet(item.id)))(); };
       return fallbackDiv;
     }
   }
@@ -12558,7 +12618,7 @@ var CapacitorBridgeBundle = (() => {
     todayList = sortItemsList(todayList);
 
     // 同步頂部選單按鈕（全部 / 將到期 / 已過期） active 狀態
-    document.querySelectorAll('.home-filter-btn').forEach(btn => {
+    document.querySelectorAll('#segmentedPillsBar .home-filter-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.filter === currentPillFilter);
     });
 
@@ -12740,7 +12800,7 @@ var CapacitorBridgeBundle = (() => {
 
   function updateSheetResetButtonText() {
     if (!activeSheetItemId) return;
-    const item = items.find(it => it.id === activeSheetItemId);
+    const item = (activeSheetScope === 'shared' ? features110.sharedSnapshot().items : items).find(it => it.id === activeSheetItemId);
     if (!item) return;
 
     if (isResetConfirming) {
@@ -12760,13 +12820,15 @@ var CapacitorBridgeBundle = (() => {
     }
   }
 
-  function openActionSheet(id) {
+  function openActionSheet(id, scope = 'local') {
     // The item tap commits the incoming page before its menu locks native scrolling.
     if (navigationInProgress) finishNavigation(pendingNavTab || navTabs[
       Math.max(0, Math.min(navTabs.length - 1, Math.round(viewsSliderViewport.scrollLeft / Math.max(1, viewsSliderViewport.clientWidth))))
     ]);
-    const item = items.find(it => it.id === id);
+    const item = (scope === 'shared' ? features110.sharedSnapshot().items : items).find(it => it.id === id);
     if (!item) return;
+    activeSheetScope = scope;
+    actionSheet.dataset.scope = scope;
 
     lastActionSheetOpenedAt = Date.now();
     activeSheetItemId = id;
@@ -12775,13 +12837,14 @@ var CapacitorBridgeBundle = (() => {
     const m = calculateMetrics(item);
 
     // 縮圖：優先顯示相片，無相片則調用現代向量 SVG 圖標 (支援自訂分類圖示與 emoji)
-    sheetEmoji.innerHTML = renderItemIconHtml(item, 'sheet-thumb-img');
+    sheetEmoji.innerHTML = scope === 'shared' ? features110.sharedIcon(item, 'sheet-thumb-img') : renderItemIconHtml(item, 'sheet-thumb-img');
 
     sheetTitle.textContent = item.name;
 
     // 標籤與指標
     const isPendingItem = isPending(item);
-    const catLabel = item.subCategory ? `${getCategoryShortLabel(item.category)} · ${item.subCategory}` : getCategoryShortLabel(item.category);
+    const categoryLabel = scope === 'shared' ? features110.sharedCategories()[item.category]?.label || '其他' : getCategoryShortLabel(item.category);
+    const catLabel = item.subCategory ? `${categoryLabel} · ${item.subCategory}` : categoryLabel;
     if (isPendingItem) {
       sheetTag.textContent = `${catLabel} • 待用物品`;
       sheetElapsedDays.innerHTML = `- <small>待啟用</small>`;
@@ -12908,7 +12971,7 @@ var CapacitorBridgeBundle = (() => {
         btnToggleHistoryCollapse.setAttribute('aria-expanded', 'false');
       }
       sheetHistoryList.innerHTML = item.history.slice().reverse().map((h, i) => `
-        <div>• 第 ${item.history.length - i} 次換新：${h.resetDate} • 使用 ${h.daysUsed} 天 - ${escapeHtml(h.note || '已更換')}</div>
+        <div>• 第 ${item.history.length - i} 次換新：${escapeHtml(h.resetDate)} • 使用 ${escapeHtml(String(h.daysUsed))} 天 - ${escapeHtml(h.note || '已更換')}</div>
       `).join('');
     } else {
       sheetHistoryBlock.style.display = 'none';
@@ -12936,7 +12999,7 @@ var CapacitorBridgeBundle = (() => {
 
     const btnSheetRemoveGroup = document.getElementById('btnSheetRemoveGroup');
     if (btnSheetRemoveGroup) {
-      if (!isPendingItem && currentNavTab === 'inventory') {
+      if (scope === 'local' && !isPendingItem && currentNavTab === 'inventory') {
         btnSheetRemoveGroup.style.display = 'flex';
         btnSheetRemoveGroup.onclick = function () {
           closeActionSheet();
@@ -12947,6 +13010,7 @@ var CapacitorBridgeBundle = (() => {
       }
     }
 
+    features110?.sheet(item);
     actionSheet.style.display = 'flex';
     lockBodyScroll();
   }
@@ -13015,6 +13079,12 @@ var CapacitorBridgeBundle = (() => {
     if (item.hasEndDate !== false) {
       item.endDate = getOffsetDateString(today, duration);
     }
+    item.packageEndDate = item.endDate;
+    item.openedDate = item.openedShelfDays ? today : null;
+    item.dateSource = 'manual';
+    item.snoozedUntil = null;
+    item.updatedAt = Date.now();
+    scheduleItemNotification(item);
 
     saveItems();
     closeActionSheet();
@@ -13058,6 +13128,10 @@ var CapacitorBridgeBundle = (() => {
       }
     }
 
+    cloned.packageEndDate = cloned.endDate;
+    cloned.openedDate = null;
+    cloned.snoozedUntil = null;
+    cloned.dateSource = 'manual';
     items.unshift(cloned);
     lastCreatedItem = cloned;
     if (typeof scheduleItemNotification === 'function') {
@@ -13183,6 +13257,8 @@ var CapacitorBridgeBundle = (() => {
   // 6. 新增與編輯物品 Modal (含智慧配圖、相片上傳、無到期日切換)
   // ==========================================
   const itemModal = document.getElementById('itemModal');
+  let itemEditorScope = 'local';
+  function editorCategories() { return itemEditorScope === 'shared' ? features110.sharedCategories() : getAllCategories(); }
   const modalTitle = document.getElementById('modalTitle');
   const btnCloseModal = document.getElementById('btnCloseModal');
   const itemForm = document.getElementById('itemForm');
@@ -13190,6 +13266,7 @@ var CapacitorBridgeBundle = (() => {
   const itemNameInput = document.getElementById('itemNameInput') || document.getElementById('itemName');
   const itemName = itemNameInput;
   const itemEmojiInput = document.getElementById('itemEmoji');
+  const itemIconTextInput = document.getElementById('itemIconText');
   const itemStartDateInput = document.getElementById('itemStartDate');
   const itemEndDateInput = document.getElementById('itemEndDate');
   const fieldEndDateWrap = document.getElementById('fieldEndDateWrap');
@@ -13208,15 +13285,12 @@ var CapacitorBridgeBundle = (() => {
   const customReminderDateTimeWrap = document.getElementById('customReminderDateTimeWrap');
   const itemReminderCustomDate = document.getElementById('itemReminderCustomDate');
   const itemReminderCustomTime = document.getElementById('itemReminderCustomTime');
-  const previewExpiryBar = document.getElementById('previewExpiryBar');
   const previewElapsedBar = document.getElementById('previewElapsedBar');
   const itemLocationInput = document.getElementById('itemLocation');
   const itemBrandInput = document.getElementById('itemBrand');
   const itemNotesInput = document.getElementById('itemNotes');
   const itemShowNotesHome = document.getElementById('itemShowNotesHome');
   const showNotesHomeStatus = document.getElementById('showNotesHomeStatus');
-  const previewEndDateText = document.getElementById('previewEndDateText');
-  const previewDaysText = document.getElementById('previewDaysText');
   const itemCategorySelect = document.getElementById('itemCategorySelect');
   const itemSubCategorySelect = document.getElementById('itemSubCategorySelect');
   const customSubCatRow = document.getElementById('customSubCatRow');
@@ -13249,7 +13323,6 @@ var CapacitorBridgeBundle = (() => {
         updateReminderToggleState(true);
         updateReminderSectionVisibility();
       }
-      previewExpiryBar.style.display = 'flex';
       previewElapsedBar.style.display = 'none';
     } else {
       btnModeExpiry.classList.remove('active');
@@ -13259,7 +13332,6 @@ var CapacitorBridgeBundle = (() => {
       if (fieldReminderWrap) fieldReminderWrap.style.display = 'none';
       if (presetReminderTimeWrap) presetReminderTimeWrap.style.display = 'none';
       if (customReminderDateTimeWrap) customReminderDateTimeWrap.style.display = 'none';
-      previewExpiryBar.style.display = 'none';
       previewElapsedBar.style.display = 'flex';
     }
     updateModalPreview();
@@ -13267,26 +13339,13 @@ var CapacitorBridgeBundle = (() => {
   }
 
   btnModeExpiry.addEventListener('click', () => {
-    const itemPending = document.getElementById('itemPending');
-    if (itemPending) itemPending.checked = false;
-    syncPendingForm('item');
     setModalMode('expiry');
+    syncPendingForm('item');
   });
   btnModeElapsed.addEventListener('click', () => {
-    const itemPending = document.getElementById('itemPending');
-    if (itemPending) itemPending.checked = false;
-    syncPendingForm('item');
     setModalMode('elapsed');
+    syncPendingForm('item');
   });
-  const btnModePending = document.getElementById('btnModePending');
-  if (btnModePending) {
-    btnModePending.addEventListener('click', () => {
-      const itemPending = document.getElementById('itemPending');
-      if (itemPending) itemPending.checked = true;
-      syncPendingForm('item');
-      if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
-    });
-  }
 
   // 更新 Avatar 預覽
   function updateAvatarPreview() {
@@ -13301,17 +13360,18 @@ var CapacitorBridgeBundle = (() => {
       previewImageEl.style.display = 'none';
       previewEmojiChar.style.display = 'flex';
       const curCat = (itemCategorySelect && itemCategorySelect.value) ? itemCategorySelect.value : 'other';
-      const lookupKey = itemSubCategorySelect?.value || itemEmojiInput?.value || curCat;
-      const catSvg = (typeof getCategoryIcon === 'function') ? getSubCategoryIcon(curCat, itemSubCategorySelect?.value || '') : '';
+      const iconText = normalizeItemIconText(itemIconTextInput.value);
+      const catSvg = iconText ? getItemIcon({iconText,category:curCat}) : itemEditorScope === 'shared' ? features110.sharedIcon({category:curCat,subCategory:itemSubCategorySelect?.value || ''}) : (typeof getCategoryIcon === 'function') ? getSubCategoryIcon(curCat, itemSubCategorySelect?.value || '') : '';
       if (catSvg) {
         previewEmojiChar.innerHTML = catSvg;
       } else {
         previewEmojiChar.textContent = itemEmojiInput.value || '📦';
       }
-      btnRemoveImage.style.display = 'none';
+      btnRemoveImage.style.display = iconText ? 'inline-block' : 'none';
       if (btnOpenBgRemoval) btnOpenBgRemoval.style.display = 'none';
-      avatarHintText.textContent = '輸入名稱自動配圖，或自行上傳相片';
+      avatarHintText.textContent = iconText ? '已使用自訂表情符號／文字圖片' : '自動配圖、上傳相片，或使用表情符號／文字';
     }
+    btnRemoveImage.textContent = currentUploadedImage ? '移除照片' : '使用自動圖示';
   }
 
   // 圖片壓縮為 256x256 輕量化 DataURL
@@ -13351,8 +13411,11 @@ var CapacitorBridgeBundle = (() => {
   itemImageInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
+    const operation = ++itemImageOperation;
     compressImageFile(file, function (dataUrl) {
+      if (operation !== itemImageOperation) return;
       currentUploadedImage = dataUrl;
+      itemIconTextInput.value = '';
       updateAvatarPreview();
       if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
       showToast('相片已成功加入！可使用「✨ 智慧去背」去除背景');
@@ -13360,20 +13423,30 @@ var CapacitorBridgeBundle = (() => {
     itemImageInput.value = '';
   });
 
-  // 移除圖片，切換回 Emoji
+  // 移除自訂圖片，切換回自動圖示。
   btnRemoveImage.addEventListener('click', function () {
+    itemImageOperation++;
     currentUploadedImage = null;
+    itemIconTextInput.value = '';
+    isManualEmojiSet = false;
     updateAvatarPreview();
     if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
-    showToast('已移除自訂相片，切換為圖標');
+    showToast('已切換為自動圖示');
   });
 
-  // 手動圖標依分類與細項同步
-  itemEmojiInput.addEventListener('input', function () {
-    isManualEmojiSet = true;
+  function applyItemIconText() {
+    itemImageOperation++;
+    itemIconTextInput.value = normalizeItemIconText(itemIconTextInput.value);
+    isManualEmojiSet = !!itemIconTextInput.value;
+    if (isManualEmojiSet) currentUploadedImage = null;
     updateAvatarPreview();
-    if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
+    autoSaveCurrentItem();
+  }
+  itemIconTextInput.addEventListener('input', event => {
+    if (!event.isComposing) applyItemIconText();
   });
+  itemIconTextInput.addEventListener('compositionend', applyItemIconText);
+  itemIconTextInput.addEventListener('focus', () => { itemImageOperation++; });
 
   // ==========================================
   // 6.1 智慧相片去背工坊 (AI & Custom Background Removal Studio)
@@ -13717,6 +13790,7 @@ var CapacitorBridgeBundle = (() => {
     btnApplyBgRemoval.addEventListener('click', function () {
       if (!bgRemovalCanvas) return;
       const transparentPngUrl = bgRemovalCanvas.toDataURL('image/png');
+      itemImageOperation++;
       currentUploadedImage = transparentPngUrl;
       updateAvatarPreview();
       if (typeof autoSaveCurrentItem === 'function') autoSaveCurrentItem();
@@ -13759,7 +13833,7 @@ var CapacitorBridgeBundle = (() => {
     });
   }
   function populateSubCategoryDropdown(category, activeSubCatName = '') {
-    const allCats = getAllCategories();
+    const allCats = editorCategories();
     const catData = allCats[category];
     if (!itemSubCategorySelect || !catData) return;
 
@@ -13823,7 +13897,7 @@ var CapacitorBridgeBundle = (() => {
   // 主分類下拉選單動態渲染 (包含自訂分類與自訂入口)
   function populateCategorySelect(selectedCat = '') {
     if (!itemCategorySelect) return;
-    const allCats = getAllCategories();
+    const allCats = editorCategories();
     const prevVal = selectedCat || itemCategorySelect.value || Object.keys(allCats)[0] || 'vehicle';
     itemCategorySelect.innerHTML = '';
 
@@ -13846,8 +13920,8 @@ var CapacitorBridgeBundle = (() => {
   if (itemCategorySelect) {
     itemCategorySelect.addEventListener('change', function () {
       if (this.value === '__manage_custom__') {
-        openCustomCategoryModal();
-        const allCats = getAllCategories();
+        if (itemEditorScope === 'shared') features110.openSharedCategories(); else openCustomCategoryModal();
+        const allCats = editorCategories();
         this.value = Object.keys(allCats)[0] || 'vehicle';
         populateSubCategoryDropdown(this.value);
         return;
@@ -13891,10 +13965,10 @@ var CapacitorBridgeBundle = (() => {
           if (opt.dataset.brand) itemBrandInput.value = opt.dataset.brand;
           if (opt.dataset.location) itemLocationInput.value = opt.dataset.location;
           if (opt.dataset.notes) itemNotesInput.value = opt.dataset.notes;
-          if (opt.dataset.image) currentUploadedImage = opt.dataset.image;
+          if (opt.dataset.image && !itemIconTextInput.value) currentUploadedImage = opt.dataset.image;
 
           // 若該細項有建議提醒天數，自動帶入
-          const catItems = getAllCategories()[itemCategorySelect.value]?.items;
+          const catItems = editorCategories()[itemCategorySelect.value]?.items;
           const subItemDef = catItems ? catItems.find(it => it.subCat === opt.value) : null;
           if (subItemDef && subItemDef.warnDays !== undefined) {
             setReminderSelectValue(subItemDef.warnDays);
@@ -14008,13 +14082,55 @@ var CapacitorBridgeBundle = (() => {
   }
 
   let hydratingItemForm = false;
-  function openAddModal() {
+  const itemDestination = document.getElementById('itemDestination');
+  function syncItemDestination() {
+    itemDestination.value = itemEditorScope === 'shared' ? 'shared' : document.getElementById('itemPending').checked ? 'pending' : 'local';
+    document.getElementById('itemDestinationRow').hidden = !!itemIdInput.value;
+    document.querySelectorAll('[data-destination]').forEach(button => {
+      const active = button.dataset.destination === itemDestination.value;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+  }
+  document.getElementById('itemDestinationPills').addEventListener('click', event => {
+    const button = event.target.closest('[data-destination]');
+    if (!button) return;
+    if (itemIdInput.value) { syncItemDestination(); return; }
+    const destination = button.dataset.destination;
+    const nextScope = destination === 'shared' ? 'shared' : 'local';
+    itemImageOperation++;
+    if (nextScope === 'shared' && !features110.prepareSharedEditor()) {
+      syncItemDestination();
+      return;
+    }
+    const category = itemCategorySelect.value;
+    const subCategory = itemSubCategoryInput.value;
+    itemEditorScope = nextScope;
+    itemModal.dataset.scope = nextScope;
+    hydratingItemForm = true;
+    const pending = document.getElementById('itemPending');
+    pending.checked = destination === 'pending';
+    syncPendingForm('item');
+    populateCategorySelect(editorCategories()[category] ? category : 'warranty');
+    populateSubCategoryDropdown(itemCategorySelect.value, subCategory);
+    updateAvatarPreview();
+    window.syncIconPickers?.();
+    hydratingItemForm = false;
+    syncItemDestination();
+  });
+  function openAddModal(options = {}) {
+    itemImageOperation++;
+    document.getElementById('itemSaveError').hidden = true;
+    if ((pendingNavTab || currentNavTab) === 'shared' && features110 && options.scope !== 'shared') { features110.openSharedItem(); return; }
+    itemEditorScope = options.scope === 'shared' ? 'shared' : 'local';
+    itemModal.dataset.scope = itemEditorScope;
     hydratingItemForm = true;
     modalTitle.textContent = '新增物品';
     document.getElementById('btnSaveItem').style.display = 'block';
     document.getElementById('autoSaveBadge').style.display = 'none';
     itemForm.reset();
     itemIdInput.value = '';
+    syncItemDestination();
     itemSubCategoryInput.value = '';
 
     const today = getTodayString();
@@ -14032,6 +14148,7 @@ var CapacitorBridgeBundle = (() => {
     updateReminderSectionVisibility();
 
     itemEmojiInput.value = '🪑';
+    itemIconTextInput.value = '';
     currentUploadedImage = null;
     isManualEmojiSet = false;
 
@@ -14050,24 +14167,31 @@ var CapacitorBridgeBundle = (() => {
     const modalDeleteRow = document.getElementById('modalDeleteRow');
     if (modalDeleteRow) modalDeleteRow.style.display = 'none';
     resetPendingForm('item',null,currentNavTab === 'pending');
+    features110?.fillForm('item',{endDate:currentNavTab==='pending'?null:itemEndDateInput.value,hasEndDate:currentNavTab!=='pending',dateSource:'manual'});
     hydratingItemForm = false;
     itemModal.style.display = 'flex';
     lockBodyScroll();
     if (itemNameInput) setTimeout(() => itemNameInput.focus(), 120);
   }
 
-  function openEditModal(id) {
-    const item = items.find(it => it.id === id);
+  function openEditModal(id, scope = 'local', draft = null) {
+    itemImageOperation++;
+    document.getElementById('itemSaveError').hidden = true;
+    const item = draft || (scope === 'shared' ? features110.sharedSnapshot().items : items).find(it => it.id === id);
     if (!item) return;
+    itemEditorScope = scope;
+    itemModal.dataset.scope = scope;
     hydratingItemForm = true;
 
-    modalTitle.textContent = '編輯物品';
-    document.getElementById('btnSaveItem').style.display = 'none';
-    document.getElementById('autoSaveBadge').style.display = 'inline-flex';
-    itemIdInput.value = item.id;
+    modalTitle.textContent = item.id ? '編輯物品' : '新增物品';
+    document.getElementById('btnSaveItem').style.display = item.id ? 'none' : 'block';
+    document.getElementById('autoSaveBadge').style.display = item.id ? 'inline-flex' : 'none';
+    itemIdInput.value = item.id || '';
+    syncItemDestination();
     itemNameInput.value = item.name || '';
     itemSubCategoryInput.value = item.subCategory || '';
     itemEmojiInput.value = item.emoji || '🪑';
+    itemIconTextInput.value = normalizeItemIconText(item.iconText);
     currentUploadedImage = item.image || null;
     isManualEmojiSet = true;
 
@@ -14075,8 +14199,12 @@ var CapacitorBridgeBundle = (() => {
     const duration = item.durationDays || '180';
     itemStartDateInput.value = startStr;
     itemDurationInput.value = duration;
+    const hasExpiry = item.hasEndDate !== false && !(item.usageState === 'active' && item.endDate === null && !item.packageEndDate);
     if (itemEndDateInput) {
-      itemEndDateInput.value = item.endDate || getOffsetDateString(startStr, parseInt(duration, 10) || 180);
+      itemEndDateInput.value = hasExpiry ? (item.packageEndDate || item.endDate || '') : '';
+      if (itemEndDateInput.value) {
+        itemDurationInput.value = Math.max(1, diffDays(startStr, itemEndDateInput.value));
+      }
     }
 
     if (item.reminderType === 'none' || item.warnDays === -1 || item.warnDays === '-1') {
@@ -14122,15 +14250,16 @@ var CapacitorBridgeBundle = (() => {
 
     const btnDuplicateFromModal = document.getElementById('btnDuplicateFromModal');
     if (btnDuplicateFromModal) {
-      btnDuplicateFromModal.style.display = 'inline-flex';
+      btnDuplicateFromModal.style.display = item.id ? 'inline-flex' : 'none';
       btnDuplicateFromModal.onclick = function () {
-        duplicateItem(item.id);
+        if (itemEditorScope === 'shared') features110.sharedAction('duplicate', item.id); else duplicateItem(item.id);
       };
     }
 
     const modalDeleteRow = document.getElementById('modalDeleteRow');
-    if (modalDeleteRow) modalDeleteRow.style.display = 'flex';
+    if (modalDeleteRow) modalDeleteRow.style.display = item.id ? 'flex' : 'none';
     resetPendingForm('item',item,isPending(item));
+    features110?.fillForm('item',item);
     hydratingItemForm = false;
     itemModal.style.display = 'flex';
     lockBodyScroll();
@@ -14138,8 +14267,9 @@ var CapacitorBridgeBundle = (() => {
 
   // Existing items auto-save; new items require explicit submission.
   function autoSaveCurrentItem(explicitSave = false) {
-    if (hydratingItemForm) return false;
+    if (hydratingItemForm || explicitSave?.isComposing) return false;
     if (!itemIdInput.value.trim() && explicitSave !== true) return false;
+    if (features110 && !features110.validateForm('item')) return false;
     syncPendingForm('item');
     const waiting = pendingData('item');
     if(waiting.error) return;
@@ -14152,7 +14282,7 @@ var CapacitorBridgeBundle = (() => {
     }
 
     if (!name) {
-      name = '未命名物品';
+      return false;
     }
 
     const category = itemCategorySelect ? itemCategorySelect.value : 'warranty';
@@ -14162,6 +14292,7 @@ var CapacitorBridgeBundle = (() => {
     }
     const emoji = itemEmojiInput.value.trim() || '🪑';
     const image = currentUploadedImage || null;
+    const iconText = image ? '' : normalizeItemIconText(itemIconTextInput.value);
     const startDate = itemStartDateInput.value || getTodayString();
     const hasEndDate = (currentModalMode === 'expiry');
 
@@ -14175,9 +14306,10 @@ var CapacitorBridgeBundle = (() => {
     if (hasEndDate) {
       if (itemEndDateInput && itemEndDateInput.value) {
         endDate = itemEndDateInput.value;
-        durationDays = parseInt(itemDurationInput.value, 10) || Math.max(1, diffDays(startDate, endDate));
+        durationDays = Math.max(1, diffDays(startDate, endDate));
+        itemDurationInput.value = durationDays;
       } else {
-        durationDays = parseInt(itemDurationInput.value, 10) || 180;
+        durationDays = Math.max(1, parseInt(itemDurationInput.value, 10) || 180);
         endDate = getOffsetDateString(startDate, durationDays);
       }
 
@@ -14210,14 +14342,29 @@ var CapacitorBridgeBundle = (() => {
     const notes = itemNotesInput.value.trim();
     const showNotesHome = itemShowNotesHome ? !!itemShowNotesHome.checked : false;
 
+    if (itemEditorScope === 'shared') {
+      const record = {id:id || crypto.randomUUID(),name,category,subCategory,emoji,image,iconText,startDate,hasEndDate,durationDays,endDate,reminderType,reminderDate,reminderTime,warnDays,location,brand,notes,showNotesHome};
+      applyPending(record,waiting);features110.decorate(record,'item');
+      try {features110.saveSharedItem(record);}
+      catch(error) {document.getElementById('itemSaveError').hidden = false;showToast(error.message);return false;}
+      itemIdInput.value = record.id;
+      document.getElementById('itemSaveError').hidden = true;
+      return true;
+    }
+
+    const previousItems = items;
+    items = items.map(item => item.id === id ? structuredClone(item) : item);
+    let savedItem;
     if (id) {
       const item = items.find(it => it.id === id);
+      if (!item) { items = previousItems; showToast('物品已不存在，請重新開啟'); return false; }
       if (item) {
         item.name = name;
         item.category = category;
         item.subCategory = subCategory;
         item.emoji = emoji;
         item.image = image;
+        item.iconText = iconText;
         item.startDate = startDate;
         item.hasEndDate = hasEndDate;
         item.durationDays = durationDays;
@@ -14231,12 +14378,11 @@ var CapacitorBridgeBundle = (() => {
         item.notes = notes;
         item.showNotesHome = showNotesHome;
         applyPending(item,waiting);
-        scheduleItemNotification(item);
+        features110?.decorate(item,'item');
+        savedItem = item;
       }
     } else {
       const newId = 'item_' + Date.now();
-      itemIdInput.value = newId;
-      modalTitle.textContent = '編輯物品';
       const newItem = {
         id: newId,
         name,
@@ -14244,6 +14390,7 @@ var CapacitorBridgeBundle = (() => {
         subCategory,
         emoji,
         image,
+        iconText,
         startDate,
         hasEndDate,
         durationDays,
@@ -14260,45 +14407,51 @@ var CapacitorBridgeBundle = (() => {
         createdAt: Date.now()
       };
       applyPending(newItem,waiting);
+      features110?.decorate(newItem,'item');
       items.unshift(newItem);
-      lastCreatedItem = newItem;
-      scheduleItemNotification(newItem);
+      savedItem = newItem;
     }
 
-    saveItems();
+    if (!saveItems()) {
+      items = previousItems;
+      document.getElementById('itemSaveError').hidden = false;
+      return false;
+    }
+    document.getElementById('itemSaveError').hidden = true;
+    if (!id) {
+      itemIdInput.value = savedItem.id;
+      modalTitle.textContent = '編輯物品';
+      lastCreatedItem = savedItem;
+    }
+    scheduleItemNotification(savedItem);
     renderApp();
     return true;
   }
 
   function closeModal() {
+    if (itemModal.style.display === 'none') { unlockBodyScroll(); return; }
     if(itemIdInput.value.trim() && pendingData('item').error) { showToast('請修正日期後再關閉');return; }
     const id = itemIdInput.value.trim();
-    const name = itemNameInput.value.trim();
-    if (id && !name) {
-      const item = items.find(it => it.id === id);
-      if (item) {
-        if (!item.location && !item.brand && !item.notes) {
-          items = items.filter(it => it.id !== id);
-          if (typeof cancelItemNotification === 'function') cancelItemNotification(id);
-          saveItems();
-          renderApp();
-        } else {
-          item.name = '未命名物品';
-          saveItems();
-          renderApp();
-        }
-      }
-    } else {
-      autoSaveCurrentItem();
+    if (id && !itemNameInput.value.trim()) {
+      const item = (itemEditorScope === 'shared' ? features110.sharedSnapshot().items : items).find(it => it.id === id);
+      if (!item) { showToast('物品已不存在，請重新開啟'); return; }
+      itemNameInput.value = item.name;
+      showToast('名稱不能空白，已保留原物品名稱');
     }
+    if (id && autoSaveCurrentItem() === false) return;
+    itemImageOperation++;
     closeModalWithAnimation(itemModal);
   }
+  document.getElementById('btnDiscardItemChanges').onclick = () => {
+    itemImageOperation++;
+    closeModalWithAnimation(itemModal);
+  };
 
   // 雙向換算：從週期天數同步到期日
   function syncFromDuration() {
     if (currentModalMode === 'elapsed') return;
     const startStr = itemStartDateInput.value || getTodayString();
-    const duration = parseInt(itemDurationInput.value, 10) || 1;
+    let duration = parseInt(itemDurationInput.value, 10) || 1;
     const endStr = getOffsetDateString(startStr, duration);
     if (itemEndDateInput) itemEndDateInput.value = endStr;
     updateModalPreview();
@@ -14326,26 +14479,17 @@ var CapacitorBridgeBundle = (() => {
 
     const startStr = itemStartDateInput.value || getTodayString();
     let endStr = itemEndDateInput ? itemEndDateInput.value : '';
-    const duration = parseInt(itemDurationInput.value, 10) || 1;
-
-    if (!endStr) {
+    let duration = parseInt(itemDurationInput.value, 10) || 1;
+    if (currentModalMode === 'expiry' && !endStr) {
       endStr = getOffsetDateString(startStr, duration);
       if (itemEndDateInput) itemEndDateInput.value = endStr;
     }
 
-    const today = getTodayString();
-    const remain = diffDays(today, endStr);
-
-    if (previewEndDateText) previewEndDateText.textContent = endStr;
-    if (previewDaysText) {
-      if (remain < 0) {
-        previewDaysText.textContent = `已過期 ${Math.abs(remain)} 天`;
-        previewDaysText.style.color = 'var(--ios-red)';
-      } else {
-        previewDaysText.textContent = `剩餘 ${remain} 天 • 週期 ${duration} 天`;
-        previewDaysText.style.color = 'var(--ios-green)';
-      }
+    if (endStr) {
+      duration = Math.max(1, diffDays(startStr, endStr));
+      itemDurationInput.value = duration;
     }
+
   }
 
   itemStartDateInput.addEventListener('change', function () {
@@ -14376,15 +14520,6 @@ var CapacitorBridgeBundle = (() => {
   // 表單各欄位即時自動儲存 (無需儲存按鈕，即刻記憶改動)
   document.getElementById('nlpTrackingModeSelector').addEventListener('click',event=>{
     const btn=event.target.closest('button');if(!btn)return;
-    const checkbox=document.getElementById('nlpPending');
-    const pending=btn.id==='btnNlpTrackPending';
-    if(checkbox.checked!==pending) {
-      if(!pending) {
-        document.getElementById('nlpConfirmDate').value=document.getElementById('nlpPendingEnd').value;
-        document.getElementById('nlpConfirmStartDate').value=document.getElementById('nlpPendingStart').value || getTodayString();
-      }
-      checkbox.checked=pending;checkbox.dispatchEvent(new Event('change',{bubbles:true}));
-    }
     syncPendingForm('nlp');queueMicrotask(()=>syncPendingForm('nlp'));
   },true);
   ['item','nlp'].forEach(prefix => {
@@ -14409,7 +14544,6 @@ var CapacitorBridgeBundle = (() => {
       syncPendingForm(prefix);
     });
   });
-  document.getElementById('btnAddPending').onclick=()=>openAddModal();
   document.getElementById('btnAddPendingEmpty').onclick=()=>openAddModal();
   const btnSheetStart = document.getElementById('btnSheetStart');
   if (btnSheetStart) {
@@ -14429,6 +14563,7 @@ var CapacitorBridgeBundle = (() => {
       }
       item.usageState = 'active';
       item.startDate = start;
+      if (item.openedShelfDays && !item.openedDate) item.openedDate = getTodayString();
       item.plannedStartDate = null;
       item.durationDays = item.endDate ? Math.max(1, diffDays(start, item.endDate)) : null;
       saveItems();
@@ -14443,7 +14578,8 @@ var CapacitorBridgeBundle = (() => {
   }
   document.getElementById('btnSheetPending').onclick=()=>{
     const item=items.find(it=>it.id===activeSheetItemId);if(!item)return;
-    applyPending(item,{enabled:true,start:null,end:item.endDate || item.expiryDate || null});
+    applyPending(item,{enabled:true,start:null,end:item.packageEndDate || item.endDate || item.expiryDate || null});
+    item.openedDate=null;
     cancelItemNotification(item.id);saveItems();closeActionSheet();renderApp();showToast('已移入待用物品，暫停計算使用天數');
   };
   itemForm.addEventListener('input', autoSaveCurrentItem);
@@ -14703,6 +14839,7 @@ var CapacitorBridgeBundle = (() => {
   }
 
   btnExportJson.addEventListener('click', function () {
+    if (features110) { features110.backup(); return; }
     const backupData = {
       version: 'v10',
       exportedAt: Date.now(),
@@ -14726,6 +14863,7 @@ var CapacitorBridgeBundle = (() => {
     reader.onload = function (event) {
       try {
         const data = JSON.parse(event.target.result);
+        if (features110) { features110.previewImport(data).catch(error => showToast(error.message)); return; }
         if (Array.isArray(data)) {
           items = data;
           saveItems();
@@ -14777,7 +14915,7 @@ var CapacitorBridgeBundle = (() => {
   const homeSortToolbar = document.getElementById('homeSortToolbar');
 
   // 頂部選單按鈕（全部 / 將到期 / 已過期）點擊切換與篩選
-  const homeFilterBtns = document.querySelectorAll('.home-filter-btn');
+  const homeFilterBtns = document.querySelectorAll('#segmentedPillsBar .home-filter-btn');
   homeFilterBtns.forEach(btn => {
     let pressAnimation;
     const reduceFilterMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -14890,8 +15028,8 @@ var CapacitorBridgeBundle = (() => {
           <span class="order-item-title">${escapeHtml(item.name)}</span>
         </div>
         <div class="order-item-actions">
-          <button type="button" class="btn-move-order btn-move-up" data-id="${item.id}" ${isFirst ? 'disabled' : ''} title="上移">▲</button>
-          <button type="button" class="btn-move-order btn-move-down" data-id="${item.id}" ${isLast ? 'disabled' : ''} title="下移">▼</button>
+          <button type="button" class="btn-move-order btn-move-up" data-id="${escapeHtml(item.id)}" ${isFirst ? 'disabled' : ''} title="上移">▲</button>
+          <button type="button" class="btn-move-order btn-move-down" data-id="${escapeHtml(item.id)}" ${isLast ? 'disabled' : ''} title="下移">▼</button>
         </div>
       `;
 
@@ -15022,8 +15160,8 @@ var CapacitorBridgeBundle = (() => {
   const viewPanelInventory = document.getElementById('viewPanelInventory');
   const viewPanelPending = document.getElementById('viewPanelPending');
   const dockTabPending = document.getElementById('dockTabPending');
-  const navTabs = ['today', 'inventory', 'pending'];
-  const navPanels = { today: viewPanelToday, inventory: viewPanelInventory, pending: viewPanelPending };
+  const navTabs = ['today', 'inventory', 'pending', 'shared'];
+  const navPanels = { today: viewPanelToday, inventory: viewPanelInventory, pending: viewPanelPending, shared: document.getElementById('viewPanelShared') };
   let panelSwitchSettleTimer = null;
   let pendingNavTab = null;
   let navigationInProgress = false;
@@ -15155,8 +15293,11 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function updateNavigationLabels(tab) {
-    if (headerSublabel) headerSublabel.textContent = { today: '主頁', inventory: '物品分類', pending: '待用物品' }[tab];
-    if (headerMainTitle) headerMainTitle.textContent = { today: '期效管家', inventory: '分類清單', pending: '待用物品' }[tab];
+    if (headerSublabel) headerSublabel.textContent = { today: '主頁', inventory: '物品分類', pending: '待用物品', shared: '共享空間' }[tab];
+    if (headerMainTitle) headerMainTitle.textContent = { today: '期效管家', inventory: '分類清單', pending: '待用物品', shared: '共享空間' }[tab];
+    document.body.classList.toggle('shared-page-active', tab === 'shared');
+    const entry = document.getElementById('smartQuickAddInput');
+    if (entry) entry.placeholder = tab === 'shared' ? '新增共享物品：鮮奶 5 天' : '新增物品：鮮奶 5 天';
     document.querySelector('.floating-island-dock')?.classList.remove('dock-hidden');
     window.dispatchEvent(new Event('app:navigation-reveal'));
   }
@@ -15235,6 +15376,7 @@ var CapacitorBridgeBundle = (() => {
   }
 
   dockTabPending.addEventListener('click', () => switchViewTab('pending', true, true));
+  document.getElementById('dockTabShared').addEventListener('click', () => switchViewTab('shared', true, true));
   dockTabToday.addEventListener('click', function () {
     switchViewTab('today', true, true);
   });
@@ -15377,7 +15519,7 @@ var CapacitorBridgeBundle = (() => {
       setTimeout(() => {
         const activeChip = categoryChipRow.querySelector('.category-chip.active');
         if (activeChip) {
-          if (activeChip === categoryChipRow.firstElementChild) {
+          if (activeChip === categoryChipRow.querySelector('.category-chip')) {
             categoryChipRow.scrollTo({ left: 0, behavior: 'instant' });
           } else {
             const targetLeft = Math.max(0, Math.floor(activeChip.getBoundingClientRect().left - categoryChipRow.getBoundingClientRect().left + categoryChipRow.scrollLeft - 6));
@@ -15540,7 +15682,7 @@ var CapacitorBridgeBundle = (() => {
         <div class="picker-item-info">
           <div class="picker-item-name">${escapeHtml(item.name)}</div>
           <div class="picker-item-meta">
-            <span class="picker-cat-tag">${catObj.label}</span>
+            <span class="picker-cat-tag">${escapeHtml(catObj.label)}</span>
             <span>${escapeHtml(item.subCat || '')}</span>
           </div>
         </div>
@@ -15871,7 +16013,7 @@ var CapacitorBridgeBundle = (() => {
           </div>
         </div>
         <div class="cat-manage-actions">
-          <button type="button" class="btn-edit-cat" data-cat-id="${key}" title="編輯群組">編輯</button>
+          <button type="button" class="btn-edit-cat" data-cat-id="${escapeHtml(key)}" title="編輯群組">編輯</button>
         </div>
       `;
 
@@ -16285,7 +16427,7 @@ var CapacitorBridgeBundle = (() => {
   // ==========================================
   function isAnyModalOpen() {
     // Closing overlays still cover the page and must keep the background locked.
-    return Array.from(document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop'))
+    return !!document.querySelector('#featuresDialog[open]') || Array.from(document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop'))
       .some(el => el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('active'));
   }
 
@@ -16339,7 +16481,7 @@ var CapacitorBridgeBundle = (() => {
   });
 
   window.addEventListener('touchmove', event => {
-    if (bodyScrollLock && !event.target.closest('.ios-modal-backdrop, .ios-action-backdrop') && event.cancelable)
+    if (bodyScrollLock && !event.target.closest('.ios-modal-backdrop, .ios-action-backdrop, #featuresDialog') && event.cancelable)
       event.preventDefault();
   }, { passive: false });
 
@@ -16683,6 +16825,7 @@ var CapacitorBridgeBundle = (() => {
       subCategory: (itemData.subCategory || '').trim(),
       emoji: itemData.emoji || '📌',
       image: itemData.image || null,
+      iconText: normalizeItemIconText(itemData.iconText),
       startDate: startDate,
       hasEndDate: (itemData.hasEndDate !== false),
       durationDays: durationDays,
@@ -16700,6 +16843,7 @@ var CapacitorBridgeBundle = (() => {
 
     if(itemData.pendingConfig) applyPending(newItem,itemData.pendingConfig);
     else if(isPending(itemData)) applyPending(newItem,{enabled:true,start:itemData.plannedStartDate || null,end:itemData.endDate || null});
+    if(itemData.lifecycleForm) features110?.decorate(newItem,itemData.lifecycleForm);
     items.unshift(newItem);
     lastCreatedItem = newItem;
 
@@ -17446,6 +17590,7 @@ function extractCleanName(rawText) {
   }
 
   function openNlpConfirmModal(parsed) {
+    if ((pendingNavTab || currentNavTab) === 'shared' && features110) { features110.openSharedItem(parsed); return; }
     currentNlpParsed = parsed;
     let cloudNotice = document.getElementById('cloudRecognitionNotice');
     if (!cloudNotice) {
@@ -17520,7 +17665,7 @@ function extractCleanName(rawText) {
           badgeEl.textContent = '修改既有';
           badgeEl.classList.add('update');
         }
-        if (noticeText) noticeText.textContent = `將更新現有物品「${currentNlpParsed.targetName || ''}」`;
+        if (noticeText) noticeText.textContent = `將更新現有物品「${currentNlpParsed.targetName || items.find(it=>it.id===currentNlpParsed.targetId)?.name || '物品'}」`;
         if (applyBtn) applyBtn.textContent = '確定更新';
       } else {
         if (btnModeCreate) btnModeCreate.classList.add('active');
@@ -17536,7 +17681,7 @@ function extractCleanName(rawText) {
     }
 
     if (noticeWrap) {
-      if (isUpdateCandidate && parsed.targetName) {
+      if (isUpdateCandidate && (parsed.targetName || parsed.targetId)) {
         noticeWrap.style.display = 'flex';
         setNlpInteractionMode(parsed.action === 'update' ? 'update' : 'create');
       } else {
@@ -17738,6 +17883,10 @@ function extractCleanName(rawText) {
 
     const pendingTarget = parsed.action === 'update' ? items.find(it => it.id === parsed.targetId || it.name === parsed.targetName) : null;
     resetPendingForm('nlp',pendingTarget || parsed,pendingTarget ? isPending(pendingTarget) : currentNavTab === 'pending');
+    features110?.fillForm('nlp',pendingTarget ? {
+      ...pendingTarget,...parsed,packageEndDate:parsed.expiryDate || pendingTarget.packageEndDate,
+      dateSource:parsed.expiryDate?'manual':pendingTarget.dateSource
+    } : parsed);
     modal.style.display = 'flex';
     lockBodyScroll();
     if (nameInput) nameInput.focus();
@@ -17760,6 +17909,7 @@ function extractCleanName(rawText) {
   }
 
   function handleNlpConfirmApply() {
+    if (features110 && !features110.validateForm('nlp')) return;
     if (!currentNlpParsed) {
       closeNlpConfirmModal();
       return;
@@ -17910,6 +18060,7 @@ function extractCleanName(rawText) {
       }
 
       applyPending(target,waiting);
+      features110?.decorate(target,'nlp');
       if(!waiting.enabled && !target.startDate) target.startDate=confirmedStartDate;
       lastCreatedItem = target;
       saveItems();
@@ -17928,6 +18079,7 @@ function extractCleanName(rawText) {
     } else {
       const newItem = addItem({
         pendingConfig: waiting,
+        lifecycleForm: 'nlp',
         name: confirmedName,
         category: confirmedCat,
         subCategory: subCat,
@@ -18181,6 +18333,7 @@ function extractCleanName(rawText) {
         return;
       }
 
+      if ((pendingNavTab || currentNavTab) === 'shared' && features110) { features110.quickShared(rawText); return; }
       // 1. 優先使用本地命名實體抽取 (parseWithLocalNER)
       let parsed = null;
       if (typeof window.parseWithLocalNER === 'function') {
@@ -18804,6 +18957,50 @@ function extractCleanName(rawText) {
   loadCustomCategories();
   currentCategoryChip = getFirstPageCategory();
 
+  features110 = window.installExpiry110({
+    page: () => pendingNavTab || currentNavTab,
+    resizePage: () => { if (!navigationInProgress) syncContainerHeight(currentNavTab); },
+    lockOverlay: lockBodyScroll, unlockOverlay: unlockBodyScroll,
+    closeOverlay: closeModalWithAnimation,
+    bindCard: bindItemCardActivation,
+    metrics: calculateMetrics, sortShared: (list, mode, order) => sortItemsList(list, mode, order),
+    sharedCard: (item, iconHtml, categoryLabel) => createCardElement(item, false, {iconHtml, categoryLabel, activate: () => openActionSheet(item.id, 'shared')}),
+    openSharedSheet: id => openActionSheet(id, 'shared'),
+    sheetScope: () => activeSheetScope,
+    editorScope: () => itemEditorScope,
+    editorId: () => itemIdInput.value,
+    closeEditor: () => closeModalWithAnimation(itemModal),
+    openSharedEditor: draft => draft ? openEditModal(draft.id || '', 'shared', draft) : openAddModal({scope:'shared'}),
+    selectSharedCategory: id => {
+      if (itemEditorScope !== 'shared' || itemModal.style.display !== 'flex') return;
+      populateCategorySelect(id);populateSubCategoryDropdown(id);updateAvatarPreview();window.syncIconPickers?.();autoSaveCurrentItem();
+    },
+    data: () => ({items,archivedItems,recentlyDeletedItems}),
+    escape: escapeHtml, today: getTodayString, toast: showToast,
+    categories: getAllCategories, render: renderApp, activeId: () => activeSheetItemId,
+    closeSheet: closeActionSheet, cancel: cancelItemNotification,
+    channel: ensureNotificationChannel, channelId: NOTIFICATION_CHANNEL_ID,
+    permission: checkNotificationPermission, plugin: getCapacitorNotifications,
+    native: () => !!window.Capacitor?.isNativePlatform?.(),
+    save: () => { saveItems(); saveArchivedItems(); saveRecentlyDeleted(); },
+    reschedule: async () => {
+      const plugin = getCapacitorNotifications();
+      if (plugin?.getPending && plugin?.cancel) {
+        const pending = await plugin.getPending();
+        if (pending.notifications?.length) await plugin.cancel({notifications:pending.notifications});
+      }
+      await syncAllItemNotifications();
+    },
+    replace: data => {
+      items=data.items;archivedItems=data.archivedItems;recentlyDeletedItems=data.recentlyDeletedItems;
+      loadCustomCategories();currentSortMode=localStorage.getItem(HOME_SORT_KEY)||'expiry_asc';
+      currentCategoryChip=getFirstPageCategory();setTheme(localStorage.getItem(THEME_KEY)||'light',false);
+      setScreenFit(localStorage.getItem(SCREEN_FIT_KEY)||'plus',false);
+      updateArchiveBadge();updateTrashBadge();
+    }
+  });
+  window.expiry110 = features110;
+
   if (urlParams.get('sort')) {
     currentSortMode = urlParams.get('sort');
     localStorage.setItem(HOME_SORT_KEY, currentSortMode);
@@ -18837,7 +19034,7 @@ function extractCleanName(rawText) {
   function ensureButtonListeners() {
     try {
       // 1. 頂部選單按鈕（全部 / 將到期 / 已過期）
-      const homeFilterBtns = document.querySelectorAll('.home-filter-btn');
+      const homeFilterBtns = document.querySelectorAll('#segmentedPillsBar .home-filter-btn');
       homeFilterBtns.forEach(btn => {
         btn.onclick = function () {
           currentPillFilter = this.dataset.filter || 'all';
@@ -19054,8 +19251,8 @@ function extractCleanName(rawText) {
 
 </script>
 
-  <script type="module" src="app.js?v=1.9.22"></script>
-  <script type="module" src="cloud-camera.js?v=1.9.22-ui19"></script>
+  <script type="module" src="app.js?v=1.10.0"></script>
+  <script type="module" src="cloud-camera.js?v=1.10.0-ui19"></script>
 
 <script>
 // Native selects retain mobile accessibility; a shared SVG identifies the selection.
@@ -19066,7 +19263,8 @@ function extractCleanName(rawText) {
    const cat=document.getElementById(catId),sub=document.getElementById(subId);
    for(const [el,detail] of [[cat,''],[sub,sub?.value||'']]){
     if(!el)continue;
-    const svg=getSubCategoryIcon(cat?.value||'other',detail).replace('stroke="currentColor"','stroke="#6f94a3"').replace(/<g>/,'<g fill="none">');
+    const shared=catId==='itemCategorySelect'&&document.getElementById('itemModal')?.dataset.scope==='shared'&&window.expiry110;
+    const svg=(shared?expiry110.sharedIcon({category:cat?.value||'other',subCategory:detail}):getSubCategoryIcon(cat?.value||'other',detail)).replace('stroke="currentColor"','stroke="#6f94a3"').replace(/<g>/,'<g fill="none">');
     el.classList.add('flat-icon-select');
     el.style.setProperty('--flat-select-icon',`url("data:image/svg+xml,${encodeURIComponent(svg)}")`);
    }
@@ -19091,5 +19289,6 @@ function extractCleanName(rawText) {
 </script>
 
 
+<script src="pill-motion.js?v=1.10.0-ui35"></script>
 </body>
 </html>
