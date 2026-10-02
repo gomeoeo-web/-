@@ -504,6 +504,7 @@ window.installExpiry110 = function (app) {
       app.bindCard(card,item.id,()=>filter==='archived'||filter==='deleted'?openSharedRecord(item,filter):app.openSharedSheet(item.id));
       card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();filter==='archived'||filter==='deleted'?openSharedRecord(item,filter):app.openSharedSheet(item.id);}};grid.append(card);
     }
+    $('sharedEmpty').hidden=list.length>0;
     $('sharedEmpty').style.display=list.length?'none':'flex';
     $('sharedEmptyTitle').textContent=!connected?'建立屬於你們的共享空間':query?'沒有符合條件的物品':sharedPillFilter==='urgent'?'目前沒有將到期的共享物品':sharedPillFilter==='expired'?'目前沒有已過期的共享物品':'尚無共享物品';
     $('sharedEmptyDescription').textContent=!connected?'建立新空間，或使用邀請碼加入家人的空間。':query?'試試其他名稱或分類。':'點擊「＋」新增物品，和家人一起管理。';
