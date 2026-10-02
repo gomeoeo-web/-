@@ -7750,7 +7750,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
  .dock-tab:active,.btn-modal-close:active,#btnToggleInventorySearch:active { transform:none; }
 }
 </style>
-  <link rel="stylesheet" href="theme-overrides.css?v=1.9.22-ui21">
+  <link rel="stylesheet" href="theme-overrides.css?v=1.9.22-ui23">
   <style>
     [data-theme="light"] body {
       background-color: #f3efe6;
@@ -9981,7 +9981,7 @@ var CapacitorBridgeBundle = (() => {
 */
 
 </script>
-  <script src="sheet-gestures.js?v=1.9.22-ui13"></script>
+  <script src="sheet-gestures.js?v=1.9.22-ui22"></script>
   <script id="appLogicInline">
   const { bindSheetDrag, animateModalClose, containModalScroll } = window.SheetGestures || {
     bindSheetDrag() {},
@@ -14565,9 +14565,9 @@ var CapacitorBridgeBundle = (() => {
 
     setTheme(next, true);
 
-    if (next === 'amoled') showToast('已切換為 OLED純黑 模式');
-    else if (next === 'light') showToast('已切換為暖調微文青淺色模式');
-    else showToast('已切換為深色灰黑模式');
+    if (next === 'amoled') showToast('已切換為純黑模式');
+    else if (next === 'light') showToast('已切換為淺色模式');
+    else showToast('已切換為深色模式');
   });
 
 
@@ -16645,33 +16645,16 @@ var CapacitorBridgeBundle = (() => {
   if (fabAddBtn) fabAddBtn.addEventListener('click', openAddModal);
 
   const toastContainer = document.getElementById('toastContainer');
-  const toastQueue = [];
-  let visibleToastCount = 0;
-
-  function showQueuedToasts() {
-    while (visibleToastCount < 3 && toastQueue.length > 0) {
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = toastQueue.shift();
-      toastContainer.appendChild(toast);
-      visibleToastCount++;
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-10px)';
-        toast.style.transition = 'opacity 160ms ease, transform 160ms ease';
-        setTimeout(() => {
-          toast.remove();
-          visibleToastCount--;
-          showQueuedToasts();
-        }, 160);
-      }, 2200);
-    }
-  }
+  let toastTimer;
 
   function showToast(message) {
     if (!toastContainer) return;
-    toastQueue.push(String(message));
-    showQueuedToasts();
+    clearTimeout(toastTimer);
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = String(message);
+    toastContainer.replaceChildren(toast);
+    toastTimer = setTimeout(() => toast.remove(), 2200);
   }
 
   // ==========================================

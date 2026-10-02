@@ -242,7 +242,7 @@ function syncStatusBar() {
   let hex = channels[1];
   if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
   let rgb = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
-  for (const modal of document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop')) {
+  for (const modal of document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop, .cloud-consent-overlay')) {
     const style = getComputedStyle(modal);
     if (style.display === 'none' || style.visibility === 'hidden') continue;
     const tint = style.backgroundColor.match(/[\d.]+/g)?.map(Number);
@@ -251,15 +251,37 @@ function syncStatusBar() {
     rgb = rgb.map((value, i) => Math.round(value * (1 - alpha) + tint[i] * alpha));
   }
   const color = '#' + rgb.map(value => value.toString(16).padStart(2, '0')).join('');
+  if (root.style.getPropertyValue('--status-bar-background') !== color) {
+    root.style.setProperty('--status-bar-background', color);
+    root.style.backgroundColor = color;
+  }
   const meta = document.getElementById('metaThemeColor');
   if (meta && meta.content !== color) meta.content = color;
 }
 function observeStatusBar() {
   const observer = new MutationObserver(syncStatusBar);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop').forEach(modal => {
+  const meta = document.getElementById('metaThemeColor');
+  if (meta) observer.observe(meta, { attributes: true, attributeFilter: ['content'] });
+  const watchOverlay = modal => {
     observer.observe(modal, { attributes: true, attributeFilter: ['style', 'class'] });
     modal.addEventListener('animationend', syncStatusBar);
+  };
+  document.querySelectorAll('.ios-modal-backdrop, .ios-action-backdrop, .cloud-consent-overlay').forEach(watchOverlay);
+  new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node.nodeType === 1 && node.matches('.cloud-consent-overlay')) watchOverlay(node);
+    }
+    syncStatusBar();
+  }).observe(document.body, { childList: true });
+  document.addEventListener('animationstart', event => {
+    if (!event.target.matches('.ios-modal-backdrop, .ios-action-backdrop')) return;
+    const overlay = event.target;
+    const followAnimation = () => {
+      syncStatusBar();
+      if (overlay.getAnimations().some(animation => animation.playState === 'running')) requestAnimationFrame(followAnimation);
+    };
+    requestAnimationFrame(followAnimation);
   });
   syncStatusBar();
 }

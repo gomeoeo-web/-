@@ -285,7 +285,7 @@ html {
     z-index: 100;
     isolation: isolate;
     margin-top: 0;
-    background: var(--app-header-background);
+    background: var(--status-bar-background, var(--app-header-background));
   }
   .ios-header::before {
     content: "";
@@ -1616,7 +1616,7 @@ html {
     height: env(safe-area-inset-top, 0px);
     background: var(--app-header-background);
     pointer-events: none;
-    z-index: 101;
+    z-index: 30000;
   }
 }
 
@@ -2049,4 +2049,30 @@ html {
   -webkit-line-clamp: unset;
   max-height: none;
   height: auto;
+}
+
+/* One compact status message, away from dialog headings and controls. */
+:root body .toast-container {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+  width: max-content;
+  max-width: min(360px, calc(100vw - 40px));
+  z-index: 25000;
+}
+:root body .toast {
+  background: #f5f5f7;
+  color: #202124;
+  border: 1px solid #d4d4d8;
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .24);
+  -webkit-text-fill-color: currentColor;
+}
+:root[data-theme="light"] body .toast {
+  background: #24473c;
+  color: #ffffff;
+  border-color: #52796f;
 }
