@@ -102,7 +102,7 @@ async function consent(signal) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
     overlay.className = 'cloud-consent-overlay';
-    overlay.innerHTML = '<section class="cloud-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="cloudConsentTitle"><h2 id="cloudConsentTitle">使用雲端照片辨識</h2><p>選擇的照片會傳送至 Cloudflare 與 OpenAI GPT‑6 Luna，協助讀取商品和日期。本 App 後端不儲存照片；供應商依服務方案處理資料。</p><p>辨識可能出錯，儲存前請確認名稱與日期。你也可以選擇手動填寫。</p><button type="button" data-accept>同意並辨識</button><button type="button" data-cancel>改用手動填寫</button></section>';
+    overlay.innerHTML = '<section class="cloud-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="cloudConsentTitle" aria-describedby="cloudConsentDescription"><h2 id="cloudConsentTitle">使用雲端照片辨識</h2><p id="cloudConsentDescription">照片會透過雲端服務傳送至 OpenAI，協助辨識商品名稱與日期。本 App 後端不儲存照片；供應商依服務方案處理資料。</p><p class="cloud-consent-note">辨識結果可能有誤，儲存前請確認名稱與日期。你也可以選擇手動填寫。</p><div class="cloud-consent-actions"><button type="button" data-accept>同意並辨識</button><button type="button" data-cancel>改用手動填寫</button></div></section>';
     let finished = false;
     const onAbort = () => finish(false);
     const priorBodyOverflow = document.body.style.overflow;

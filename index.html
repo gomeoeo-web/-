@@ -26,7 +26,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css?v=1.9.22">
   <style>
 /* ==========================================================================
@@ -7750,7 +7750,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
  .dock-tab:active,.btn-modal-close:active,#btnToggleInventorySearch:active { transform:none; }
 }
 </style>
-  <link rel="stylesheet" href="theme-overrides.css?v=1.9.22-ui12">
+  <link rel="stylesheet" href="theme-overrides.css?v=1.9.22-ui21">
   <style>
     [data-theme="light"] body {
       background-color: #f3efe6;
@@ -7806,7 +7806,6 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
           <div class="view-panel active-panel" id="viewPanelToday">
             <section class="journal-heading" aria-label="生活手帳">
               <div class="journal-heading-copy">
-                <span class="journal-eyebrow">THE EVERYDAY JOURNAL</span>
                 <h1>把日子，照顧好。</h1>
                 <p>記下物品的期限，留住生活的餘裕。</p>
               </div>
@@ -9982,7 +9981,7 @@ var CapacitorBridgeBundle = (() => {
 */
 
 </script>
-  <script src="sheet-gestures.js?v=1.9.22"></script>
+  <script src="sheet-gestures.js?v=1.9.22-ui13"></script>
   <script id="appLogicInline">
   const { bindSheetDrag, animateModalClose, containModalScroll } = window.SheetGestures || {
     bindSheetDrag() {},
@@ -14499,7 +14498,7 @@ var CapacitorBridgeBundle = (() => {
       else metaThemeColor.setAttribute('content', '#121212');
     }
     if (appleStatusBarStyle) {
-      appleStatusBarStyle.setAttribute('content', 'default');
+      appleStatusBarStyle.setAttribute('content', 'black-translucent');
     }
     if (settingsThemeText) {
       if (validTheme === 'amoled') settingsThemeText.textContent = '目前為 OLED純黑 模式';
@@ -19073,7 +19072,7 @@ function extractCleanName(rawText) {
 </script>
 
   <script type="module" src="app.js?v=1.9.22"></script>
-  <script type="module" src="cloud-camera.js?v=1.9.22-food4"></script>
+  <script type="module" src="cloud-camera.js?v=1.9.22-ui19"></script>
 
 <script>
 // Native selects retain mobile accessibility; a shared SVG identifies the selection.
