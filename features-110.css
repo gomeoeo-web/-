@@ -13,10 +13,6 @@
 .feature-settings{padding:12px!important}.feature-settings details{padding:12px 4px;border-bottom:1px solid rgba(128,128,128,.16)}
 .feature-settings summary{cursor:pointer;padding:6px 0;font-size:15px;font-weight:600}.feature-settings .feature-button{margin:4px}
 :root body #settingsModal .feature-settings{padding:0!important;overflow:hidden}
-#manageSharedSpace::before{content:'⇄';display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--ios-surface-elevated);color:var(--ios-text-secondary);font-size:23px}
-#manageSharedSpace .shared-settings-copy{grid-column:2;display:flex;flex-direction:column;gap:4px;text-align:left;min-width:0}
-#manageSharedSpace .settings-subtitle{font-size:12px;line-height:1.5;color:var(--ios-text-secondary)}
-#manageSharedSpace .shared-settings-chevron{grid-column:3;color:var(--ios-text-secondary);font-size:24px}
 .shared-sync-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid var(--ios-border)}
 .shared-sync-footer #syncStatus{margin:0;min-width:0;flex:1}
 .shared-sync-footer .feature-button{margin:0;flex-shrink:0;border-radius:999px}
@@ -83,6 +79,13 @@
 #featuresDialog[data-purpose="sharedSort"] .custom-order-desc{font-size:.78rem;line-height:inherit}
 #sharedItemsGrid .shared-card-date{font-size:12px;line-height:1.6;color:var(--ios-text-secondary);overflow-wrap:anywhere}
 #sharedItemsGrid .shared-item-card:focus-visible{outline:2px solid var(--ink-green,var(--ios-green));outline-offset:3px}
+#sharedItemsGrid .shared-item-card{position:relative}
+.shared-editor-avatar{display:inline-flex;width:24px;height:24px;flex-shrink:0;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:var(--button-selected);color:var(--ios-text-secondary);font-size:11px;font-weight:600;line-height:1}
+.shared-editor-avatar img{width:100%;height:100%;object-fit:cover}
+#sharedItemsGrid .shared-card-editor{position:absolute;top:12px;right:12px;pointer-events:none}
+#sharedItemsGrid .shared-item-card:has(.shared-card-editor) .card-top-row{padding-right:28px}
+.shared-editor-detail{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.6;color:var(--ios-text-secondary);padding-block:8px}
+.shared-profile-preview .shared-editor-avatar{width:64px;height:64px;font-size:24px}
 #sharedItemsGrid.shared-list-mode{display:flex!important;flex-direction:column!important;gap:9px!important}
 #sharedItemsGrid.shared-list-mode>*{min-height:0!important;height:auto!important;flex:none!important;width:100%!important;box-sizing:border-box;padding:14px 16px!important}
 #sharedItemsGrid.shared-list-mode .card-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
@@ -96,16 +99,20 @@
 #btnSheetAddShared[hidden]{display:none!important}
 @media(max-width:360px){.shared-space-summary{padding:14px;margin-inline:12px}.shared-space-summary h2{font-size:17px}.shared-space-summary .feature-button{padding-inline:10px}.shared-filters{gap:5px}.shared-filters .feature-button{font-size:12px;padding-inline:10px}}
 
-#sharedSettingsButton{display:none;position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(100px + env(safe-area-inset-bottom));z-index:100;width:48px;height:48px;align-items:center;justify-content:center;border:0;border-radius:50%;background:var(--ios-surface);color:var(--ios-text-primary);cursor:pointer}
+#sharedSettingsButton{display:none;position:static;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer}
 body.shared-page-active #sharedSettingsButton{display:flex}
 #sharedSettingsButton:focus-visible{outline:2px solid var(--ios-blue);outline-offset:3px}
 #btnSheetPending[hidden]{display:none!important}
 #featuresDialog[data-purpose="sharedSettings"] #featureDialogBody{display:flex;flex-direction:column;gap:12px}
 .shared-record-row{width:100%;margin-bottom:8px;text-align:left;overflow-wrap:anywhere}
+:root body #sharedDeletedRecords #sharedTrashBadgeCount{background:#c93630!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 
-:root body #sharedSettingsButton{width:54px;height:54px;background:#38383c!important;color:#fffaf2!important;border:2px solid #fffaf2!important;box-shadow:0 5px 16px #0004}
-#sharedSettingsButton svg{width:26px;height:26px}
-#sharedSettingsButton svg circle{fill:#38383c}
+.shared-sort-toolbar{flex-wrap:wrap;gap:8px 12px}
+.shared-count-settings{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.shared-sort-toolbar #sharedSort{margin-left:auto}
+:root body #sharedSettingsButton{width:auto;height:auto;min-height:36px;padding:0;gap:5px;border-radius:4px;background:transparent!important;color:var(--ios-text-secondary)!important;-webkit-text-fill-color:var(--ios-text-secondary)!important;border:0!important;box-shadow:none;font:inherit;font-size:.84rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+#sharedSettingsButton svg{width:16px;height:16px;flex-shrink:0}
+#sharedSettingsButton svg circle{fill:currentColor}
 :root body #sharedSettingsButton:active{transform:scale(.95)}
 #featuresDialog:is([data-purpose="sharedSettings"],[data-purpose="sharedRecords"],[data-purpose="sharedRecord"]) .ios-modal-card{height:auto;min-height:0}
 #featuresDialog:is([data-purpose="sharedSettings"],[data-purpose="sharedRecords"],[data-purpose="sharedRecord"]) .ios-modal-scroll{flex:0 1 auto;gap:0;padding-top:14px!important}

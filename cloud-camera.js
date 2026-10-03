@@ -308,6 +308,7 @@ if (typeof window !== 'undefined') {
     alert('已撤回雲端照片同意。下次拍照辨識會重新詢問。');
   };
   updateConsentButton();
+  document.getElementById('btnRevokeCloudPhotoConsent')?.addEventListener('click',()=>window.revokeCloudPhotoConsent());
   if (typeof document !== 'undefined' && document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', updateConsentButton, { once: true });
   }

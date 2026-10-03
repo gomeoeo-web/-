@@ -7,6 +7,12 @@
     'lifespan_view_mode_v110'];
   const COLLECTIONS = ['items','archivedItems','recentlyDeletedItems','shoppingList'];
   const SOURCES = {manual:'手動設定',package:'包裝辨識',estimated:'依品類／資料推算',legacy:'既有資料（來源未記錄）'};
+  function validateEditor(editor) {
+    if(!editor||typeof editor!=='object'||Array.isArray(editor)||typeof editor.id!=='string'||!editor.id||editor.id.length>100||typeof editor.name!=='string'||!editor.name.trim()||editor.name.length>30)throw new Error('編輯人資料格式不正確');
+    const avatar=editor.avatar??'';
+    if(typeof avatar!=='string'||avatar.length>100000||(avatar&&!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(avatar)))throw new Error('編輯人頭像格式不正確');
+    return {id:editor.id,name:editor.name.trim(),avatar};
+  }
   function validDate(v) {
     if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
     const d = new Date(v + 'T00:00:00Z');
@@ -54,6 +60,10 @@
           if (entry[field] && !validDate(entry[field])) throw new Error('物品日期格式不正確');
         if (entry.openedShelfDays != null && (!Number.isInteger(entry.openedShelfDays) || entry.openedShelfDays < 1 || entry.openedShelfDays > 3650)) throw new Error('開封天數必須為 1–3650');
         if (entry.image && (typeof entry.image !== 'string' || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(entry.image))) throw new Error('照片格式不正確');
+        entry={...entry};
+        for(const field of ['createdBy','lastEditedBy'])if(entry[field]!=null)entry[field]=validateEditor(entry[field]);
+        for(const field of ['createdByAt','lastEditedAt','deletedAt'])if(entry[field]!=null&&(!Number.isSafeInteger(entry[field])||entry[field]<=0||entry[field]>8640000000000000))throw new Error('物品紀錄時間不正確');
+        for(const field of ['createdBySource','lastEditedBySource'])if(entry[field]!=null&&!['legacy-backfill','device-credential','self-reported'].includes(entry[field]))throw new Error('編輯人來源格式不正確');
         return key === 'shoppingList' ? {...entry} : normalize({...entry});
       });
     }
@@ -102,7 +112,7 @@
     const time=/^([01]\d|2[0-3]):[0-5]\d$/.test(item.reminderTime || '')?item.reminderTime:'09:00';
     return new Date(date+'T'+time+':00');
   }
-  const api={SETTINGS,COLLECTIONS,SOURCES,validDate,offset,normalize,validateSnapshot,mergeSnapshots,nextReminder};
+  const api={SETTINGS,COLLECTIONS,SOURCES,validDate,offset,normalize,validateSnapshot,validateEditor,mergeSnapshots,nextReminder};
   if (typeof module==='object' && module.exports) module.exports=api;
   root.ExpiryLifecycle=api;
 })(typeof window==='object'?window:globalThis);

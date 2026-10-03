@@ -2,6 +2,7 @@
 <html lang="zh-TW" data-theme="light" data-screen-fit="plus">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-+ydnH2LN5SNGkkzonYohKxSasA77juV6INqZ1Me/Tig=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <script>
     if (/Android/i.test(navigator.userAgent)) {
@@ -7764,7 +7765,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
     <!-- Top Header -->
     <header class="ios-header">
       <!-- Smart entry and utility controls share one quiet toolbar surface. -->
-      <form class="header-smart-input-form" id="smartQuickAddForm" onsubmit="return false;">
+      <form class="header-smart-input-form" id="smartQuickAddForm">
         <span class="header-entry-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>
         <input
           type="text"
@@ -8450,7 +8451,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             <div class="settings-info"><span class="settings-title">雲端照片辨識</span>
               <span class="settings-desc">連線辨識商品與日期，無需下載模型。照片經同意後送至雲端。</span></div>
           </div>
-          <button type="button" id="btnRevokeCloudPhotoConsent" class="settings-row-btn" hidden onclick="window.revokeCloudPhotoConsent && window.revokeCloudPhotoConsent()">撤回照片上傳同意</button>
+          <button type="button" id="btnRevokeCloudPhotoConsent" class="settings-row-btn" hidden>撤回照片上傳同意</button>
           <div class="settings-row" id="rowSmartCameraQuota">
             <div class="settings-icon">📷</div>
             <div class="settings-info">
@@ -10023,9 +10024,9 @@ var CapacitorBridgeBundle = (() => {
 */
 
 </script>
-  <link rel="stylesheet" href="features-110.css?v=1.10.0-ui42">
-  <script src="lifecycle.js?v=1.10.0"></script>
-  <script src="features-110.js?v=1.10.0-ui42"></script>
+  <link rel="stylesheet" href="features-110.css?v=1.10.0-ui51">
+  <script src="lifecycle.js?v=1.10.0-security1"></script>
+  <script src="features-110.js?v=1.10.0-security2"></script>
   <script src="sheet-gestures.js?v=1.10.0-ui22"></script>
   <script id="appLogicInline">
   const { bindSheetDrag, animateModalClose, containModalScroll } = window.SheetGestures || {
@@ -13678,7 +13679,7 @@ var CapacitorBridgeBundle = (() => {
       tCtx.putImageData(bgOriginalImageData, 0, 0);
 
       const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
-      const { default: removeBackground } = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@latest/+esm');
+      const { default: removeBackground } = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
 
       const resultBlob = await removeBackground(blob, {
         progress: (key, current, total) => {
