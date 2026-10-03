@@ -48,9 +48,12 @@ window.installExpiry110 = function (app) {
   const SYNC_ENDPOINT='https://expiry-ai.gomeoeo.workers.dev';
   let shopping=read(SHOP,[]), connection=loadConnection(), busy=false, conflict=null, applying=false;
   let generation=0, dialogPurpose='', importData=null, syncTimer;
+  let liveSocket=null,liveKey='',liveRetryTimer,liveHeartbeatTimer,livePongTimer,liveAttempts=0,liveRevision=0,liveBlockedKey='';
   const formSources={}, originalDates={}, pendingDates={};
   const emptyShared=()=>L.validateSnapshot({items:[],settings:{}});
   let sharedData=emptyShared();
+  const SHARED_BASE='lifespan_shared_base_v1_';
+  let sharedBase=connection?read(SHARED_BASE+connection.id,null):null;
   if(connection) {
     try {const cached=read(SHARED_DATA+connection.id,null);if(!cached)throw new Error('缺少快取');sharedData=L.validateSnapshot(cached);}
     catch {connection.needsRead=true;connection.dirty=false;}
@@ -65,6 +68,11 @@ window.installExpiry110 = function (app) {
     const legacy=read(SYNC,null);let session;try{session=JSON.parse(sessionStorage.getItem(SYNC));}catch{}
     const saved=legacy?.token?legacy:(legacy?.id&&session?.id===legacy.id?session:null);if(!saved?.token)return null;
     localStorage.setItem(SYNC,JSON.stringify(saved));sessionStorage.setItem(SYNC,JSON.stringify(saved));return saved;
+  }
+  if(connection&&!connection.dirty&&!connection.needsRead)sharedBase=structuredClone(sharedData);
+  function rememberSharedBase(data) {
+    const next=L.validateSnapshot(data);
+    localStorage.setItem(SHARED_BASE+connection.id,JSON.stringify(next));sharedBase=next;
   }
   function persistConnection() {
     if(connection){localStorage.setItem(SYNC,JSON.stringify(connection));sessionStorage.setItem(SYNC,JSON.stringify(connection));}
@@ -236,10 +244,10 @@ window.installExpiry110 = function (app) {
     $(prefix+'PackageDate').value=$(id).value;formSources[prefix]='manual';$(prefix+'EstimateWrap').hidden=true;updateForm(prefix);
   });
   const settings=document.createElement('div');settings.className='settings-group feature-settings';
-  settings.innerHTML=`<button type="button" class="settings-row-btn" id="manageSharedSpace"><span class="settings-icon" aria-hidden="true"><svg class="app-ui-icon" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18m-5-5 5 5-5 5M21 17H3m5-5-5 5 5 5"/></svg></span><span class="settings-info"><span class="settings-title">共享同步空間設定</span><span class="settings-desc">管理共享空間與邀請碼</span></span><span class="settings-row-actions"><span class="settings-chevron" aria-hidden="true">›</span></span></button><div class="shared-sync-footer"><p id="syncStatus" aria-live="polite"></p>${button('syncNow','立即同步')}</div>`;
+  settings.innerHTML=`<button type="button" class="settings-row-btn" id="manageSharedSpace"><span class="settings-icon" aria-hidden="true"><svg class="app-ui-icon" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18m-5-5 5 5-5 5M21 17H3m5-5-5 5 5 5"/></svg></span><span class="settings-info"><span class="settings-title">共享同步空間設定</span><span class="settings-desc">管理共享空間與邀請碼</span></span><span class="settings-row-actions"><span class="settings-chevron" aria-hidden="true">›</span></span></button><div class="shared-sync-footer"><p id="syncStatus" aria-live="polite"></p></div>`;
   document.querySelector('#settingsModal .settings-version-wrap').before(settings);
   const profileRow=$('btnOpenArchive').cloneNode(true);profileRow.id='sharedEditorProfileSettings';profileRow.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));profileRow.querySelector('.trash-badge-count')?.remove();profileRow.querySelector('.settings-title').textContent='共享空間編輯人';profileRow.querySelector('.settings-desc').textContent='自訂編輯人名稱與頭像';profileRow.querySelector('.settings-icon').replaceChildren(editorAvatar(editorProfile));settings.prepend(profileRow);profileRow.onclick=()=>editProfile();
-  $('manageSharedSpace').onclick=openShared;$('syncNow').onclick=()=>sync(true);
+  $('manageSharedSpace').onclick=openShared;
   function changed() {
     if(applying)return;
     refresh();
@@ -252,6 +260,7 @@ window.installExpiry110 = function (app) {
     next.settings=Object.fromEntries(Object.entries(next.settings).filter(([key])=>SHARED_SETTINGS.includes(key)));
     const dataKey=SHARED_DATA+connection.id,previous=localStorage.getItem(dataKey);let wrote=false;
     try {
+      if(dirty&&sharedBase)localStorage.setItem(SHARED_BASE+connection.id,JSON.stringify(sharedBase));
       localStorage.setItem(dataKey,JSON.stringify(next));
       wrote=true;
       if(dirty){localStorage.setItem(SYNC,JSON.stringify({...connection,dirty:true}));sessionStorage.setItem(SYNC,JSON.stringify({...connection,dirty:true}));}
@@ -265,7 +274,7 @@ window.installExpiry110 = function (app) {
       if(canonical&&content(canonical)===content(editorRecord))editorRecord=structuredClone(canonical);
     }
     sharedData=next;
-    if(dirty){connection.dirty=true;generation++;clearTimeout(syncTimer);syncTimer=setTimeout(()=>sync(false),1200);}
+    if(dirty){connection.dirty=true;generation++;clearTimeout(syncTimer);syncTimer=setTimeout(()=>sync(false),0);}
     refresh();
   }
   function mutateShared(action) {
@@ -370,6 +379,7 @@ window.installExpiry110 = function (app) {
         $('createSpace').disabled=true;$('joinSpace').disabled=true;
         try {
           connection={endpoint:SYNC_ENDPOINT,id:randomHex(16),token:randomHex(32),ownerToken:randomHex(32),revision:0,dirty:true,isolated:true,connectedAt:Date.now(),status:'待同步'};
+          sharedBase=emptyShared();
           try {applySharedSnapshot(emptyShared());}catch(error){connection=null;throw error;}
           generation++;persistConnection();
           await sync(true);
@@ -383,9 +393,9 @@ window.installExpiry110 = function (app) {
         const next={endpoint:SYNC_ENDPOINT,id,token,...(ownerToken?{ownerToken}:{}),revision:0,dirty:false};
         operating=true;$('createSpace').disabled=true;$('joinSpace').disabled=true;
         try {
-        const remote=await request(next,'GET');if(!remote.snapshot)throw new Error('共享空間不存在或邀請碼已失效');
+        const remote=await request(next,'POST',{revision:0,action:'registerMember'});if(!remote.snapshot)throw new Error('共享空間不存在或邀請碼已失效');
         const data=L.validateSnapshot(remote.snapshot);connection={...next,revision:remote.revision,dirty:false,isolated:true,status:'已同步',lastSyncedAt:Date.now()};
-        try {applySharedSnapshot(data);}catch(e){connection=null;throw e;}
+        try {rememberSharedBase(data);applySharedSnapshot(data);}catch(e){connection=null;throw e;}
         generation++;persistConnection();refresh();openShared();
         } finally {resetActions();}
       });
@@ -410,41 +420,118 @@ window.installExpiry110 = function (app) {
     }
   }
   async function request(c,method,data) {
-    if(method==='PUT'){if(!c.editorToken){c.editorToken=randomHex(32);if(c===connection)persistConnection();}data={...data,editorProfile:editorIdentity()};}
-    const response=await fetch(`${safeEndpoint(c.endpoint)}/api/spaces/${c.id}`,{method,headers:{Authorization:'Bearer '+c.token,...(c.ownerToken?{'X-Space-Owner':c.ownerToken}:{}),...(method==='PUT'?{'X-Editor-Token':c.editorToken}:{}),...(method==='PUT'&&c.revision===0&&creationChallenge?{'X-Turnstile-Token':creationChallenge}:{}),...(data?{'Content-Type':'application/json'}:{})},body:data?JSON.stringify(data):undefined,redirect:'error',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(15000)});
+    if(!c.editorToken){c.editorToken=randomHex(32);if(c===connection)persistConnection();}
+    if(method==='PUT'||data?.action==='registerMember')data={...data,editorProfile:editorIdentity()};
+    const response=await fetch(`${safeEndpoint(c.endpoint)}/api/spaces/${c.id}`,{method,headers:{Authorization:'Bearer '+c.token,...(c.ownerToken?{'X-Space-Owner':c.ownerToken}:{}),'X-Editor-Token':c.editorToken,...(method==='PUT'&&c.revision===0&&creationChallenge?{'X-Turnstile-Token':creationChallenge}:{}),...(data?{'Content-Type':'application/json'}:{})},body:data?JSON.stringify(data):undefined,redirect:'error',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(15000)});
     const body=await response.json().catch(()=>({message:'同步服務回應格式不正確'}));
+    if(response.ok&&Array.isArray(body.members)){c.members=body.members;if(c===connection)persistConnection();}
     if(response.status===409)return {...body,conflict:true};
     if(response.status===429){c.retryAfter=Date.now()+Math.max(60,Math.min(3600,Number(response.headers.get('Retry-After'))||60))*1000;throw new Error(body.message||'同步過於頻繁，請稍後再試');}
-    if(!response.ok)throw new Error(body.message||'同步失敗，資料保留於本機');return body;
+    if(data?.action==='registerMember'&&((response.status===400&&body.message==='邀請碼格式不正確')||(response.status===403&&body.message==='只有建立者可以更新邀請碼')))throw new Error('雲端共享服務尚未更新，請部署新版後端後再查看成員');
+    if(!response.ok){const error=new Error(body.message||'同步失敗，資料保留於本機');error.status=response.status;throw error;}return body;
   }
-  async function sync(manual=false) {
+  let syncFlight=null;
+  let syncRetryCount=0;
+  function retryPendingSync(current) {
+    if(connection!==current||conflict||liveBlockedKey===liveIdentity()||!navigator.onLine||(!current.dirty&&liveRevision<=current.revision))return;
+    const delay=Math.max(Math.min(300000,1000*2**Math.min(syncRetryCount++,9)),(current.retryAfter||0)-Date.now());
+    clearTimeout(syncTimer);syncTimer=setTimeout(()=>sync(false),delay+Math.random()*500);
+  }
+  function stopLiveUpdates() {
+    clearTimeout(liveRetryTimer);clearTimeout(liveHeartbeatTimer);clearTimeout(livePongTimer);
+    const socket=liveSocket;liveSocket=null;liveKey='';liveRevision=0;
+    if(socket){socket.onclose=null;socket.close();}
+  }
+  function liveIdentity(){return connection?[connection.endpoint,connection.id,connection.token,connection.ownerToken||''].join('|'):'';}
+  function requestLiveRevision() {
+    if(connection&&!conflict&&(connection.dirty||liveRevision>connection.revision))sync(false);
+  }
+  function startLiveUpdates() {
+    if(!connection||connection.revision<1||document.hidden||!navigator.onLine){stopLiveUpdates();return;}
+    const key=liveIdentity();if(liveBlockedKey===key)return;
+    if(liveSocket&&liveKey===key)return;
+    if(liveRetryTimer&&liveKey===key)return;
+    stopLiveUpdates();liveKey=key;
+    const current=connection;let socket;
+    try {
+      const endpoint=new URL(safeEndpoint(current.endpoint));endpoint.protocol='wss:';endpoint.pathname='/api/spaces/'+current.id;
+      socket=new WebSocket(endpoint.href,['expiry-sync','token.'+current.token,...(current.ownerToken?['owner.'+current.ownerToken]:[]),...(current.editorToken?['editor.'+current.editorToken]:[])]);
+    } catch {return;}
+    liveSocket=socket;
+    const heartbeat=()=>{
+      if(liveSocket!==socket||socket.readyState!==WebSocket.OPEN)return;
+      socket.send('ping');livePongTimer=setTimeout(()=>socket.close(),20000);
+    };
+    socket.onopen=()=>{if(liveSocket!==socket)return;liveAttempts=0;liveHeartbeatTimer=setTimeout(heartbeat,60000);};
+    socket.onmessage=event=>{
+      if(liveSocket!==socket||connection!==current||liveIdentity()!==key)return;
+      if(event.data==='pong'){clearTimeout(livePongTimer);liveHeartbeatTimer=setTimeout(heartbeat,60000);return;}
+      let message;try{message=JSON.parse(event.data);}catch{return;}
+      if(message.type==='revision'&&Number.isSafeInteger(message.revision)&&message.revision>0){
+        liveRevision=Math.max(liveRevision,message.revision);requestLiveRevision();
+      } else if(message.type==='deleted'||message.type==='revoked') {
+        liveBlockedKey=key;current.status=message.type==='deleted'?'共享空間已刪除；本機資料保留':'邀請碼已失效，請使用新邀請碼重新加入';
+        stopLiveUpdates();clearTimeout(syncTimer);persistConnection();refresh();app.toast(current.status);
+      }
+    };
+    socket.onclose=event=>{
+      if(liveSocket!==socket)return;
+      liveSocket=null;clearTimeout(liveHeartbeatTimer);clearTimeout(livePongTimer);
+      if(event.code===4003||event.code===4004){liveBlockedKey=key;current.status=event.code===4004?'共享空間已刪除；本機資料保留':'邀請碼已失效，請使用新邀請碼重新加入';persistConnection();refresh();return;}
+      if(connection!==current||document.hidden||!navigator.onLine)return;
+      const delay=Math.min(300000,1000*2**Math.min(liveAttempts++,9))+Math.random()*500;
+      liveRetryTimer=setTimeout(()=>{liveRetryTimer=null;startLiveUpdates();},delay);
+    };
+  }
+  function sync(manual=false) {
+    if(syncFlight)return syncFlight;
+    syncFlight=performSync(manual).finally(()=>{
+      syncFlight=null;
+      if(connection&&!conflict&&!(connection.retryAfter>Date.now())&&['已同步','本機變更待同步'].includes(connection.status)&&liveRevision>connection.revision){clearTimeout(syncTimer);syncTimer=setTimeout(()=>sync(false),250);}
+    });return syncFlight;
+  }
+  async function performSync(manual=false) {
     cleanupSharedDeleted();
     if(!connection){if(manual)app.toast('請先在共享空間頁建立或加入空間');return;}
-    if(connection.retryAfter>Date.now()){if(manual)app.toast('同步暫停，請稍後再試');return;}
+    if(connection.retryAfter>Date.now()){retryPendingSync(connection);if(manual)app.toast('同步暫停，請稍後再試');return;}
     if(busy)return;if(conflict){if(manual)showConflict();return;}
     if(!navigator.onLine){connection.status='離線，變更已保存在本機';persistConnection();refresh();return;}
-    busy=true;const current=connection,version=generation;current.status='同步中';refresh();
+    busy=true;const current=connection;let again=false;current.status='同步中';refresh();
     try {
+      for(let attempt=0;attempt<3;attempt++) {
+      const version=generation;
       const payload=current.dirty?{revision:current.revision,snapshot:await sharedSnapshot()}:null;
       const result=await request(current,payload?'PUT':'GET',payload);
       if(connection!==current)return;
-      if(result.conflict){conflict=result;current.status='有其他裝置變更，請選擇合併或還原';if(manual)showConflict();return;}
-      if(payload){current.revision=result.revision;if(generation===version){current.dirty=false;if(result.snapshot)applySharedSnapshot(result.snapshot);}}
+      if(result.conflict||(!payload&&result.snapshot&&(generation!==version||current.dirty))) {
+        const merged=L.rebaseShared(sharedBase||emptyShared(),sharedData,result.snapshot);
+        if(merged.conflicts.length){conflict={...result,conflict:true};current.status='同一物品有其他裝置變更，請處理同步衝突';app.toast(current.status);showConflict();return;}
+        applySharedSnapshot(merged.snapshot,{dirty:true});rememberSharedBase(result.snapshot);current.revision=result.revision;current.needsRead=false;
+        again=true;continue;
+      }
+      if(payload){
+        current.revision=result.revision;rememberSharedBase(result.snapshot||payload.snapshot);
+        if(generation===version){current.dirty=false;if(result.snapshot)applySharedSnapshot(result.snapshot);}
+      }
       else if(result.snapshot&&(result.revision!==current.revision||current.needsRead)) {
-        if(generation!==version||current.dirty){conflict={...result,conflict:true};current.status='同步期間有本機變更，請處理衝突';return;}
-        applySharedSnapshot(result.snapshot);current.revision=result.revision;current.needsRead=false;
+        rememberSharedBase(result.snapshot);applySharedSnapshot(result.snapshot);current.revision=result.revision;current.needsRead=false;
       } else if(!result.snapshot&&current.revision>0)throw new Error('共享空間已刪除，請中斷後重新建立');
+      again=current.dirty;
+      if(again)continue;
+      break;
+      }
       current.status=current.dirty?'本機變更待同步':'已同步';current.lastSyncedAt=Date.now();if(manual)app.toast(current.status);
-    } catch(error) {if(connection===current)current.status=error.message+'；本機資料保留';if(manual)app.toast(error.message);}
-    finally {busy=false;if(connection===current)persistConnection();refresh();}
+      syncRetryCount=0;
+    } catch(error) {again=false;if(connection===current)current.status=error.message+'；本機資料保留';if(manual||current.dirty)app.toast(error.message);if(![400,401,403,404,410,413,415].includes(error.status))retryPendingSync(current);}
+    finally {busy=false;if(connection===current){persistConnection();if(again&&!conflict){clearTimeout(syncTimer);syncTimer=setTimeout(()=>sync(false),250);}}refresh();}
   }
   function showConflict() {
     const remote=conflict;if(!remote?.snapshot){app.toast('同步衝突，請稍後再試');return;}
     open('同步衝突',`<p>此裝置的共享資料：${counts(sharedData)}</p><p>雲端共享資料：${counts(L.validateSnapshot(remote.snapshot))}</p><p>合併時同識別碼採用雲端資料。採用雲端資料會取代此裝置尚未同步的共享變更，可先匯出共享備份。</p><div class="feature-actions">${button('conflictBackup','匯出共享備份')}${button('conflictMerge','合併並同步')}${button('conflictRemote','採用雲端資料')}</div>`,'conflict');
     $('conflictBackup').onclick=()=>downloadable(sharedData,'共享空間備份_'+app.today()+'.json');
-    $('conflictMerge').onclick=caught(async()=>{applySharedSnapshot(L.mergeSnapshots(sharedData,remote.snapshot),{dirty:true});connection.revision=remote.revision;conflict=null;dialog.close();await sync(true);});
+    $('conflictMerge').onclick=caught(async()=>{applySharedSnapshot(L.mergeSnapshots(sharedData,remote.snapshot),{dirty:true});rememberSharedBase(remote.snapshot);connection.revision=remote.revision;conflict=null;dialog.close();await sync(true);});
     $('conflictRemote').onclick=caught(async()=>{
-      const before=generation;applySharedSnapshot(remote.snapshot);connection.revision=remote.revision;
+      const before=generation;rememberSharedBase(remote.snapshot);applySharedSnapshot(remote.snapshot);connection.revision=remote.revision;
       connection.dirty=generation!==before;connection.status=connection.dirty?'本機變更待同步':'已同步';
       connection.lastSyncedAt=Date.now();conflict=null;persistConnection();dialog.close();refresh();
     });
@@ -534,7 +621,7 @@ window.installExpiry110 = function (app) {
   sharedSettings.querySelector('svg').setAttribute('aria-hidden','true');
   const sharedSettingsLabel=document.createElement('span');sharedSettingsLabel.textContent='共享空間設定';sharedSettings.append(sharedSettingsLabel);
   const sharedCountSettings=document.createElement('div');sharedCountSettings.className='shared-count-settings';
-  $('sharedSortCount').before(sharedCountSettings);sharedCountSettings.append($('sharedSortCount'),sharedSettings);sharedSettings.onclick=openSharedSettings;
+  $('sharedSortCount').after(sharedCountSettings);sharedCountSettings.append(sharedSettings,$('sharedSort'));sharedSettings.onclick=openSharedSettings;
   function openSharedSettings() {
     cleanupSharedDeleted();
     const settingsRow=(source,id,title,description,icon)=>{
@@ -550,13 +637,34 @@ window.installExpiry110 = function (app) {
     const archive=settingsRow('btnOpenArchive','sharedArchivedRecords','已封存共享空間物品','永久封存不刪除，隨時可解除封存');
     const deleted=settingsRow('btnOpenRecentlyDeleted','sharedDeletedRecords','最近刪除共享空間物品','保留 7 天內刪除之物品，7 天後自動清除');
     const profile=settingsRow('sharedEditorProfileSettings','sharedEditorProfile','共享空間編輯人',editorProfile?.name||'自訂編輯人名稱與頭像',editorAvatar(editorProfile).outerHTML);
-    open('共享空間設定',`<div class="settings-group">${manage}${profile}</div><div class="settings-group">${archive}${deleted}</div>`,'sharedSettings');
+    open('共享空間設定',`<div class="settings-group">${manage}${profile}</div><div class="settings-group">${archive}${deleted}</div><div class="feature-actions">${button('sharedMembers','查看空間成員')}${button('sharedLiveSyncNow','立即同步')}</div>`,'sharedSettings');
+    $('sharedLiveSyncNow').onclick=()=>sync(true);
+    $('sharedMembers').onclick=openSharedMembers;
     $('sharedEditorProfile').onclick=()=>editProfile(true);
     const deletedCount=sharedData.recentlyDeletedItems.length;
     if(deletedCount){const badge=document.createElement('span');badge.id='sharedTrashBadgeCount';badge.className='trash-badge-count';badge.textContent=deletedCount;badge.setAttribute('aria-label',`最近刪除 ${deletedCount} 項`);$('sharedDeletedRecords').querySelector('.settings-row-actions').prepend(badge);}
     $('sharedSpaceManage').onclick=openShared;
     $('sharedDeletedRecords').onclick=()=>openSharedRecords('deleted');
     $('sharedArchivedRecords').onclick=()=>openSharedRecords('archived');
+  }
+  async function openSharedMembers() {
+    if(!connection){app.toast('請先建立或加入共享空間');return;}
+    const current=connection;
+    open('共享空間成員','<p id="sharedMembersStatus" role="status">正在載入成員…</p><div id="sharedMemberList"></div>'+button('sharedMembersBack','返回共享空間設定'),'sharedMembers');
+    $('sharedMembersBack').onclick=openSharedSettings;
+    try {
+      const result=await request(current,'POST',{revision:current.revision,action:'registerMember'});
+      if(connection!==current||!$('sharedMemberList'))return;
+      $('sharedMembersStatus').textContent=`目前 ${result.members.length} 位成員（依裝置）`;
+      for(const member of result.members){
+        const row=document.createElement('div');row.className='shared-member-row';
+        const avatar=document.createElement('button');avatar.type='button';avatar.className='shared-member-avatar';avatar.setAttribute('aria-label','查看 '+member.name+' 的頭貼');avatar.append(editorAvatar(member));
+        avatar.onclick=()=>{open(member.name+' 的頭貼','<div id="sharedMemberPortrait"></div>'+button('sharedAvatarBack','返回成員列表'),'sharedMemberAvatar');const portrait=editorAvatar(member);portrait.classList.add('shared-member-portrait');$('sharedMemberPortrait').append(portrait);$('sharedAvatarBack').onclick=openSharedMembers;};
+        const label=document.createElement('span');label.textContent=member.name+(member.isOwner?' · 建立者':'');row.append(avatar,label);
+        if(current.ownerToken&&!member.isOwner){const remove=document.createElement('button');remove.type='button';remove.className='feature-btn';remove.textContent='移除';remove.onclick=caught(async()=>{if(!confirm('確定移除「'+member.name+'」？此裝置將無法繼續存取共享空間。'))return;remove.disabled=true;try{const result=await request(current,'POST',{revision:current.revision,action:'removeMember',memberId:member.id});if(result.conflict)throw new Error('請同步後重新載入成員');current.needsRead=true;await openSharedMembers();app.toast('成員已移除');}finally{remove.disabled=false;}});row.append(remove);}
+        $('sharedMemberList').append(row);
+      }
+    }catch(error){if($('sharedMembersStatus'))$('sharedMembersStatus').textContent='無法載入成員：'+error.message;}
   }
   function openSharedRecords(filter) {
     cleanupSharedDeleted();
@@ -702,7 +810,8 @@ window.installExpiry110 = function (app) {
   }
   function sharedAction(action,id=app.activeId()) {
     const room=connection,item=sharedData.items.find(x=>x.id===id);if(!room||!item)return;
-    const ensure=()=>{if(connection!==room)throw new Error('共享空間已變更');if(JSON.stringify(sharedData.items.find(x=>x.id===id))!==JSON.stringify(item))throw new Error('物品已在其他裝置變更，請重新開啟');};
+    const content=record=>{if(!record)return null;const copy={...record};for(const key of ['createdBy','createdByAt','createdBySource','lastEditedBy','lastEditedAt','lastEditedBySource'])delete copy[key];return JSON.stringify(copy);};
+    const ensure=()=>{if(connection!==room)throw new Error('共享空間已變更');if(content(sharedData.items.find(x=>x.id===id))!==content(item))throw new Error('物品已在其他裝置變更，請重新開啟');};
     const update=change=>{ensure();mutateShared(data=>{const record=data.items.find(x=>x.id===id);change(record,data);record.updatedAt=Date.now();});};
     const finish=()=>{app.closeSheet();if($('itemModal').style.display==='flex'&&app.editorScope()==='shared')app.closeEditor();};
     if(action==='edit'){app.closeSheet();openSharedItem(item);return;}
@@ -751,11 +860,13 @@ window.installExpiry110 = function (app) {
     const last=read(BACKUP,null);$('lastBackupText').textContent=last?'上次備份：'+new Date(last).toLocaleString('zh-TW',{hour12:false}):'尚未備份，建議定期匯出';
     $('syncStatus').textContent=connection?(connection.status||'待同步')+(connection.lastSyncedAt?' · '+new Date(connection.lastSyncedAt).toLocaleString('zh-TW',{hour12:false}):''):'尚未連線；資料儲存在本機';
     renderShared();
+    startLiveUpdates();
   }
   document.addEventListener('expiry-data-change',changed);
-  window.addEventListener('online',()=>sync(false));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync(false);});
-  setInterval(()=>{if(!document.hidden)sync(false);},30000);
+  window.addEventListener('online',()=>{startLiveUpdates();if(connection?.dirty)sync(false);});
+  window.addEventListener('offline',stopLiveUpdates);
+  window.addEventListener('pagehide',stopLiveUpdates);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopLiveUpdates();else {startLiveUpdates();if(connection?.dirty)sync(false);}});
   cleanupSharedDeleted();backfillCachedEditors();refresh();if(connection)setTimeout(()=>sync(false),500);
   return {snapshot,backup,previewImport,fillForm,validateForm,decorate,refresh,sheet,changed,sync,applySnapshot,openSharedItem,prepareSharedEditor,quickShared,sharedSnapshot:()=>structuredClone(sharedData),applySharedSnapshot,sharedCategories,sharedIcon,saveSharedItem,sharedAction,openSharedCategories,openSharedPicker};
 };

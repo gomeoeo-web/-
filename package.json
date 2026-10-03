@@ -10,7 +10,7 @@
     "cap:open": "npx cap open android",
     "test": "node scripts/test-current.mjs",
     "test:legacy": "node --test tests/*_features.test.mjs",
-    "test:release": "npm test && node tests/features-110-browser.mjs && node tests/new-item-save-browser.mjs && node tests/item-icon-text-browser.mjs && node tests/item-save-safety-browser.mjs",
+    "test:release": "npm test && node tests/shared-live-runtime.mjs && node tests/features-110-browser.mjs && node tests/shared-immediate-browser.mjs && node tests/new-item-save-browser.mjs && node tests/item-icon-text-browser.mjs && node tests/item-save-safety-browser.mjs",
     "test:browser": "node tests/features-110-browser.mjs",
     "cloud:login": "wrangler login",
     "cloud:deploy": "wrangler deploy --config backend/wrangler.jsonc",

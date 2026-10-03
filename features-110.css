@@ -107,9 +107,9 @@ body.shared-page-active #sharedSettingsButton{display:flex}
 .shared-record-row{width:100%;margin-bottom:8px;text-align:left;overflow-wrap:anywhere}
 :root body #sharedDeletedRecords #sharedTrashBadgeCount{background:#c93630!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 
-.shared-sort-toolbar{flex-wrap:wrap;gap:8px 12px}
-.shared-count-settings{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.shared-sort-toolbar #sharedSort{margin-left:auto}
+.shared-sort-toolbar{flex-wrap:nowrap;gap:8px}
+.shared-count-settings{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex-shrink:0;margin-left:auto}
+.shared-sort-toolbar #sharedSort{margin-left:0}
 :root body #sharedSettingsButton{width:auto;height:auto;min-height:36px;padding:0;gap:5px;border-radius:4px;background:transparent!important;color:var(--ios-text-secondary)!important;-webkit-text-fill-color:var(--ios-text-secondary)!important;border:0!important;box-shadow:none;font:inherit;font-size:.84rem;font-weight:600;letter-spacing:.01em;white-space:nowrap}
 #sharedSettingsButton svg{width:16px;height:16px;flex-shrink:0}
 #sharedSettingsButton svg circle{fill:currentColor}
@@ -126,3 +126,13 @@ body.shared-page-active #sharedSettingsButton{display:flex}
 .shared-record-meta{font-size:12px;line-height:1.5;color:var(--ios-text-secondary);overflow-wrap:anywhere}
 .shared-record-chevron{font-size:24px;color:var(--ios-text-secondary)}
 .shared-record-row:focus-visible{outline:2px solid var(--ios-blue);outline-offset:2px}
+
+.shared-member-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-color,#ddd)}
+.shared-member-row>span{flex:1;overflow-wrap:anywhere}
+.shared-member-avatar{border:0;background:transparent;padding:4px;cursor:pointer}
+.shared-member-portrait{width:240px!important;height:240px!important;font-size:80px;margin:20px auto;display:flex}
+.shared-member-portrait img{width:100%;height:100%;object-fit:cover}
+
+:root body #sharedSortCount{flex:1;min-width:0;white-space:normal}
+:root body #sharedSettingsButton{font-size:12px}
+:root body #sharedSort{padding-inline:0;white-space:nowrap}

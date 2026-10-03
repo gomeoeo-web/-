@@ -101,6 +101,29 @@
     }
     return validateSnapshot(out);
   }
+  // Rebase pending edits onto the cloud without overwriting concurrent edits.
+  function rebaseShared(base, local, remote) {
+    const a=validateSnapshot(base),b=validateSnapshot(local),c=validateSnapshot(remote);
+    const keys=['items','archivedItems','recentlyDeletedItems'];
+    const records=data=>new Map(keys.flatMap(key=>data[key].map(item=>[item.id,{key,item}])));
+    const before=records(a),pending=records(b),cloud=records(c),conflicts=[];
+    const content=record=>{if(!record)return null;const item={...record.item};for(const key of ['createdBy','createdByAt','createdBySource','lastEditedBy','lastEditedAt','lastEditedBySource'])delete item[key];return JSON.stringify({key:record.key,item:Object.fromEntries(Object.entries(item).sort(([x],[y])=>x.localeCompare(y)))});};
+    const out={...c};for(const key of keys)out[key]=[];
+    for(const id of new Set([...before.keys(),...pending.keys(),...cloud.keys()])) {
+      const old=before.get(id),mine=pending.get(id),theirs=cloud.get(id);
+      const changed=content(mine)!==content(old),remoteChanged=content(theirs)!==content(old);
+      if(changed&&remoteChanged&&content(mine)!==content(theirs))conflicts.push(id);
+      const chosen=changed&&!remoteChanged?mine:theirs;
+      if(chosen)out[chosen.key].push(chosen.item);
+    }
+    out.settings={...c.settings};
+    for(const key of new Set([...Object.keys(a.settings),...Object.keys(b.settings),...Object.keys(c.settings)])) {
+      if(b.settings[key]===a.settings[key])continue;
+      if(c.settings[key]!==a.settings[key]&&b.settings[key]!==c.settings[key]){conflicts.push(key);continue;}
+      if(b.settings[key]===undefined)delete out.settings[key];else out.settings[key]=b.settings[key];
+    }
+    return {snapshot:validateSnapshot(out),conflicts};
+  }
   function nextReminder(item) {
     if (item.usageState==='pending' || !item.endDate || item.reminderType==='none' || Number(item.warnDays) < 0) return null;
     let date = item.reminderDate || offset(item.endDate,-(Number.isInteger(item.warnDays)?item.warnDays:1));
@@ -112,7 +135,7 @@
     const time=/^([01]\d|2[0-3]):[0-5]\d$/.test(item.reminderTime || '')?item.reminderTime:'09:00';
     return new Date(date+'T'+time+':00');
   }
-  const api={SETTINGS,COLLECTIONS,SOURCES,validDate,offset,normalize,validateSnapshot,validateEditor,mergeSnapshots,nextReminder};
+  const api={SETTINGS,COLLECTIONS,SOURCES,validDate,offset,normalize,validateSnapshot,validateEditor,mergeSnapshots,rebaseShared,nextReminder};
   if (typeof module==='object' && module.exports) module.exports=api;
   root.ExpiryLifecycle=api;
 })(typeof window==='object'?window:globalThis);
