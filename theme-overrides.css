@@ -2231,3 +2231,7 @@ html {
   color: #ffffff;
   border-color: #52796f;
 }
+#itemWarnDaysSelect { width: 100%; min-width: 0; }
+
+/* Full-width fields keep native date values readable at every screen fit. */
+:root body #customReminderDateTimeWrap .reminder-custom-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }

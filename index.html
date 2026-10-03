@@ -2,7 +2,7 @@
 <html lang="zh-TW" data-theme="light" data-screen-fit="plus">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-+ydnH2LN5SNGkkzonYohKxSasA77juV6INqZ1Me/Tig=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev wss://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-c8YA6s3HxcZs8N5JYNv7UTIzxTZKuqmYbAED3ehz4RQ=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev wss://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <script>
     if (/Android/i.test(navigator.userAgent)) {
@@ -8216,6 +8216,18 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
                 </div>
                 <div class="reminder-custom-grid">
                   <div class="ios-field">
+                    <label for="itemWarnDaysSelect">提前幾天提醒</label>
+                    <select id="itemWarnDaysSelect">
+                      <option value="1" selected>到期前 1 天</option>
+                      <option value="3">到期前 3 天</option>
+                      <option value="7">到期前 7 天</option>
+                      <option value="14">到期前 14 天</option>
+                      <option value="30">到期前 30 天</option>
+                      <option value="0">到期當天</option>
+                      <option value="custom">自訂日期</option>
+                    </select>
+                  </div>
+                  <div class="ios-field">
                     <label for="itemReminderCustomDate">提醒日期</label>
                     <input type="date" id="itemReminderCustomDate">
                   </div>
@@ -13275,7 +13287,10 @@ var CapacitorBridgeBundle = (() => {
   const fieldDurationWrap = document.getElementById('fieldDurationWrap');
   const itemWarnDaysSelect = document.getElementById('itemWarnDaysSelect');
   if (itemWarnDaysSelect) {
-    itemWarnDaysSelect.addEventListener('change', autoSaveCurrentItem);
+    itemWarnDaysSelect.addEventListener('change', () => {
+      setReminderSelectValue(itemWarnDaysSelect.value);
+      autoSaveCurrentItem();
+    });
   }
   const fieldReminderWrap = document.getElementById('fieldReminderWrap');
   const itemReminderToggle = document.getElementById('itemReminderToggle');
@@ -13285,6 +13300,9 @@ var CapacitorBridgeBundle = (() => {
   const itemPresetReminderTime = document.getElementById('itemPresetReminderTime');
   const customReminderDateTimeWrap = document.getElementById('customReminderDateTimeWrap');
   const itemReminderCustomDate = document.getElementById('itemReminderCustomDate');
+  itemReminderCustomDate.addEventListener('change', () => {
+    itemWarnDaysSelect.value = 'custom';
+  });
   const itemReminderCustomTime = document.getElementById('itemReminderCustomTime');
   const previewElapsedBar = document.getElementById('previewElapsedBar');
   const itemLocationInput = document.getElementById('itemLocation');
@@ -14047,7 +14065,7 @@ var CapacitorBridgeBundle = (() => {
       updateReminderToggleState(false);
     } else {
       updateReminderToggleState(true);
-      if (itemEndDateInput && itemEndDateInput.value && itemReminderCustomDate) {
+      if (warnDays !== 'custom' && itemEndDateInput && itemEndDateInput.value && itemReminderCustomDate) {
         const days = parseInt(warnDays, 10);
         itemReminderCustomDate.value = getOffsetDateString(itemEndDateInput.value, isNaN(days) ? -1 : -days);
       }
@@ -14144,7 +14162,7 @@ var CapacitorBridgeBundle = (() => {
     if (itemReminderCustomDate) itemReminderCustomDate.value = getOffsetDateString(defaultEnd, -1);
     if (itemReminderCustomTime) itemReminderCustomTime.value = '09:00';
     const warnSelectAdd = document.getElementById('itemWarnDaysSelect');
-    if (warnSelectAdd) warnSelectAdd.value = '7';
+    if (warnSelectAdd) warnSelectAdd.value = '1';
     updateReminderToggleState(true);
     updateReminderSectionVisibility();
 
@@ -14229,7 +14247,11 @@ var CapacitorBridgeBundle = (() => {
       if (itemReminderCustomTime) itemReminderCustomTime.value = item.reminderTime || '09:00';
     }
     const warnSelectEdit = document.getElementById('itemWarnDaysSelect');
-    if (warnSelectEdit) warnSelectEdit.value = (item && item.warnDays !== undefined) ? String(item.warnDays) : '7';
+    if (warnSelectEdit) {
+      const days = String(item.warnDays ?? 1);
+      warnSelectEdit.value = [...warnSelectEdit.options].some(option => option.value === days)
+        && itemReminderCustomDate.value === getOffsetDateString(item.endDate, -Number(days)) ? days : 'custom';
+    }
     updateReminderSectionVisibility();
 
     itemLocationInput.value = item.location || '';
@@ -14489,6 +14511,9 @@ var CapacitorBridgeBundle = (() => {
     if (endStr) {
       duration = Math.max(1, diffDays(startStr, endStr));
       itemDurationInput.value = duration;
+      if (itemWarnDaysSelect && itemWarnDaysSelect.value !== 'custom') {
+        itemReminderCustomDate.value = getOffsetDateString(endStr, -Number(itemWarnDaysSelect.value));
+      }
     }
 
   }

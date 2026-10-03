@@ -660,7 +660,7 @@ window.installExpiry110 = function (app) {
         const row=document.createElement('div');row.className='shared-member-row';
         const avatar=document.createElement('button');avatar.type='button';avatar.className='shared-member-avatar';avatar.setAttribute('aria-label','查看 '+member.name+' 的頭貼');avatar.append(editorAvatar(member));
         avatar.onclick=()=>{open(member.name+' 的頭貼','<div id="sharedMemberPortrait"></div>'+button('sharedAvatarBack','返回成員列表'),'sharedMemberAvatar');const portrait=editorAvatar(member);portrait.classList.add('shared-member-portrait');$('sharedMemberPortrait').append(portrait);$('sharedAvatarBack').onclick=openSharedMembers;};
-        const label=document.createElement('span');label.textContent=member.name+(member.isOwner?' · 建立者':'');row.append(avatar,label);
+        const label=document.createElement('span');label.textContent=member.name+(member.isOwner?' · 建立者':member.legacy?' · 舊版成員':'');row.append(avatar,label);
         if(current.ownerToken&&!member.isOwner){const remove=document.createElement('button');remove.type='button';remove.className='feature-btn';remove.textContent='移除';remove.onclick=caught(async()=>{if(!confirm('確定移除「'+member.name+'」？此裝置將無法繼續存取共享空間。'))return;remove.disabled=true;try{const result=await request(current,'POST',{revision:current.revision,action:'removeMember',memberId:member.id});if(result.conflict)throw new Error('請同步後重新載入成員');current.needsRead=true;await openSharedMembers();app.toast('成員已移除');}finally{remove.disabled=false;}});row.append(remove);}
         $('sharedMemberList').append(row);
       }
