@@ -61,7 +61,7 @@ export function setCloudCameraBusy(busy) {
   const confirmBtn = document.getElementById('btnApplyNlpConfirm');
   const consentAcceptBtn = document.querySelector('[data-accept]');
 
-  const targets = [shutterBtn, albumBtn, confirmBtn, consentAcceptBtn].filter(Boolean);
+  const targets = [shutterBtn, albumBtn, confirmBtn, document.getElementById('btnApplyNlpConfirmBottom'), consentAcceptBtn].filter(Boolean);
   targets.forEach(btn => {
     btn.disabled = !!busy;
     btn.classList.toggle('disabled', !!busy);
@@ -225,55 +225,48 @@ export async function recognizeCanvas(canvas, photoDataUrl) {
       ? matched.category
       : (modelCategory !== 'other' ? modelCategory : (matched?.category || 'other'));
     const printedDate = dateOrNull(result.expiryDate, result.expiryEvidence);
-    const shelfLife = result.recognized && ['food','fresh','drinks','snack'].includes(category)
-      ? result.shelfLife : null;
-    let estimate = null;
-    if (!printedDate && Number.isInteger(shelfLife?.days) && shelfLife.days >= 1 && shelfLife.days <= 365 &&
-        ['unopened_estimate','purchased_today'].includes(shelfLife.basis) && typeof shelfLife.conditions === 'string' &&
-        shelfLife.conditions.trim() && typeof shelfLife.evidence === 'string' && shelfLife.evidence.trim()) {
-      try {
-        const source = new URL(shelfLife.sourceUrl);
-        if (source.protocol === 'https:' && !source.username && !source.password) {
-          const today = new Date();
-          const startDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-          const end = new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()+shelfLife.days));
-          estimate = {...shelfLife,startDate,expiryDate:end.toISOString().slice(0,10),sourceUrl:source.href};
-        }
-      } catch {}
-    }
     // Keep a useful product name even when the model cannot map it to a
     // category. The confirmation dialog will use `other` instead of dropping
     // the name and forcing the user to type it again.
     const name = result.name.trim().slice(0, 100) || '未辨識物品';
     const subCategory = (matched && matched.category === category) ? (matched.subCategory || '') : '';
     const autoInferred = window.inferItemLifespanOrUsageDate?.(name, category, subCategory);
-    if (!printedDate && !estimate && result.recognized && ['food','fresh','drinks','snack'].includes(category)) {
-      // A local reminder estimate also works with older cloud responses that
-      // contain no search metadata. Never present it as a searched batch date.
-      const dairy = /鮮乳|鮮奶|牛奶|牛乳|生乳|全脂乳|低脂乳/.test(name) && !/保久|長效|ESL|奶粉|餅乾|糖果|調味|優酪|豆/.test(name);
-      const kuangChuanMilk = dairy && /光泉.*(?:鮮乳|鮮奶)/.test(name);
-      const defaultDays = {food:7,fresh:3,drinks:7,snack:30}[category];
-      const days = dairy ? (kuangChuanMilk ? 13 : 12) : (Number.isInteger(autoInferred?.durationDays) && autoInferred.durationDays > 0
-        ? Math.min(autoInferred.durationDays,defaultDays) : defaultDays);
+    let estimate = null;
+    if (!printedDate && result.recognized && ['food','fresh','drinks','snack'].includes(category)) {
+      const shelfLife = result.shelfLife;
+      if (Number.isInteger(shelfLife?.days) && shelfLife.days >= 1 && shelfLife.days <= 365 &&
+          ['unopened_estimate','purchased_today'].includes(shelfLife.basis) &&
+          typeof shelfLife.conditions === 'string' && shelfLife.conditions.trim() &&
+          typeof shelfLife.evidence === 'string' && shelfLife.evidence.trim()) {
+        try {
+          const source = new URL(shelfLife.sourceUrl);
+          if (source.protocol === 'https:' && !source.username && !source.password) {
+            estimate = {...shelfLife,sourceUrl:source.href};
+          }
+        } catch {}
+      }
+      if (!estimate) {
+        const dairy = /鮮乳|鮮奶|牛奶|牛乳|生乳|全脂乳|低脂乳/.test(name) && !/保久|長效|ESL|奶粉|餅乾|糖果|調味|優酪|豆/.test(name);
+        const kuangChuanMilk = dairy && /光泉.*(?:鮮乳|鮮奶)/.test(name);
+        const defaultDays = {food:7,fresh:3,drinks:7,snack:30}[category];
+        const days = dairy ? (kuangChuanMilk ? 13 : 12) :
+          (Number.isInteger(autoInferred?.durationDays) && autoInferred.durationDays > 0 ? Math.min(autoInferred.durationDays,defaultDays) : defaultDays);
+        estimate = {days,basis:dairy ? 'unopened_estimate' : 'purchased_today',
+          sourceUrl:kuangChuanMilk ? 'https://www.kuangchuan.com.tw/Product/Milk' : null,
+          sourceTitle:kuangChuanMilk ? '光泉鮮乳產品資料' : null,
+          sourceType:kuangChuanMilk ? 'reference' : 'local'};
+      }
       const today = new Date();
-      const startDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-      const end = new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()+days));
-      estimate = {days,startDate,expiryDate:end.toISOString().slice(0,10),basis:dairy ? 'unopened_estimate' : 'purchased_today',
-        conditions:dairy ? '未開封冷藏；暫以今天起算，實際有效日期以瓶身為準。' : '暫以今天購買且新鮮起算，請依包裝保存方式。',
-        evidence:kuangChuanMilk ? '光泉官網列示一般光泉鮮乳冷藏保存13天，為總保存期限，非此瓶剩餘天數。' : '依食品類型的大致提醒天數，非即時網路搜尋結果。',
-        sourceUrl:kuangChuanMilk ? 'https://www.kuangchuan.com.tw/Product/Milk' : null,
-        sourceTitle:kuangChuanMilk ? '光泉鮮乳產品資料' : null,sourceType:kuangChuanMilk ? 'reference' : 'local'};
+      estimate.startDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      estimate.expiryDate = new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()+estimate.days)).toISOString().slice(0,10);
     }
     const expiryDate = printedDate || estimate?.expiryDate || null;
-    const localEstimate = !!estimate && (!estimate.sourceUrl || !!estimate.sourceType);
-    const estimateNotice = estimate ? `估算到期日：${expiryDate}（約 ${estimate.days} 天）。\n${estimate.basis === 'unopened_estimate' ? '未開封，暫以今天起算；以包裝日期為準。' : '暫以今天購買起算；以包裝日期為準。'}` : '';
-    const notes = printedDate ? '日期原文：' + result.expiryEvidence.slice(0,300)
-      : estimate ? `${estimateNotice}\n保存條件：${estimate.conditions}\n參考依據：${estimate.evidence}\n此日期為提醒估算，非包裝有效期限。${estimate.sourceUrl ? `\n來源：${estimate.sourceTitle || '食品保存指引'} ${estimate.sourceUrl}` : ''}` : '';
+    const notes = printedDate ? '日期原文：' + result.expiryEvidence.slice(0,300) : '';
     return { success: true, source: cached ? 'cloud-cache' : 'cloud', name, category, subCategory, autoInferred,
-      isEstimated:!!estimate,expirySource:printedDate ? 'package' : estimate ? (localEstimate ? 'local' : 'web') : null,
+      isEstimated:!!estimate,expirySource:printedDate ? 'package' : estimate ? (estimate.sourceType ? 'local' : 'web') : null,
       shelfLife:estimate,startDate:estimate?.startDate,
       emoji: window.DEFAULT_CATEGORIES?.[category]?.emoji || matched?.emoji || '📦', expiryDate, hasEndDate: !!expiryDate, ...defaultPhotoReminder(expiryDate), image: photoDataUrl,
-      recognitionNotice: [result.recognized ? '' : '暫定名稱，請確認物品名稱。', category === 'other' ? '分類暫選「其他」。' : '', printedDate ? '到期日：' + expiryDate + '，請核對包裝。' : estimateNotice || (result.shelfLifeStatus === 'unavailable' ? '未讀到效期，也未取得可靠的網路保存期限，請核對包裝或手動設定。' : '未讀到效期，請手動設定。'), typeof result.uncertainty === 'string' ? result.uncertainty.slice(0, 200) : ''].filter(Boolean).join('\n'),
+      recognitionNotice: [result.recognized ? '' : '暫定名稱，請確認物品名稱。', category === 'other' ? '分類暫選「其他」。' : '', printedDate ? '到期日：' + expiryDate + '，請核對包裝。' : '未讀到效期，請手動設定。', typeof result.uncertainty === 'string' ? result.uncertainty.slice(0, 200) : ''].filter(Boolean).join('\n'),
       notes };
   } catch (error) {
     if (error.name === 'AbortError' || controller.signal.aborted) {

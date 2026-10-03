@@ -85,6 +85,10 @@
 #sharedItemsGrid .shared-card-editor{position:absolute;top:12px;right:12px;pointer-events:none}
 #sharedItemsGrid .shared-item-card:has(.shared-card-editor) .card-top-row{padding-right:28px}
 .shared-editor-detail{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.6;color:var(--ios-text-secondary);padding-block:8px}
+.shared-editor-history{display:flex;flex-direction:column;min-width:0}
+.shared-editor-detail>span:last-child{min-width:0;overflow-wrap:anywhere}
+.shared-operation{font-size:12px;line-height:1.6;color:var(--ios-text-secondary);overflow-wrap:anywhere}
+#sharedItemsGrid .shared-operation{grid-column:1/-1;margin-top:6px}
 .shared-profile-preview .shared-editor-avatar{width:64px;height:64px;font-size:24px}
 #sharedItemsGrid.shared-list-mode{display:flex!important;flex-direction:column!important;gap:9px!important}
 #sharedItemsGrid.shared-list-mode>*{min-height:0!important;height:auto!important;flex:none!important;width:100%!important;box-sizing:border-box;padding:14px 16px!important}
@@ -99,8 +103,7 @@
 #btnSheetAddShared[hidden]{display:none!important}
 @media(max-width:360px){.shared-space-summary{padding:14px;margin-inline:12px}.shared-space-summary h2{font-size:17px}.shared-space-summary .feature-button{padding-inline:10px}.shared-filters{gap:5px}.shared-filters .feature-button{font-size:12px;padding-inline:10px}}
 
-#sharedSettingsButton{display:none;position:static;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer}
-body.shared-page-active #sharedSettingsButton{display:flex}
+#sharedSettingsButton{display:flex;position:static;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer}
 #sharedSettingsButton:focus-visible{outline:2px solid var(--ios-blue);outline-offset:3px}
 #btnSheetPending[hidden]{display:none!important}
 #featuresDialog[data-purpose="sharedSettings"] #featureDialogBody{display:flex;flex-direction:column;gap:12px}
@@ -136,3 +139,5 @@ body.shared-page-active #sharedSettingsButton{display:flex}
 :root body #sharedSortCount{flex:1;min-width:0;white-space:normal}
 :root body #sharedSettingsButton{font-size:12px}
 :root body #sharedSort{padding-inline:0;white-space:nowrap}
+:root body #sharedLiveSyncNow { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+:root body #sharedLastSyncTime { font-size: 12px; font-weight: 400; line-height: 1.5; }

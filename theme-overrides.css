@@ -847,7 +847,7 @@ html {
   -webkit-text-fill-color: var(--button-text) !important;
   box-shadow: none !important;
 }
-:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan):not(.dock-tab) :is(.dock-label, .filter-btn-text, .chip-label),
+:root:not([data-theme="light"]) body button:is(:active, .active, [aria-pressed="true"]):not(#btnCameraScan):not(.dock-tab):not(.home-filter-btn):not(.category-chip) :is(.dock-label, .filter-btn-text, .chip-label),
 :root:not([data-theme="light"]) body .btn-sheet-action:active:not(#btnCameraScan) span,
 :root:not([data-theme="light"]) body .settings-row-btn:active :is(.settings-title, .settings-subtitle) {
   color: #202124 !important;
@@ -1286,7 +1286,7 @@ html {
   --form-surface: #29292c;
   --form-border: #55555b;
 }
-:root[data-theme="light"] { --form-surface: #f7f3eb; --form-border: #d9d5cd; }
+:root[data-theme="light"] { --form-surface: #ffffff; --form-border: #d9d5cd; }
 :root[data-theme="amoled"] { --form-surface: #202022; --form-border: #4d4d51; }
 :root body .ios-modal-header,
 :root body .icon-picker-dialog header { padding: 20px var(--modal-content-inset); }
@@ -1742,9 +1742,11 @@ html {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, #e3ebdc 0%, #e3ebdc 1%, #e8eee2 18%, #eef1e8 34%, #f0f1e9 45%, #f3efe6 50%, #f3efe6 100%);
-  background-size: 100% 100lvh;
-  background-repeat: no-repeat;
+  /* Seamless neutral paper fibers over the original page colors only. */
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22256%22%20height%3D%22256%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cfilter%20id%3D%22paper%22%20x%3D%220%22%20y%3D%220%22%20width%3D%22100%25%22%20height%3D%22100%25%22%20color-interpolation-filters%3D%22sRGB%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.22%20.48%22%20numOctaves%3D%223%22%20seed%3D%2214%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeDiffuseLighting%20surfaceScale%3D%22.7%22%20diffuseConstant%3D%221%22%20lighting-color%3D%22white%22%3E%3CfeDistantLight%20azimuth%3D%22225%22%20elevation%3D%2255%22%2F%3E%3C%2FfeDiffuseLighting%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type%3D%22linear%22%20slope%3D%223%22%20intercept%3D%22-1.95%22%2F%3E%3CfeFuncG%20type%3D%22linear%22%20slope%3D%223%22%20intercept%3D%22-1.95%22%2F%3E%3CfeFuncB%20type%3D%22linear%22%20slope%3D%223%22%20intercept%3D%22-1.95%22%2F%3E%3CfeFuncA%20type%3D%22linear%22%20slope%3D%22.36%22%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Cpath%20fill%3D%22white%22%20filter%3D%22url(%23paper)%22%20d%3D%22M0%200h256v256H0z%22%2F%3E%3C%2Fsvg%3E"), linear-gradient(180deg, #e3ebdc 0%, #e3ebdc 1%, #e8eee2 18%, #eef1e8 34%, #f0f1e9 45%, #f3efe6 50%, #f3efe6 100%);
+  background-size: 256px 256px, 100% 100lvh;
+  background-repeat: repeat, no-repeat;
+  background-blend-mode: soft-light, normal;
   background-color: #f3efe6;
 }
 
@@ -2132,8 +2134,8 @@ html {
   }
   :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-top-row { grid-row: 1; }
   :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-item-title { grid-row: 2; }
-  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-metric-main { grid-row: 3; }
-  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-note-preview { grid-row: 4; }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-metric-main { grid-row: 4; }
+  :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-note-preview { grid-row: 3; align-self: end; }
   :root :is(body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid), body #sharedItemsGrid:not(.shared-list-mode)) .card-summary > .card-status-progress { grid-row: 5; }
 }
 
@@ -2235,3 +2237,44 @@ html {
 
 /* Full-width fields keep native date values readable at every screen fit. */
 :root body #customReminderDateTimeWrap .reminder-custom-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+:root body .nlp-confirm-actions { flex-direction: column; }
+:root body .nlp-confirm-actions > button { width: 100%; }
+:root body .nlp-expiry-date-row { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; }
+:root body .nlp-expiry-date-row > #nlpConfirmDate { flex: 1; width: 0; min-width: 0; }
+:root body .nlp-expiry-weekday { flex: none; white-space: nowrap; color: var(--ios-text-secondary); font-size: 14px; }
+#itemSmartMode[hidden] { display: none !important; }
+:root body .nlp-expiry-date-row > #itemEndDate { flex: 1; width: 0; min-width: 0; }
+/* Selected capsule text stays light on dark selection surfaces. */
+:root:is([data-theme="dark"], [data-theme="amoled"]) body :is(.home-filter-btn, .mode-pill, .nlp-mode-pill, .category-chip, .subcat-pill, .nlp-time-pill, .pill-segment, .nlp-day-pill).active,
+:root:is([data-theme="dark"], [data-theme="amoled"]) body :is(.home-filter-btn, .category-chip).active :is(.filter-btn-text, .chip-label) {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+}
+:root:is([data-theme="dark"], [data-theme="amoled"]) body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn,
+:root:is([data-theme="dark"], [data-theme="amoled"]) body :is(#segmentedPillsBar, #sharedSegmentedPillsBar) .home-filter-btn .filter-btn-text {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+}
+
+/* Keep visible notes close to the elapsed-day row. */
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-summary > .card-note-preview {
+  align-self: end;
+  margin-bottom: 0;
+}
+:root body:not(.compact-list-mode) :is(#itemsGrid, #inventoryItemsGrid, #sharedItemsGrid):not(.shared-list-mode) .card-summary > .card-note-preview + .card-metric-main {
+  margin-top: 2px;
+}
+
+/* Light menus use beige paper with white fields and option surfaces. Scope
+   these tokens to menus so home cards and camera/studio surfaces keep theirs. */
+:root[data-theme="light"] body :is(.ios-modal-backdrop:not(#cameraScanModal):not(#bgRemovalModal):not(#aiScanLoadingModal) .ios-modal-card, .ios-action-sheet, .nlp-confirm-dialog, .cloud-consent-dialog, .icon-picker-dialog, .dropdown-menu, .sort-menu, .category-dropdown-menu) {
+  --ios-surface: #f7f3eb;
+  --ios-surface-secondary: #ffffff;
+  --ios-surface-elevated: #ffffff;
+  --button-gray: #ffffff;
+  --group-modal-bg: #f7f3eb;
+  background-color: #f7f3eb !important;
+}
+:root[data-theme="light"] body :is(.ios-modal-card, .nlp-confirm-dialog, .cloud-consent-dialog, .icon-picker-dialog) :is(textarea, .feature-form input:not([type="checkbox"]), .feature-form select) {
+  background-color: var(--form-surface) !important;
+}

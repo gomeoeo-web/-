@@ -2,7 +2,7 @@
 <html lang="zh-TW" data-theme="light" data-screen-fit="plus">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-c8YA6s3HxcZs8N5JYNv7UTIzxTZKuqmYbAED3ehz4RQ=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev wss://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-aJV4PgCVjJ1ML15QYpyCyMZIs72rq5b/Z/PmYr1pX/o=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev wss://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <script>
     if (/Android/i.test(navigator.userAgent)) {
@@ -7649,8 +7649,8 @@ button>svg:not(.flat-item-icon):not(.app-ui-icon){stroke-width:1.65;stroke-linec
 <style>
 /* 1.9.13: consistent tracking pills and breathing room at both ends of the chip rail. */
 #trackingModeRow,#itemDestinationRow { flex-direction:column;align-items:stretch;gap:8px; }
-#modeSegment,#itemDestinationPills,#nlpTrackingModeSelector { display:flex;width:100%;box-sizing:border-box;gap:4px;padding:4px;border-radius:var(--radius-container); }
-#modeSegment button,#itemDestinationPills button,#nlpTrackingModeSelector button { flex:1;min-width:0;white-space:nowrap;font-size:clamp(11px,3.2vw,14px);padding:12px 3px;border-radius:var(--radius-container); }
+#modeSegment,#itemDestinationPills,#nlpDestinationPills,#nlpTrackingModeSelector { display:flex;width:100%;box-sizing:border-box;gap:4px;padding:4px;border-radius:var(--radius-container); }
+#modeSegment button,#itemDestinationPills button,#nlpDestinationPills button,#nlpTrackingModeSelector button { flex:1;min-width:0;white-space:nowrap;font-size:clamp(11px,3.2vw,14px);padding:12px 3px;border-radius:var(--radius-container); }
 #categoryChipRow { box-sizing:border-box;padding:10px 12px 14px;scroll-padding-inline:12px; }
 #categoryChipRow .category-chip { scroll-margin-inline:12px; }
 .pending-intro { display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 14px;padding:20px 4px 24px; }
@@ -7749,7 +7749,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
  .dock-tab:active,.btn-modal-close:active,#btnToggleInventorySearch:active { transform:none; }
 }
 </style>
-  <link rel="stylesheet" href="theme-overrides.css?v=1.10.0-ui41">
+  <link rel="stylesheet" href="theme-overrides.css?v=1.10.0-ui49">
   <style>
     [data-theme="light"] body {
       background-color: #f3efe6;
@@ -8038,6 +8038,10 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
       <div class="ios-modal-scroll">
         <form id="itemForm" autocomplete="off">
           <input type="hidden" id="itemId">
+          <div id="itemSmartMode" class="ios-mode-segment" hidden>
+            <button type="button" class="mode-pill active" data-smart-mode="update">修改既有物品</button>
+            <button type="button" class="mode-pill" data-smart-mode="create">新增為新物品</button>
+          </div>
           <input type="hidden" id="itemSubCategory" value="">
           <div id="itemSaveError" class="item-save-error" hidden role="alert">
             <p>變更尚未儲存。請釋出儲存空間後重試，或放棄未儲存變更。</p>
@@ -8176,7 +8180,10 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
               </div>
               <div class="ios-field" id="fieldEndDateWrap">
                 <label for="itemEndDate">自訂到期日</label>
-                <input type="date" id="itemEndDate">
+                <div class="nlp-expiry-date-row">
+                  <input type="date" id="itemEndDate">
+                  <span id="itemExpiryWeekday" class="nlp-expiry-weekday" aria-live="polite"></span>
+                </div>
               </div>
             </div>
           </div>
@@ -8188,6 +8195,15 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
               <div class="duration-input-wrapper">
                 <input type="number" id="itemDuration" min="1" max="9999" value="180">
                 <span class="duration-unit">天</span>
+              </div>
+              <div class="nlp-quick-days-pills" id="itemQuickDays">
+                <button type="button" class="nlp-day-pill" data-item-days="3">3天</button>
+                <button type="button" class="nlp-day-pill" data-item-days="7">7天</button>
+                <button type="button" class="nlp-day-pill" data-item-days="14">14天</button>
+                <button type="button" class="nlp-day-pill" data-item-days="30">30天</button>
+                <button type="button" class="nlp-day-pill" data-item-days="90">90天</button>
+                <button type="button" class="nlp-day-pill" data-item-days="180">半年</button>
+                <button type="button" class="nlp-day-pill" data-item-days="365">1年</button>
               </div>
             </div>
           </div>
@@ -8284,6 +8300,10 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             </button>
           </div>
 
+          <div class="nlp-confirm-actions">
+            <button type="submit" id="btnSaveItemBottom" class="btn-ios-secondary">儲存</button>
+            <button type="button" id="btnCancelItemBottom" class="btn-ios-secondary">取消</button>
+          </div>
           <!-- Form bottom spacing -->
           <div style="height: 1.25rem; flex-shrink: 0;"></div>
         </form>
@@ -8674,6 +8694,15 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
       </div>
 
       <div class="ios-modal-scroll" style="padding: 0.75rem 1.25rem 1.5rem 1.25rem;">
+        <div class="nlp-confirm-field" id="nlpDestinationRow">
+          <label class="nlp-confirm-label" id="nlpDestinationLabel">加入位置</label>
+          <input type="hidden" id="nlpDestination" value="local">
+          <div class="ios-mode-segment" id="nlpDestinationPills" role="group" aria-labelledby="nlpDestinationLabel">
+            <button type="button" class="mode-pill active" data-nlp-destination="local" aria-pressed="true">本機物品</button>
+            <button type="button" class="mode-pill" data-nlp-destination="pending" aria-pressed="false">待用物品</button>
+            <button type="button" class="mode-pill" data-nlp-destination="shared" aria-pressed="false">共享物品</button>
+          </div>
+        </div>
         <!-- Target Info Notice & Mode Selector (if update) -->
         <div id="nlpConfirmUpdateNotice" class="nlp-update-notice-wrap" style="display: none;">
           <div class="nlp-update-notice-banner">
@@ -8736,7 +8765,10 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
         <!-- Field 3: Expiry Date & Custom Expiration Days (到期日期與自訂天數) -->
         <div class="nlp-confirm-field" id="nlpConfirmDateWrap">
           <label class="nlp-confirm-label" for="nlpConfirmDate">到期日期</label>
-          <input type="date" id="nlpConfirmDate" class="nlp-confirm-input date-picker-input">
+          <div class="nlp-expiry-date-row">
+            <input type="date" id="nlpConfirmDate" class="nlp-confirm-input date-picker-input">
+            <span id="nlpConfirmWeekday" class="nlp-expiry-weekday" aria-live="polite"></span>
+          </div>
           <div class="nlp-extra-options" id="nlpDateExtraOptions">
             <label class="nlp-confirm-label" for="nlpConfirmDays">幾天後到期</label>
             <div class="nlp-days-input-wrap">
@@ -8752,7 +8784,6 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
               <button type="button" class="nlp-day-pill" data-days="365">1年</button>
             </div>
           </div>
-          <div id="nlpConfirmDateHint" class="nlp-confirm-hint">還有 7 天到期</div>
         </div>
 
         <!-- Field 3.5: Elapsed Mode Start Date (謹記使用天數自訂開始日期) -->
@@ -8814,6 +8845,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
 </div>
         <!-- Action Buttons -->
         <div class="nlp-confirm-actions">
+          <button type="button" id="btnApplyNlpConfirmBottom" class="btn-ios-secondary">儲存</button>
           <button type="button" id="btnCancelNlpConfirm" class="btn-ios-secondary" style="flex: 1;">取消</button>
         </div>
       </div>
@@ -10036,9 +10068,9 @@ var CapacitorBridgeBundle = (() => {
 */
 
 </script>
-  <link rel="stylesheet" href="features-110.css?v=1.10.0-ui51">
+  <link rel="stylesheet" href="features-110.css?v=1.10.0-ui52">
   <script src="lifecycle.js?v=1.10.0-security1"></script>
-  <script src="features-110.js?v=1.10.0-security2"></script>
+  <script src="features-110.js?v=1.10.0-security4"></script>
   <script src="sheet-gestures.js?v=1.10.0-ui22"></script>
   <script id="appLogicInline">
   const { bindSheetDrag, animateModalClose, containModalScroll } = window.SheetGestures || {
@@ -12544,18 +12576,18 @@ var CapacitorBridgeBundle = (() => {
         <!-- Item Title -->
         <div class="card-item-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
 
-        <!-- Main Metric: 已使用 12 天 -->
-        <div class="card-metric-main">
-          <span class="metric-pretext">已使用</span>
-          <span class="card-metric-value"><span class="metric-highlight-number">${m.elapsedDays}</span><span class="metric-unit">天</span></span>
-        </div>
-
         <!-- Card Note Preview on Home Page (主頁專屬備註標籤) -->
         ${(!isInventory && item.showNotesHome && item.notes && item.notes.trim()) ? `
           <div class="card-note-preview" title="${escapeHtml(item.notes)}">
             <span class="card-note-text">${escapeHtml(item.notes)}</span>
           </div>
         ` : ''}
+
+        <!-- Main Metric: 已使用 12 天 -->
+        <div class="card-metric-main">
+          <span class="metric-pretext">已使用</span>
+          <span class="card-metric-value"><span class="metric-highlight-number">${m.elapsedDays}</span><span class="metric-unit">天</span></span>
+        </div>
 
         <!-- Sub Metric: 還有 1,085 天 或 持續使用中 -->
         <div class="card-status-progress">
@@ -13271,6 +13303,8 @@ var CapacitorBridgeBundle = (() => {
   // ==========================================
   const itemModal = document.getElementById('itemModal');
   let itemEditorScope = 'local';
+  let itemSmartTargetId = '';
+  let itemSmartParsed = null;
   function editorCategories() { return itemEditorScope === 'shared' ? features110.sharedCategories() : getAllCategories(); }
   const modalTitle = document.getElementById('modalTitle');
   const btnCloseModal = document.getElementById('btnCloseModal');
@@ -13339,7 +13373,6 @@ var CapacitorBridgeBundle = (() => {
       if (fieldReminderWrap) fieldReminderWrap.style.display = 'flex';
       if (typeof updateReminderSectionVisibility === 'function') {
         updateReminderSectionVisibility();
-        updateReminderToggleState(true);
         updateReminderSectionVisibility();
       }
       previewElapsedBar.style.display = 'none';
@@ -14104,7 +14137,7 @@ var CapacitorBridgeBundle = (() => {
   const itemDestination = document.getElementById('itemDestination');
   function syncItemDestination() {
     itemDestination.value = itemEditorScope === 'shared' ? 'shared' : document.getElementById('itemPending').checked ? 'pending' : 'local';
-    document.getElementById('itemDestinationRow').hidden = !!itemIdInput.value;
+    document.getElementById('itemDestinationRow').hidden = !!(itemIdInput.value || itemSmartTargetId);
     document.querySelectorAll('[data-destination]').forEach(button => {
       const active = button.dataset.destination === itemDestination.value;
       button.classList.toggle('active', active);
@@ -14138,6 +14171,8 @@ var CapacitorBridgeBundle = (() => {
     syncItemDestination();
   });
   function openAddModal(options = {}) {
+    itemSmartTargetId = '';itemSmartParsed = null;
+    document.getElementById('itemSmartMode').hidden = true;
     itemImageOperation++;
     document.getElementById('itemSaveError').hidden = true;
     if ((pendingNavTab || currentNavTab) === 'shared' && features110 && options.scope !== 'shared') { features110.openSharedItem(); return; }
@@ -14194,6 +14229,9 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function openEditModal(id, scope = 'local', draft = null) {
+    itemSmartTargetId = '';itemSmartParsed = null;
+    document.getElementById('itemSmartMode').hidden = true;
+    itemForm.reset();
     itemImageOperation++;
     document.getElementById('itemSaveError').hidden = true;
     const item = draft || (scope === 'shared' ? features110.sharedSnapshot().items : items).find(it => it.id === id);
@@ -14297,7 +14335,7 @@ var CapacitorBridgeBundle = (() => {
     const waiting = pendingData('item');
     if(waiting.error) return;
     let name = itemNameInput.value.trim();
-    let id = itemIdInput.value.trim();
+    let id = itemIdInput.value.trim() || itemSmartTargetId;
 
     // 若在新增模式且尚未輸入任何名稱，不生成空白廢棄物品
     if (!id && !name) {
@@ -14366,6 +14404,7 @@ var CapacitorBridgeBundle = (() => {
     const showNotesHome = itemShowNotesHome ? !!itemShowNotesHome.checked : false;
 
     if (itemEditorScope === 'shared') {
+      if (itemSmartParsed && !itemSmartTargetId && !features110.prepareSharedEditor()) return false;
       const record = {id:id || crypto.randomUUID(),name,category,subCategory,emoji,image,iconText,startDate,hasEndDate,durationDays,endDate,reminderType,reminderDate,reminderTime,warnDays,location,brand,notes,showNotesHome};
       applyPending(record,waiting);features110.decorate(record,'item');
       try {features110.saveSharedItem(record);}
@@ -14498,6 +14537,9 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function updateModalPreview() {
+    const expiry = itemEndDateInput.value ? new Date(itemEndDateInput.value + 'T00:00:00') : null;
+    document.getElementById('itemExpiryWeekday').textContent = expiry && !isNaN(expiry.getTime())
+      ? '星期' + ['日','一','二','三','四','五','六'][expiry.getDay()] : '';
     if (currentModalMode === 'elapsed') return;
 
     const startStr = itemStartDateInput.value || getTodayString();
@@ -14533,6 +14575,12 @@ var CapacitorBridgeBundle = (() => {
     });
   }
   itemDurationInput.addEventListener('input', syncFromDuration);
+  document.getElementById('itemQuickDays').addEventListener('click',event=>{
+    const button=event.target.closest('[data-item-days]');
+    if(!button)return;
+    itemDurationInput.value=button.dataset.itemDays;
+    syncFromDuration();
+  });
 
   if (itemShowNotesHome) {
     itemShowNotesHome.addEventListener('change', function () {
@@ -14624,6 +14672,7 @@ var CapacitorBridgeBundle = (() => {
   });
 
   btnCloseModal.addEventListener('click', closeModal);
+  document.getElementById('btnCancelItemBottom').addEventListener('click', closeModal);
   itemModal.addEventListener('click', function (e) {
     if (e.target === itemModal) closeModal();
   });
@@ -17453,6 +17502,15 @@ function extractCleanName(rawText) {
   // 自然語言確認彈窗管理 (Confirmation Modal)
   // ----------------------------------------------------
   let currentNlpParsed = null;
+  let cameraRecognitionDestination = null;
+  function syncNlpDestinationPills() {
+    const destination = document.getElementById('nlpDestination').value;
+    document.querySelectorAll('#nlpDestinationPills [data-nlp-destination]').forEach(button => {
+      const active = button.dataset.nlpDestination === destination;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+  }
   let currentNlpTrackingMode = 'expiry';
 
   function updateNlpStartDateHint(startDateStr) {
@@ -17528,31 +17586,11 @@ function extractCleanName(rawText) {
   }
 
   function updateNlpDateHint(dateStr) {
-    const hintEl = document.getElementById('nlpConfirmDateHint');
-    if (!hintEl) return;
-    if (!dateStr) {
-      hintEl.textContent = '請選擇到期日期';
-      return;
-    }
-    const today = new Date();
-    const target = new Date(dateStr + 'T00:00:00');
-    if (isNaN(target.getTime())) {
-      hintEl.textContent = '';
-      return;
-    }
-    const diff = Math.ceil((target.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / (1000 * 60 * 60 * 24));
-    const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
-    const weekday = dayNames[target.getDay()];
-    if (diff < 0) {
-      hintEl.textContent = `已過期 ${Math.abs(diff)} 天 (${dateStr} · 星期${weekday})`;
-      hintEl.style.color = 'var(--ios-red)';
-    } else if (diff === 0) {
-      hintEl.textContent = `今天到期 (${dateStr} · 星期${weekday})`;
-      hintEl.style.color = 'var(--ios-orange)';
-    } else {
-      hintEl.textContent = `還有 ${diff} 天到期 (${dateStr} · 星期${weekday})`;
-      hintEl.style.color = 'var(--ios-text-secondary)';
-    }
+    const weekdayEl = document.getElementById('nlpConfirmWeekday');
+    if (!weekdayEl) return;
+    const target = dateStr ? new Date(dateStr + 'T00:00:00') : null;
+    weekdayEl.textContent = target && !isNaN(target.getTime())
+      ? '星期' + ['日', '一', '二', '三', '四', '五', '六'][target.getDay()] : '';
   }
 
   function populateNlpSubCategoryDropdown(category, activeSubCatName = '') {
@@ -17615,310 +17653,58 @@ function extractCleanName(rawText) {
     }
   }
 
-  function openNlpConfirmModal(parsed) {
-    if ((pendingNavTab || currentNavTab) === 'shared' && features110) { features110.openSharedItem(parsed); return; }
-    currentNlpParsed = parsed;
-    let cloudNotice = document.getElementById('cloudRecognitionNotice');
-    if (!cloudNotice) {
-      cloudNotice = document.createElement('p'); cloudNotice.id = 'cloudRecognitionNotice';
-      cloudNotice.style.cssText = 'margin:12px 20px;padding:12px;border-radius:var(--radius-control);background:rgba(128,128,128,.12);white-space:pre-wrap;line-height:1.6;';
-      document.querySelector('#nlpConfirmModal .ios-modal-header')?.after(cloudNotice);
-    }
-    cloudNotice.textContent = parsed.recognitionNotice || '';
-    if (parsed.shelfLife?.sourceUrl) {
-      try {
-        const sourceUrl = new URL(parsed.shelfLife.sourceUrl);
-        if (sourceUrl.protocol === 'https:' && !sourceUrl.username && !sourceUrl.password) {
-          const sourceLink = document.createElement('a');
-          sourceLink.href = sourceUrl.href;
-          sourceLink.target = '_blank';
-          sourceLink.rel = 'noopener noreferrer';
-          sourceLink.textContent = `查閱來源：${parsed.shelfLife.sourceTitle || sourceUrl.hostname}`;
-          sourceLink.style.cssText = 'display:block;margin-top:8px;text-decoration:underline;';
-          cloudNotice.append(sourceLink);
-        }
-      } catch {}
-    }
-    cloudNotice.hidden = !parsed.recognitionNotice;
-    const modal = document.getElementById('nlpConfirmModal');
-    const titleEl = document.getElementById('nlpConfirmModalTitle');
-    const badgeEl = document.getElementById('nlpConfirmBadge');
-    const noticeWrap = document.getElementById('nlpConfirmUpdateNotice');
-    const noticeText = document.getElementById('nlpConfirmUpdateText');
-    const btnModeUpdate = document.getElementById('btnNlpModeUpdate');
-    const btnModeCreate = document.getElementById('btnNlpModeCreate');
-    const nameInput = document.getElementById('nlpConfirmName');
-    const catSelect = document.getElementById('nlpConfirmCategory');
-    const dateInput = document.getElementById('nlpConfirmDate');
-    const remindSelect = document.getElementById('nlpConfirmReminder');
-    const customRow = document.getElementById('nlpCustomReminderRow');
-    const customInput = document.getElementById('nlpConfirmCustomTime');
-    const applyBtn = document.getElementById('btnApplyNlpConfirm');
-
-    if (!modal) return;
-
-    // 設定追蹤方式（設定到期日 vs 謹記使用天數）
-    const isElapsed = (parsed.hasEndDate === false || parsed.mode === 'elapsed' || !parsed.expiryDate);
-    setNlpTrackingMode(isElapsed ? 'elapsed' : 'expiry');
-
-    if (catSelect) {
-      catSelect.innerHTML = '';
-      const allCats = (typeof getAllCategories === 'function') ? getAllCategories() : DEFAULT_CATEGORIES;
-      for (const [key, obj] of Object.entries(allCats)) {
-        const opt = document.createElement('option');
-        opt.value = key;
-        opt.textContent = `${obj.label || key}`;
-        catSelect.appendChild(opt);
-      }
-      const targetCat = (typeof window.normalizeCategoryKey === 'function')
-        ? window.normalizeCategoryKey(parsed.category)
-        : (parsed.category || 'other');
-      catSelect.value = targetCat;
-      if (!catSelect.value) catSelect.value = 'other'; // 禁止留空
-      populateNlpSubCategoryDropdown(catSelect.value, parsed.subCategory || '');
-    }
-
-    const isUpdateCandidate = (parsed.action === 'update' || !!parsed.targetName || !!parsed.targetId);
-
-    function setNlpInteractionMode(mode) {
-      if (!currentNlpParsed) return;
-      currentNlpParsed.action = mode;
-      if (mode === 'update') {
-        if (btnModeUpdate) btnModeUpdate.classList.add('active');
-        if (btnModeCreate) btnModeCreate.classList.remove('active');
-        if (titleEl) titleEl.textContent = '確認修改物品';
-        if (badgeEl) {
-          badgeEl.textContent = '修改既有';
-          badgeEl.classList.add('update');
-        }
-        if (noticeText) noticeText.textContent = `將更新現有物品「${currentNlpParsed.targetName || items.find(it=>it.id===currentNlpParsed.targetId)?.name || '物品'}」`;
-        if (applyBtn) applyBtn.textContent = '確定更新';
-      } else {
-        if (btnModeCreate) btnModeCreate.classList.add('active');
-        if (btnModeUpdate) btnModeUpdate.classList.remove('active');
-        if (titleEl) titleEl.textContent = '確認新增物品';
-        if (badgeEl) {
-          badgeEl.textContent = '✨ 智慧速記';
-          badgeEl.classList.remove('update');
-        }
-        if (noticeText) noticeText.textContent = `將新增為獨立物品，保留現有「${currentNlpParsed.targetName || ''}」`;
-        if (applyBtn) applyBtn.textContent = '儲存';
-      }
-    }
-
-    if (noticeWrap) {
-      if (isUpdateCandidate && (parsed.targetName || parsed.targetId)) {
-        noticeWrap.style.display = 'flex';
-        setNlpInteractionMode(parsed.action === 'update' ? 'update' : 'create');
-      } else {
-        noticeWrap.style.display = 'none';
-        setNlpInteractionMode('create');
-      }
+  function openNlpConfirmModal(parsed, forceCreate = false) {
+    const origin = parsed.destination || pendingNavTab || currentNavTab;
+    const scope = origin === 'shared' ? 'shared' : 'local';
+    const list = scope === 'shared' ? features110.sharedSnapshot().items : items;
+    const candidate = (parsed.action === 'update' || parsed.targetId || parsed.targetName)
+      ? list.find(item => item.id === parsed.targetId || item.name === parsed.targetName) : null;
+    const target = forceCreate ? null : candidate;
+    const endDate = parsed.expiryDate || parsed.endDate || target?.endDate || null;
+    const hasEndDate = parsed.hasEndDate ?? (endDate ? true : target?.hasEndDate ?? false);
+    const warnDays = parsed.remindDaysBefore ?? parsed.warnDays ?? target?.warnDays ?? 1;
+    const draft = {
+      ...target,...parsed,id:'',name:parsed.name || target?.name || '',
+      category:parsed.category || target?.category || 'other',
+      endDate:hasEndDate ? endDate : null,packageEndDate:hasEndDate ? endDate : null,hasEndDate,
+      startDate:parsed.startDate || target?.startDate || getTodayString(),
+      reminderType:hasEndDate && warnDays >= 0 ? 'custom' : 'none',warnDays:hasEndDate ? warnDays : -1,
+      reminderDate:parsed.reminderDate || (hasEndDate && endDate && warnDays >= 0 ? getOffsetDateString(endDate,-warnDays) : null),
+      reminderTime:parsed.remindTime || parsed.reminderTime || target?.reminderTime || '09:00',
+      notes:[target?.notes,parsed.notes].filter(Boolean).join('\n'),
+      usageState:scope === 'local' && (target ? isPending(target) : origin === 'pending') ? 'pending' : 'active',
+      dateSource:parsed.expirySource === 'package' ? 'package' : parsed.isEstimated ? 'estimated' : target?.dateSource || 'manual'
+    };
+    if (target && scope === 'shared') {
+      features110.openSharedItem({...draft,id:target.id,targetId:target.id});
+      itemIdInput.value='';
     } else {
-      setNlpInteractionMode(parsed.action === 'update' ? 'update' : 'create');
+      openEditModal('',scope,draft);
     }
-
-    const daysInput = document.getElementById('nlpConfirmDays');
-    if (nameInput) nameInput.value = parsed.name || '';
-    if (dateInput) {
-      dateInput.value = parsed.expiryDate || '';
-      updateNlpDateHint(dateInput.value);
-      if (daysInput) {
-        if (parsed.expiryDate) {
-          const diff = diffDays(getTodayString(), parsed.expiryDate);
-          daysInput.value = diff > 0 ? diff : '';
-        } else {
-          daysInput.value = '';
-        }
-      }
-    }
-
-    // 謹記使用天數之開始日期初始化
-    const startDateInput = document.getElementById('nlpConfirmStartDate');
-    if (startDateInput) {
-      startDateInput.value = parsed.startDate || getTodayString();
-      updateNlpStartDateHint(startDateInput.value);
-    }
-
-    // 常駐提醒時間與自訂日期判定 (統一為 24 小時制，取消 12/24 切換按鈕)
-    const timeRow = document.getElementById('nlpConfirmTimeRow');
-    const timeInput = document.getElementById('nlpConfirmReminderTime');
-    const customDateRow = document.getElementById('nlpCustomDateRow');
-    const customDateInput = document.getElementById('nlpConfirmCustomDate');
-    const pillsContainer = document.getElementById('nlpQuickTimePills');
-    const reminderSection = document.getElementById('nlpReminderScheduleTimeSection');
-
-    const TIME_PRESETS_24H = [
-      { time: '09:00', label: '09:00 上午' },
-      { time: '12:00', label: '12:00 中午' },
-      { time: '15:00', label: '15:00 下午' },
-      { time: '20:00', label: '20:00 晚間' }
-    ];
-
-    // 格式化為 24 小時制 HH:mm (00:00 ~ 23:59)
-    let initial24hTime = '09:00';
-    if (parsed.remindTime && parsed.remindTime.includes(':')) {
-      const tp = parsed.remindTime.split(':');
-      const h = String(parseInt(tp[0], 10) || 0).padStart(2, '0');
-      const m = String(parseInt(tp[1], 10) || 0).padStart(2, '0');
-      initial24hTime = `${h}:${m}`;
-    }
-
-    if (timeInput) {
-      timeInput.value = initial24hTime;
-    }
-
-    // 渲染 24 小時制快捷時間膠囊
-    function renderTimePills(activeTime) {
-      if (!pillsContainer) return;
-      pillsContainer.innerHTML = TIME_PRESETS_24H.map(p => {
-        const isActive = (p.time === activeTime) ? ' active' : '';
-        return `<button type="button" class="nlp-time-pill${isActive}" data-time="${p.time}">${p.label}</button>`;
-      }).join('');
-    }
-
-    // 更新膠囊按鈕 active 樣式
-    function updateActiveTimePill(curTime) {
-      if (!pillsContainer) return;
-      pillsContainer.querySelectorAll('.nlp-time-pill').forEach(pill => {
-        if (pill.dataset.time === curTime) {
-          pill.classList.add('active');
-        } else {
-          pill.classList.remove('active');
-        }
-      });
-    }
-
-    // 初始化渲染 24 小時制快捷時間膠囊
-    renderTimePills(timeInput ? timeInput.value : initial24hTime);
-
-    // 快捷膠囊委派點擊事件綁定
-    if (pillsContainer && !pillsContainer.dataset.bound) {
-      pillsContainer.dataset.bound = 'true';
-      pillsContainer.addEventListener('click', (e) => {
-        const pill = e.target.closest('.nlp-time-pill');
-        if (pill && pill.dataset.time) {
-          if (timeInput) timeInput.value = pill.dataset.time;
-          updateActiveTimePill(pill.dataset.time);
-        }
-      });
-    }
-
-    // 時間手動輸入監聽 (嚴格統一 24 小時制)
-    if (timeInput && !timeInput.dataset.bound) {
-      timeInput.dataset.bound = 'true';
-      timeInput.addEventListener('input', () => {
-        const curVal = timeInput.value;
-        updateActiveTimePill(curVal);
-      });
-    }
-
-    const targetCustomDate = parsed.reminderDate || (parsed.expiryDate ? getOffsetDateString(parsed.expiryDate, -1) : getTodayString());
-    if (customDateInput) {
-      customDateInput.value = targetCustomDate;
-    }
-
-    // 依據追蹤模式與提醒天數，控制常駐提醒時間與自訂日期的顯示
-    function updateNlpReminderDisplay() {
-      const timeAdjustWrap = document.getElementById('nlpTimeAdjustWrap');
-      const isElapsedMode = (document.getElementById('btnNlpTrackElapsed') && document.getElementById('btnNlpTrackElapsed').classList.contains('active'));
-      const val = remindSelect ? remindSelect.value : '3';
-      if (isElapsedMode) {
-        if (reminderSection) reminderSection.style.display = 'none';
-        if (customDateRow) customDateRow.style.display = 'none';
-      } else {
-        if (reminderSection) reminderSection.style.display = 'block';
-        if (val === '-1') {
-          if (timeRow) timeRow.style.display = 'none';
-          if (timeAdjustWrap) timeAdjustWrap.style.display = 'none';
-          if (customDateRow) customDateRow.style.display = 'none';
-        } else if (val === 'custom') {
-          if (timeRow) timeRow.style.display = 'block';
-          if (timeAdjustWrap) timeAdjustWrap.style.display = 'block';
-          if (customDateRow) customDateRow.style.display = 'block';
-        } else {
-          if (timeRow) timeRow.style.display = 'block';
-          if (timeAdjustWrap) timeAdjustWrap.style.display = 'block';
-          if (customDateRow) customDateRow.style.display = 'none';
-        }
-      }
-    }
-
-    if (remindSelect) {
-      if (parsed.hasCustomTime || (parsed.reminderDate && parsed.reminderDate !== getOffsetDateString(parsed.expiryDate, -3))) {
-        remindSelect.value = 'custom';
-      } else {
-        const warnVal = typeof parsed.remindDaysBefore === 'number' ? parsed.remindDaysBefore : 3;
-        remindSelect.value = String(warnVal);
-      }
-      if (!remindSelect.dataset.boundDisplay) {
-        remindSelect.dataset.boundDisplay = 'true';
-        remindSelect.addEventListener('change', updateNlpReminderDisplay);
-      }
-      updateNlpReminderDisplay();
-    }
-
-    // 縮圖與彩色向量圖標預覽設定
-    const imgWrap = document.getElementById('nlpConfirmImageWrap');
-    const imgPreview = document.getElementById('nlpConfirmImagePreview');
-    const iconPreview = document.getElementById('nlpConfirmIconPreview');
-    const btnRemoveImg = document.getElementById('btnRemoveNlpImage');
-
-    function updateNlpModalPreview() {
-      if (!imgWrap) return;
-      imgWrap.style.display = 'block';
-      if (parsed.image) {
-        if (imgPreview) {
-          imgPreview.src = parsed.image;
-          imgPreview.style.display = 'block';
-        }
-        if (iconPreview) iconPreview.style.display = 'none';
-        if (btnRemoveImg) btnRemoveImg.style.display = 'flex';
-      } else {
-        if (imgPreview) {
-          imgPreview.src = '';
-          imgPreview.style.display = 'none';
-        }
-        if (iconPreview) {
-          iconPreview.style.display = 'flex';
-          const curCat = catSelect ? catSelect.value : (parsed.category || 'other');
-          iconPreview.innerHTML = (typeof getCategoryIcon === 'function') ? getSubCategoryIcon(curCat, document.getElementById('nlpConfirmSubCategory')?.value || '') : '📦';
-        }
-        if (btnRemoveImg) btnRemoveImg.style.display = 'none';
-      }
-    }
-
-    if (btnRemoveImg) {
-      btnRemoveImg.onclick = function () {
-        if (currentNlpParsed) currentNlpParsed.image = null;
-        parsed.image = null;
-        updateNlpModalPreview();
-      };
-    }
-
-    if (catSelect) {
-      catSelect.onchange = function () {
-        populateNlpSubCategoryDropdown(this.value);
-        if (!parsed.image && iconPreview && typeof getCategoryIcon === 'function') {
-          iconPreview.innerHTML = getSubCategoryIcon(this.value, document.getElementById('nlpConfirmSubCategory')?.value || '');
-        }
-      };
-    }
-
-    updateNlpModalPreview();
-
-    const pendingTarget = parsed.action === 'update' ? items.find(it => it.id === parsed.targetId || it.name === parsed.targetName) : null;
-    resetPendingForm('nlp',pendingTarget || parsed,pendingTarget ? isPending(pendingTarget) : currentNavTab === 'pending');
-    features110?.fillForm('nlp',pendingTarget ? {
-      ...pendingTarget,...parsed,packageEndDate:parsed.expiryDate || pendingTarget.packageEndDate,
-      dateSource:parsed.expiryDate?'manual':pendingTarget.dateSource
-    } : parsed);
-    modal.style.display = 'flex';
-    lockBodyScroll();
-    if (nameInput) nameInput.focus();
+    itemSmartParsed = {...parsed,destination:origin};
+    itemSmartTargetId = target?.id || '';
+    currentNlpParsed = parsed;
+    modalTitle.textContent = target ? '確認修改物品' : '確認新增物品';
+    document.getElementById('btnSaveItem').style.display='block';
+    document.getElementById('autoSaveBadge').style.display='none';
+    document.getElementById('modalDeleteRow').style.display='none';
+    document.getElementById('btnDuplicateFromModal').style.display='none';
+    const modes=document.getElementById('itemSmartMode');
+    modes.hidden=!candidate;
+    modes.querySelectorAll('[data-smart-mode]').forEach(button=>{
+      const active=button.dataset.smartMode === (target?'update':'create');
+      button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+    });
+    syncItemDestination();
+    window.syncIconPickers?.();
   }
+  document.getElementById('itemSmartMode').addEventListener('click',event=>{
+    const button=event.target.closest('[data-smart-mode]');
+    if(button && itemSmartParsed)openNlpConfirmModal(itemSmartParsed,button.dataset.smartMode==='create');
+  });
 
   function closeNlpConfirmModal() {
+    if (itemSmartParsed && itemModal.style.display !== 'none') { closeModal();return; }
     if (typeof window.cancelCurrentRecognition === 'function') {
       window.cancelCurrentRecognition();
     }
@@ -18037,6 +17823,26 @@ function extractCleanName(rawText) {
     }
     if (!emoji) emoji = catObj.emoji || '📌';
 
+    if (currentNlpParsed.action !== 'update' && document.getElementById('nlpDestination').value === 'shared') {
+      if (!features110.prepareSharedEditor()) return;
+      const record = {
+        id:crypto.randomUUID(),name:confirmedName,category:confirmedCat,subCategory:subCat,emoji,
+        image:currentNlpParsed.image || null,notes:currentNlpParsed.notes || '',
+        startDate:confirmedStartDate,hasEndDate:!isElapsedMode,endDate:isElapsedMode?null:confirmedDate,
+        durationDays:isElapsedMode?null:Math.max(1,diffDays(confirmedStartDate,confirmedDate)),
+        reminderType:confirmedReminderType,reminderDate:confirmedReminderDate,
+        reminderTime:confirmedReminderTime,warnDays:confirmedWarnDays,
+        usageState:'active',history:[],createdAt:Date.now()
+      };
+      features110.decorate(record,'nlp');
+      try { features110.saveSharedItem(record); }
+      catch (error) { showToast(error.message || '共享物品儲存失敗'); return; }
+      if (quickAddInput) { quickAddInput.value='';quickAddInput.classList.remove('has-clear'); }
+      if (clearBtn) clearBtn.style.display='none';
+      closeNlpConfirmModal();
+      showToast('已儲存至共享物品');
+      return;
+    }
     if (currentNlpParsed.action === 'update') {
       let target = null;
       if (currentNlpParsed.targetId) {
@@ -18133,6 +17939,25 @@ function extractCleanName(rawText) {
   }
 
   function initNlpConfirmModal() {
+    document.getElementById('nlpDestinationPills').addEventListener('click', event => {
+      const button = event.target.closest('[data-nlp-destination]');
+      if (!button) return;
+      const destination = document.getElementById('nlpDestination');
+      destination.value = button.dataset.nlpDestination;
+      destination.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    document.getElementById('nlpDestination').addEventListener('change', event => {
+      syncNlpDestinationPills();
+      const pending = document.getElementById('nlpPending');
+      if (event.target.value === 'pending' && !pending.checked) {
+        document.getElementById('nlpPendingEnd').value = document.getElementById('nlpConfirmDate').value;
+      } else if (pending.checked && event.target.value !== 'pending') {
+        document.getElementById('nlpConfirmDate').value = document.getElementById('nlpPendingEnd').value;
+        updateNlpDateHint(document.getElementById('nlpConfirmDate').value);
+      }
+      pending.checked = event.target.value === 'pending';
+      syncPendingForm('nlp');
+    });
     const modal = document.getElementById('nlpConfirmModal');
     const catSelect = document.getElementById('nlpConfirmCategory');
     const subCatSelect = document.getElementById('nlpConfirmSubCategory');
@@ -18247,6 +18072,7 @@ function extractCleanName(rawText) {
       closeNlpConfirmModal();
     });
     if (applyBtn) applyBtn.addEventListener('click', handleNlpConfirmApply);
+    document.getElementById('btnApplyNlpConfirmBottom').addEventListener('click', handleNlpConfirmApply);
 
     if (modal) {
       modal.addEventListener('click', function(e) {
@@ -18352,6 +18178,7 @@ function extractCleanName(rawText) {
     }
 
     async function handleQuickAddSubmit(e) {
+      const destination = pendingNavTab || currentNavTab;
       if (e) e.preventDefault();
       const rawText = input.value.trim();
       if (!rawText) {
@@ -18383,7 +18210,7 @@ function extractCleanName(rawText) {
       }
 
       // 設置完畢前先彈出視窗讓使用者確定資訊正不正確
-      openNlpConfirmModal(parsed);
+      openNlpConfirmModal({...parsed,destination});
     }
 
     if (form) {
@@ -18614,6 +18441,7 @@ function extractCleanName(rawText) {
   }
 
   async function openCameraScanModal() {
+    cameraRecognitionDestination = pendingNavTab || currentNavTab;
     const modal = document.getElementById('cameraScanModal');
     if (!modal) return;
     updateSmartLensQuotaDisplays();
@@ -18887,6 +18715,7 @@ function extractCleanName(rawText) {
    */
   let isCameraProcessing = false;
   async function processCapturedImage(source) {
+    const destination = cameraRecognitionDestination || pendingNavTab || currentNavTab;
     if (isCameraProcessing || (window.isCloudCameraBusy && window.isCloudCameraBusy())) return;
     isCameraProcessing = true;
     if (window.setCloudCameraBusy) window.setCloudCameraBusy(true);
@@ -18943,7 +18772,7 @@ function extractCleanName(rawText) {
     }
     if (isAborted) return;
     if (!parsed) parsed = {success:false, name:'', category:'other', subCategory:'', emoji:'📦', expiryDate:null, hasEndDate:false, remindDaysBefore:3, remindTime:'09:00', image:photoDataUrl, recognitionNotice:notice};
-    openNlpConfirmModal(parsed);
+    openNlpConfirmModal({...parsed,destination});
   }
 
   window.addItem = addItem;

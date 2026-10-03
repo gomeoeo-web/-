@@ -18,6 +18,27 @@ window.installExpiry110 = function (app) {
     else badge.textContent=Array.from(name.trim())[0]||'人';
     return badge;
   }
+  function sharedRecordTime(value) {
+    return Number.isFinite(value)&&value>0?new Date(value).toLocaleString('zh-TW',{hour12:false}):'時間未記錄';
+  }
+  function sharedEditorDetails(item) {
+    const details=document.createElement('div');details.className='shared-editor-history';
+    for(const [label,timeLabel,editor,time] of [
+      ['建立人','建立時間',item.createdBy,item.createdByAt||item.createdAt],
+      ['最後編輯人','最後修改時間',item.lastEditedBy,item.lastEditedAt||item.updatedAt]
+    ]){
+      const row=document.createElement('div');row.className='shared-editor-detail';
+      const text=document.createElement('span');
+      text.textContent=`${label}：${editor?.name||'尚未記錄'} · ${timeLabel}：${sharedRecordTime(time)}`;
+      row.append(editorAvatar(editor),text);details.append(row);
+    }
+    return details;
+  }
+  function sharedOperationText(item,filter='active') {
+    const label=filter==='deleted'?'刪除人':filter==='archived'?'封存人':'新增人';
+    const editor=filter==='active'?item.createdBy:item.lastEditedBy;
+    return `${label}：${editor?.name||'尚未記錄'}`;
+  }
   function editProfile(backToShared=false) {
     let avatar=validAvatar(editorProfile?.avatar)?editorProfile.avatar:'',loading=false;
     open('共享空間編輯人',`<p>設定此裝置的編輯人。編輯共享物品時會記錄名稱、頭像與時間。</p><div id="sharedProfilePreview" class="shared-profile-preview"></div><label>編輯人名稱<input id="sharedProfileName" maxlength="30" placeholder="例如：小明" value="${esc(editorProfile?.name||'')}"></label><label>頭像<input id="sharedProfileAvatar" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="feature-actions">${button('sharedProfileRemove','移除頭像')}${button('sharedProfileSave','儲存')}${button('sharedProfileCancel','取消')}</div>`,'sharedProfile');
@@ -77,6 +98,20 @@ window.installExpiry110 = function (app) {
   function persistConnection() {
     if(connection){localStorage.setItem(SYNC,JSON.stringify(connection));sessionStorage.setItem(SYNC,JSON.stringify(connection));}
     else {localStorage.removeItem(SYNC);sessionStorage.removeItem(SYNC);}
+  }
+  function resetSharedSpace() {
+    stopLiveUpdates();clearTimeout(syncTimer);
+    connection=null;sharedData=emptyShared();sharedBase=null;conflict=null;generation++;
+    sharedUI={filter:'active',sort:'expiry_asc',view:'cards'};
+    sharedSearch='';sharedPillFilter='all';liveBlockedKey='';syncRetryCount=0;
+    editorRoom=null;editorRecord=null;
+    const keys=Object.keys(localStorage).filter(key=>key.startsWith(SHARED_DATA)||key.startsWith(SHARED_BASE)||key===SHARED_UI);
+    keys.forEach(key=>localStorage.removeItem(key));persistConnection();
+    const search=$('sharedSearch');if(search)search.value='';
+    if(app.editorScope()==='shared')app.closeEditor();
+    if(app.sheetScope()==='shared')app.closeSheet();
+    if(dialog.open)dialog.close();
+    refresh();
   }
   function snapshot() {
     const settings={}; for(const key of L.SETTINGS) {const value=localStorage.getItem(key);if(value!==null)settings[key]=value;}
@@ -162,18 +197,21 @@ window.installExpiry110 = function (app) {
   dialog.setAttribute('aria-labelledby','featureDialogTitle');document.body.append(dialog);
   $('featureDialogClose').onclick=()=>dialog.close();
   const nativeClose=dialog.close.bind(dialog);
-  let closingFeature=null;
+  let closingFeature=null, disposeFeature=null;
+  function cleanupFeature() {const dispose=disposeFeature;disposeFeature=null;dispose?.();}
   dialog.close=value=>{
     if(closingFeature)return closingFeature;
+    cleanupFeature();
     closingFeature=new Promise(resolve=>app.closeOverlay(dialog,()=>{nativeClose(value);resolve();}));
     closingFeature.finally(()=>{closingFeature=null;});return closingFeature;
   };
   dialog.addEventListener('cancel',event=>{event.preventDefault();dialog.close();});
-  window.SheetGestures.bindSheetDrag(dialog,()=>dialog.close(),dialog.querySelector('.ios-modal-scroll'));
+  window.SheetGestures.bindSheetDrag(dialog,()=>{if(dialogPurpose!=='shared')dialog.close();},dialog.querySelector('.ios-modal-scroll'));
   window.SheetGestures.containModalScroll(dialog);
-  dialog.addEventListener('close',()=>app.unlockOverlay());
-  dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close();});
+  dialog.addEventListener('close',()=>{cleanupFeature();app.unlockOverlay();});
+  dialog.addEventListener('click',e=>{if(e.target===dialog&&dialogPurpose!=='shared')dialog.close();});
   function open(title,html,purpose='') {
+    cleanupFeature();
     dialogPurpose=purpose;dialog.dataset.purpose=purpose;$('featureDialogTitle').textContent=title;$('featureDialogBody').innerHTML=html;$('featureDialogError').textContent='';
     if(!dialog.open){app.lockOverlay();dialog.style.display='flex';dialog.showModal();}
   }
@@ -345,10 +383,11 @@ window.installExpiry110 = function (app) {
     throw new Error('請貼上完整邀請碼');
   }
   function openShared() {
-    let operating=false,creationReady=false;
+    let operating=false,creationReady=false,active=true,challengeId;
     creationChallenge='';
     const invite=connection?encodeInvite(connection):'';
-    open('共享同步空間設定',`${connection?`<section class="shared-invite-panel" aria-labelledby="sharedInviteTitle"><h3 id="sharedInviteTitle">共享空間邀請碼</h3><p>家人在另一台裝置選擇「加入共享空間」，貼上此碼即可加入。</p><textarea id="sharedInviteCode" readonly rows="3" aria-label="共享空間邀請碼" spellcheck="false">${esc(invite)}</textarea>${button('copyInvite','複製完整邀請碼')}<p>邀請碼可讀取與修改共享資料，請只交給信任的人。</p></section>`:'<label>加入家人的共享空間<input id="syncInvite" autocomplete="off" spellcheck="false" placeholder="貼上共享空間邀請碼"></label><p>建立新空間會從空白清單開始；加入空間只載入共享物品。本機物品與設定保持原樣。</p>'}<div class="feature-actions">${connection?button('disconnectSpace','中斷此裝置')+(connection.ownerToken?button('rotateInvite','更新邀請碼')+button('deleteSpace','刪除雲端共享空間'):''):button('createSpace','建立共享空間')+button('joinSpace','加入共享空間')}</div><p id="sharedDetail"></p>`,'shared');
+    open('共享同步空間設定',`${connection?`<section class="shared-invite-panel" aria-labelledby="sharedInviteTitle"><h3 id="sharedInviteTitle">共享空間邀請碼</h3><p>家人在另一台裝置選擇「加入共享空間」，貼上此碼即可加入。</p><textarea id="sharedInviteCode" readonly rows="3" aria-label="共享空間邀請碼" spellcheck="false">${esc(invite)}</textarea>${button('copyInvite','複製完整邀請碼')}<p>邀請碼可讀取與修改共享資料，請只交給信任的人。</p></section>`:`<label>用戶名稱（加入時必填）<input id="sharedJoinName" maxlength="30" required autocomplete="nickname" placeholder="例如：小明" value="${esc(editorProfile?.name && editorProfile.name !== '未命名編輯人' ? editorProfile.name : '')}"></label><p id="sharedJoinNameError" role="alert" hidden></p><p>頭像可保持預設，加入後可在共享空間編輯人設定中修改。</p><label>加入家人的共享空間<input id="syncInvite" autocomplete="off" spellcheck="false" placeholder="貼上共享空間邀請碼"></label><p>建立新空間會從空白清單開始；加入空間只載入共享物品。本機物品與設定保持原樣。</p>`}<div class="feature-actions">${connection?button('disconnectSpace','中斷此裝置')+(connection.ownerToken?button('rotateInvite','更新邀請碼')+button('deleteSpace','刪除雲端共享空間'):''):button('createSpace','建立共享空間')+button('joinSpace','加入共享空間')}</div><p id="sharedDetail"></p>`,'shared');
+    disposeFeature=()=>{active=false;if(challengeId!==undefined)window.turnstile?.remove(challengeId);};
     const sessionNotice=document.createElement('p');sessionNotice.textContent='此裝置會記住共享連線，關閉瀏覽器後仍可繼續使用。共用裝置使用完畢時，請選擇「中斷此裝置」。';$('sharedDetail').before(sessionNotice);
     if(connection?.ownerToken){
       const recovery='OWNER1.'+btoa(String.fromCharCode(...(connection.id+connection.token+connection.ownerToken).match(/../g).map(x=>parseInt(x,16)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -358,23 +397,31 @@ window.installExpiry110 = function (app) {
     if(!connection) {
       $('createSpace').disabled=true;
       const createButton=$('createSpace');
+      const joinButton=$('joinSpace'),inviteInput=$('syncInvite');
+      const updateActions=()=>{
+        if(!active)return;
+        createButton.disabled=operating||!creationReady||!!inviteInput.value.trim();
+        joinButton.disabled=operating;
+      };
+      inviteInput.addEventListener('input',updateActions);
+      inviteInput.addEventListener('change',updateActions);
       const challenge=document.createElement('div');challenge.id='sharedCreationChallenge';createButton.closest('.feature-actions').before(challenge);
       challenge.textContent='正在確認建立空間的安全驗證…';
       (async()=>{
         const response=await fetch(SYNC_ENDPOINT+'/api/shared-config',{redirect:'error',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)});
         if(!response.ok)throw new Error('無法確認安全驗證');
-        const config=await response.json();if(!challenge.isConnected)return;
-        if(config.requireChallenge===false){creationReady=true;createButton.disabled=false;challenge.remove();return;}
+        const config=await response.json();if(!active)return;
+        if(config.requireChallenge===false){creationReady=true;updateActions();challenge.remove();return;}
         if(!config.siteKey){challenge.textContent='暫時無法建立共享空間，請稍後再試。仍可加入既有空間。';return;}
         if(!window.turnstile)await new Promise((resolve,reject)=>{
           const script=document.createElement('script');script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';script.async=true;script.onload=resolve;script.onerror=reject;document.head.append(script);
         });
-        if(!challenge.isConnected)return;challenge.textContent='';
-        window.turnstile.render(challenge,{sitekey:config.siteKey,action:'shared_create',callback:token=>{if(!challenge.isConnected)return;creationChallenge=token;creationReady=true;createButton.disabled=false;},'expired-callback':()=>{if(!challenge.isConnected)return;creationChallenge='';creationReady=false;createButton.disabled=true;},'error-callback':()=>{if(!challenge.isConnected)return;creationChallenge='';creationReady=false;createButton.disabled=true;}});
-      })().catch(()=>{if(challenge.isConnected)challenge.textContent='無法完成安全驗證，請關閉後重試。';});
-      const resetActions=()=>{operating=false;if($('createSpace'))$('createSpace').disabled=!creationReady;if($('joinSpace'))$('joinSpace').disabled=false;};
+        if(!active)return;challenge.textContent='';
+        challengeId=window.turnstile.render(challenge,{sitekey:config.siteKey,action:'shared_create',callback:token=>{if(!active)return;creationChallenge=token;creationReady=true;updateActions();},'expired-callback':()=>{if(!active)return;creationChallenge='';creationReady=false;updateActions();},'error-callback':()=>{if(!active)return;creationChallenge='';creationReady=false;updateActions();}});
+      })().catch(()=>{if(active)challenge.textContent='無法完成安全驗證，請關閉後重試。';});
+      const resetActions=()=>{operating=false;updateActions();};
       $('createSpace').onclick=caught(async()=>{
-        if(connection||busy||operating||!creationReady)return;
+        if(!active||connection||busy||operating||!creationReady||inviteInput.value.trim())return;
         operating=true;
         $('createSpace').disabled=true;$('joinSpace').disabled=true;
         try {
@@ -383,27 +430,38 @@ window.installExpiry110 = function (app) {
           try {applySharedSnapshot(emptyShared());}catch(error){connection=null;throw error;}
           generation++;persistConnection();
           await sync(true);
-          if(connection?.revision>0)openShared();
+          if(connection?.revision>0){if(active)openShared();}
           else {const reason=connection?.status||'未收到建立成功的回應';connection=null;creationReady=false;creationChallenge='';persistConnection();refresh();const notice=document.createElement('p');notice.setAttribute('role','alert');notice.textContent='建立未完成：'+reason+'。請關閉後重新驗證再試。';$('sharedCreationChallenge')?.after(notice);app.toast('建立未完成：'+reason);}
         } finally {resetActions();}
       });
       $('joinSpace').onclick=caught(async()=>{
-        if(connection||busy||operating)return;
+        if(!active||connection||busy||operating)return;
+        const nameInput=$('sharedJoinName'),name=nameInput.value.trim();
+        const nameError=$('sharedJoinNameError');
+        if(!name || name.length>30){
+          nameError.textContent='請填寫用戶名稱（最多 30 字）';nameError.hidden=false;
+          nameInput.setAttribute('aria-invalid','true');nameInput.focus();return;
+        }
+        nameError.hidden=true;nameInput.removeAttribute('aria-invalid');
         const [id,token,ownerToken]=decodeInvite($('syncInvite').value);
+        const profile={id:editorProfile?.id||crypto.randomUUID(),name,avatar:validAvatar(editorProfile?.avatar)?editorProfile.avatar:''};
+        localStorage.setItem(EDITOR_PROFILE,JSON.stringify(profile));editorProfile=profile;
+        $('sharedEditorProfileSettings').querySelector('.settings-icon').replaceChildren(editorAvatar(profile));
+        $('sharedEditorProfileSettings').querySelector('.settings-desc').textContent=name;
         const next={endpoint:SYNC_ENDPOINT,id,token,...(ownerToken?{ownerToken}:{}),revision:0,dirty:false};
         operating=true;$('createSpace').disabled=true;$('joinSpace').disabled=true;
         try {
         const remote=await request(next,'POST',{revision:0,action:'registerMember'});if(!remote.snapshot)throw new Error('共享空間不存在或邀請碼已失效');
         const data=L.validateSnapshot(remote.snapshot);connection={...next,revision:remote.revision,dirty:false,isolated:true,status:'已同步',lastSyncedAt:Date.now()};
         try {rememberSharedBase(data);applySharedSnapshot(data);}catch(e){connection=null;throw e;}
-        generation++;persistConnection();refresh();openShared();
+        generation++;persistConnection();refresh();if(active)openShared();
         } finally {resetActions();}
       });
     } else {
       $('sharedDetail').textContent=`空間 ${connection.id.slice(0,8)} · ${connection.status||'待同步'}${connection.ownerToken?' · 您是建立者':' · 成員'}`;
       $('copyInvite').onclick=caught(async()=>{try{await navigator.clipboard.writeText(invite);app.toast('完整邀請碼已複製');}catch{$('sharedInviteCode').focus();$('sharedInviteCode').select();app.toast('請複製已選取的完整邀請碼');}});
       $('sharedInviteCode').onclick=()=> $('sharedInviteCode').select();
-      $('disconnectSpace').onclick=()=>{if(busy){app.toast('請等待同步完成');return;}if(!confirm('中斷此裝置同步？共享快取會保留，本機物品與設定不受影響。'))return;connection=null;sharedData=emptyShared();conflict=null;generation++;persistConnection();dialog.close();refresh();};
+      $('disconnectSpace').onclick=()=>{if(busy){app.toast('請等待同步完成');return;}if(!confirm('中斷此裝置同步？此裝置的共享物品與快取將清空，本機物品與設定不受影響。'))return;resetSharedSpace();};
       if(connection.ownerToken) {
         $('rotateInvite').onclick=caught(async()=>{
           if(busy||conflict)throw new Error('請先完成同步或處理衝突');
@@ -427,6 +485,9 @@ window.installExpiry110 = function (app) {
     if(response.ok&&Array.isArray(body.members)){c.members=body.members;if(c===connection)persistConnection();}
     if(response.status===409)return {...body,conflict:true};
     if(response.status===429){c.retryAfter=Date.now()+Math.max(60,Math.min(3600,Number(response.headers.get('Retry-After'))||60))*1000;throw new Error(body.message||'同步過於頻繁，請稍後再試');}
+    if(c===connection && (([401,403].includes(response.status)&&/移除共享空間|邀請碼不正確或已失效/.test(body.message||'')) || [404,410].includes(response.status))) {
+      resetSharedSpace();app.toast('已離開共享空間，共享物品已清空');
+    }
     if(data?.action==='registerMember'&&((response.status===400&&body.message==='邀請碼格式不正確')||(response.status===403&&body.message==='只有建立者可以更新邀請碼')))throw new Error('雲端共享服務尚未更新，請部署新版後端後再查看成員');
     if(!response.ok){const error=new Error(body.message||'同步失敗，資料保留於本機');error.status=response.status;throw error;}return body;
   }
@@ -470,14 +531,13 @@ window.installExpiry110 = function (app) {
       if(message.type==='revision'&&Number.isSafeInteger(message.revision)&&message.revision>0){
         liveRevision=Math.max(liveRevision,message.revision);requestLiveRevision();
       } else if(message.type==='deleted'||message.type==='revoked') {
-        liveBlockedKey=key;current.status=message.type==='deleted'?'共享空間已刪除；本機資料保留':'邀請碼已失效，請使用新邀請碼重新加入';
-        stopLiveUpdates();clearTimeout(syncTimer);persistConnection();refresh();app.toast(current.status);
+        resetSharedSpace();app.toast(message.type==='deleted'?'共享空間已刪除，共享物品已清空':'已離開共享空間，共享物品已清空');
       }
     };
     socket.onclose=event=>{
       if(liveSocket!==socket)return;
       liveSocket=null;clearTimeout(liveHeartbeatTimer);clearTimeout(livePongTimer);
-      if(event.code===4003||event.code===4004){liveBlockedKey=key;current.status=event.code===4004?'共享空間已刪除；本機資料保留':'邀請碼已失效，請使用新邀請碼重新加入';persistConnection();refresh();return;}
+      if(event.code===4003||event.code===4004){resetSharedSpace();app.toast('已離開共享空間，共享物品已清空');return;}
       if(connection!==current||document.hidden||!navigator.onLine)return;
       const delay=Math.min(300000,1000*2**Math.min(liveAttempts++,9))+Math.random()*500;
       liveRetryTimer=setTimeout(()=>{liveRetryTimer=null;startLiveUpdates();},delay);
@@ -542,14 +602,12 @@ window.installExpiry110 = function (app) {
     $('btnSheetPending').hidden=app.sheetScope()==='shared';
     const old=$('sheetLifecycleDetails');if(old)old.remove();
     const detail=document.createElement('div');detail.id='sheetLifecycleDetails';detail.className='feature-sheet-detail';
-    const next=L.nextReminder(item);
-    detail.textContent=`日期來源：${L.SOURCES[item.dateSource]||L.SOURCES.legacy} · 包裝期限：${item.packageEndDate||'未設定'} · 開封期限：${item.openedEndDate||'未開封／未設定'} · 下次預定提醒：${next?next.toLocaleString('zh-TW',{hour12:false}):'無'}${item.snoozedUntil?'（已延後）':''}`;
+    const dateSource=item.dateSource==='legacy'?'未記錄':L.SOURCES[item.dateSource]||'未記錄';
+    detail.textContent=`日期來源：${dateSource}`;
     $('sheetDetailsList').append(detail);
     $('sheetSharedEditor')?.remove();
     if(app.sheetScope()==='shared'){
-      const editor=document.createElement('div');editor.id='sheetSharedEditor';editor.className='shared-editor-detail';
-      editor.append(editorAvatar(item.lastEditedBy));const text=document.createElement('span');
-      text.textContent=item.lastEditedBy?`最後編輯人：${item.lastEditedBy.name||'未命名編輯人'} · ${Number.isFinite(item.lastEditedAt)?new Date(item.lastEditedAt).toLocaleString('zh-TW',{hour12:false}):'時間未記錄'}（${item.lastEditedBySource==='device-credential'?'裝置紀錄，名稱為自訂':'自訂資料，尚未經伺服器確認'}）${item.createdBySource==='legacy-backfill'?' · 建立人為舊資料補登':''}`:'最後編輯人與時間：尚未記錄';editor.append(text);$('sheetDetailsList').append(editor);
+      const editor=sharedEditorDetails(item);editor.id='sheetSharedEditor';$('sheetDetailsList').append(editor);
     }
   }
   let addingToShared=false;
@@ -637,7 +695,10 @@ window.installExpiry110 = function (app) {
     const archive=settingsRow('btnOpenArchive','sharedArchivedRecords','已封存共享空間物品','永久封存不刪除，隨時可解除封存');
     const deleted=settingsRow('btnOpenRecentlyDeleted','sharedDeletedRecords','最近刪除共享空間物品','保留 7 天內刪除之物品，7 天後自動清除');
     const profile=settingsRow('sharedEditorProfileSettings','sharedEditorProfile','共享空間編輯人',editorProfile?.name||'自訂編輯人名稱與頭像',editorAvatar(editorProfile).outerHTML);
-    open('共享空間設定',`<div class="settings-group">${manage}${profile}</div><div class="settings-group">${archive}${deleted}</div><div class="feature-actions">${button('sharedMembers','查看空間成員')}${button('sharedLiveSyncNow','立即同步')}</div>`,'sharedSettings');
+    const members=settingsRow('btnOpenArchive','sharedMembers','查看共享空間成員','查看成員與編輯人資訊','<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-4-5.65"/></svg>');
+    open('共享空間設定',`<div class="settings-group">${manage}${profile}${members}</div><div class="settings-group">${archive}${deleted}</div><div class="feature-actions">${button('sharedLiveSyncNow','立即同步')}</div>`,'sharedSettings');
+    const syncTime=document.createElement('span');syncTime.id='sharedLastSyncTime';syncTime.setAttribute('aria-live','polite');
+    $('sharedLiveSyncNow').append(syncTime);updateSharedSyncTime();
     $('sharedLiveSyncNow').onclick=()=>sync(true);
     $('sharedMembers').onclick=openSharedMembers;
     $('sharedEditorProfile').onclick=()=>editProfile(true);
@@ -679,6 +740,7 @@ window.installExpiry110 = function (app) {
       const date=timestamp?new Date(timestamp).toLocaleDateString('zh-TW'):'';
       row.innerHTML=`<span class="shared-record-icon" aria-hidden="true">${sharedIcon(item)}</span><span class="shared-record-copy"><span class="shared-record-name">${esc(item.name)}</span><span class="shared-record-meta">${esc(sharedCategories()[item.category]?.label||'其他')} · ${filter==='deleted'?'已刪除':'已封存'}${date?' · '+esc(date):''}</span></span><span class="shared-record-chevron" aria-hidden="true">›</span>`;
       row.setAttribute('aria-label','查看'+(filter==='deleted'?'已刪除':'封存')+'共享物品 '+item.name);
+      const operator=document.createElement('span');operator.className='shared-record-meta shared-operation';operator.textContent=sharedOperationText(item,filter);row.querySelector('.shared-record-copy').append(operator);
       row.onclick=()=>{if(connection!==room){app.toast('共享空間已變更');openSharedSettings();return;}openSharedRecord(item,filter);};list.append(row);
     }
     $('sharedRecordsBack').onclick=openSharedSettings;
@@ -738,6 +800,7 @@ window.installExpiry110 = function (app) {
       if(filter==='active') {
         const card=app.sharedCard(item,sharedIcon(item),cats[item.category]?.label||'其他');
         if(item.createdBy){const avatar=editorAvatar(item.createdBy);avatar.title='建立人：'+(item.createdBy.name||'未命名編輯人');avatar.setAttribute('aria-label',avatar.title);avatar.classList.add('shared-card-editor');card.append(avatar);}
+        const operator=document.createElement('div');operator.className='shared-operation';operator.textContent=sharedOperationText(item);card.querySelector('.card-summary')?.append(operator);
         card.classList.add('shared-item-card');card.dataset.sharedId=item.id;card.setAttribute('aria-label','管理共享物品 '+item.name);grid.append(card);continue;
       }
       const card=document.createElement('article');card.className='ios-item-card shared-item-card';card.dataset.sharedId=item.id;card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','管理共享物品 '+item.name);
@@ -746,6 +809,7 @@ window.installExpiry110 = function (app) {
       const metric=filter==='archived'?({used:'已用完',discarded:'已丟棄'}[item.completionStatus]||'已封存'):filter==='deleted'?'已刪除':filter==='pending'?'待用 · '+(item.plannedStartDate||'未設定開始日'):status.text;
       card.innerHTML=`<div class="card-summary"><div class="card-top-row"><div class="card-icon-box">${icon}</div><span class="card-category-tag">${esc(cats[item.category]?.label||item.category||'其他')}</span></div><div class="card-item-title">${esc(item.name)}</div><div class="card-status-progress"><div class="card-metric-sub ${status.subMetricClass}">${esc(metric)}</div>${filter==='active'?`<div class="card-progress-bar progress-bar-container"><div class="card-progress-fill progress-bar-fill ${status.progressClass}" style="width:${status.width};background-color:${status.color}"></div></div>`:''}</div><div class="shared-card-date">${item.endDate?'到期 '+esc(item.endDate):'未設定到期日'}${item.location?' · '+esc(item.location):''}</div>${item.notes?`<div class="card-note-preview">${esc(item.notes)}</div>`:''}</div>`;
       app.bindCard(card,item.id,()=>filter==='archived'||filter==='deleted'?openSharedRecord(item,filter):app.openSharedSheet(item.id));
+      const operator=document.createElement('div');operator.className='shared-operation';operator.textContent=sharedOperationText(item,filter);card.querySelector('.card-summary')?.append(operator);
       card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();filter==='archived'||filter==='deleted'?openSharedRecord(item,filter):app.openSharedSheet(item.id);}};grid.append(card);
     }
     $('sharedEmpty').hidden=list.length>0;
@@ -755,10 +819,9 @@ window.installExpiry110 = function (app) {
     app.resizePage();
   }
   function quickShared(text) {
-    if(!connection){openShared();return;}
     const parsed=window.parseNaturalInput(text,new Date(),structuredClone(sharedData.items),null);
     if(!parsed?.success){app.toast('請輸入共享物品名稱');return;}
-    openSharedItem(parsed);
+    window.openNlpConfirmModal({...parsed,destination:'shared'});
   }
   let editorRoom=null,editorRecord=null,resetConfirmation=null;
   function prepareSharedEditor() {
@@ -847,6 +910,8 @@ window.installExpiry110 = function (app) {
   function openSharedRecord(item,filter) {
     const room=connection;
     open('共享物品紀錄',`<h3>${esc(item.name)}</h3><p>${esc(item.location||'')} ${esc(item.notes||'')}</p><p>${filter==='deleted'?'刪除':'封存'}時間：${new Date(item.deletedAt||item.archivedAt).toLocaleString('zh-TW',{hour12:false})}</p>${button('sharedRecordRestore','還原至共享物品')}${button('sharedRecordBack','返回清單')}`,'sharedRecord');
+    const operator=document.createElement('p');operator.className='shared-operation';operator.textContent=sharedOperationText(item,filter);
+    $('sharedRecordRestore').before(operator,sharedEditorDetails(item));
     $('sharedRecordBack').onclick=()=>openSharedRecords(filter);
     $('sharedRecordRestore').onclick=caught(()=>{if(connection!==room)throw new Error('共享空間已變更');mutateShared(data=>{const list=filter==='deleted'?data.recentlyDeletedItems:data.archivedItems,index=list.findIndex(x=>x.id===item.id);if(index<0)throw new Error('紀錄已變更');const [record]=list.splice(index,1);for(const key of ['deletedAt','archivedAt','completedAt','completionStatus'])delete record[key];record.updatedAt=Date.now();data.items.unshift(record);});dialog.close();});
   }
@@ -855,7 +920,14 @@ window.installExpiry110 = function (app) {
     open('共享分類',`<p>${Object.values(cats).map(x=>esc(x.label)).join(' · ')}</p><label>新增共享分類<input id="sharedCategoryName" maxlength="60" placeholder="例如：公共備品"></label>${button('sharedCategoryAdd','新增分類')}`,'sharedCategories');
     $('sharedCategoryAdd').onclick=caught(()=>{if(connection!==room)throw new Error('共享空間已變更');const name=$('sharedCategoryName').value.trim();if(!name)throw new Error('請輸入分類名稱');const id='shared_'+crypto.randomUUID();mutateShared(data=>{const key='lifespan_tracker_custom_categories_v1',cats=JSON.parse(data.settings[key]||'{}');cats[id]={label:name,emoji:'📦',items:[]};data.settings[key]=JSON.stringify(cats);});app.selectSharedCategory(id);openSharedCategories();});
   }
+  function updateSharedSyncTime() {
+    const label=$('sharedLastSyncTime');if(!label)return;
+    label.textContent=connection?.lastSyncedAt
+      ? '上次同步：'+new Date(connection.lastSyncedAt).toLocaleString('zh-TW',{hour12:false,timeZone:'Asia/Taipei'})
+      : '尚未同步';
+  }
   function refresh() {
+    updateSharedSyncTime();
     const list=document.documentElement.dataset.screenFit==='tablet';document.body.classList.toggle('compact-list-mode',list);
     const last=read(BACKUP,null);$('lastBackupText').textContent=last?'上次備份：'+new Date(last).toLocaleString('zh-TW',{hour12:false}):'尚未備份，建議定期匯出';
     $('syncStatus').textContent=connection?(connection.status||'待同步')+(connection.lastSyncedAt?' · '+new Date(connection.lastSyncedAt).toLocaleString('zh-TW',{hour12:false}):''):'尚未連線；資料儲存在本機';
