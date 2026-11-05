@@ -1,4 +1,5 @@
 .feature-toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 18px;align-items:center}
+.item-identity-notice{margin:6px 0 0;font-size:12px;line-height:1.6;color:var(--ios-text-secondary,#6b7280);overflow-wrap:anywhere}
 .feature-toolbar[hidden],.feature-toolbar [hidden],.feature-form [hidden],#lifecycleActions [hidden]{display:none!important}
 .feature-button{font:inherit;font-size:13px;border:1px solid rgba(128,128,128,.25);border-radius:16px;padding:9px 13px;background:var(--ios-surface,#fff);color:var(--ios-text-primary,#333);cursor:pointer;min-height:40px}
 .feature-button:disabled{opacity:.45;cursor:default}

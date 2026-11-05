@@ -218,10 +218,14 @@ export async function recognizeCanvas(canvas, photoDataUrl) {
     const modelCategory = Object.hasOwn(window.DEFAULT_CATEGORIES || {}, result.category)
       ? result.category
       : 'other';
+    const identification=result.identification && typeof result.identification==='object' ? result.identification : null;
+    // A character's proper name can contain 狗、貓 or food words. Keep the
+    // image-based category instead of reclassifying that name as a real animal.
+    const namedSubject=['character','known_subject'].includes(identification?.type);
     // Prefer a concrete local name match over the model's broad visual guess.
     // For example, a name containing "光泉鮮乳" is a dairy product even when
     // the image model labels the package as fresh produce ("fresh").
-    const category = matched?.category && matched.category !== 'other'
+    const category = namedSubject ? modelCategory : matched?.category && matched.category !== 'other'
       ? matched.category
       : (modelCategory !== 'other' ? modelCategory : (matched?.category || 'other'));
     const printedDate = dateOrNull(result.expiryDate, result.expiryEvidence);
@@ -229,6 +233,9 @@ export async function recognizeCanvas(canvas, photoDataUrl) {
     // category. The confirmation dialog will use `other` instead of dropping
     // the name and forcing the user to type it again.
     const name = result.name.trim().slice(0, 100) || '未辨識物品';
+    const identityNotice = identification ? identification.confidence==='high'
+      ? '辨識依據：'+String(identification.evidence || '').trim().slice(0,160)+'（請核對名稱）'
+      : '品牌、角色來源或品種尚未確認，請核對暫定名稱。' : '';
     const subCategory = (matched && matched.category === category) ? (matched.subCategory || '') : '';
     const autoInferred = window.inferItemLifespanOrUsageDate?.(name, category, subCategory);
     let estimate = null;
@@ -262,11 +269,11 @@ export async function recognizeCanvas(canvas, photoDataUrl) {
     }
     const expiryDate = printedDate || estimate?.expiryDate || null;
     const notes = printedDate ? '日期原文：' + result.expiryEvidence.slice(0,300) : '';
-    return { success: true, source: cached ? 'cloud-cache' : 'cloud', name, category, subCategory, autoInferred,
+    return { success: true, source: cached ? 'cloud-cache' : 'cloud', name, category, subCategory, autoInferred, identification, identityNotice,
       isEstimated:!!estimate,expirySource:printedDate ? 'package' : estimate ? (estimate.sourceType ? 'local' : 'web') : null,
       shelfLife:estimate,startDate:estimate?.startDate,
       emoji: window.DEFAULT_CATEGORIES?.[category]?.emoji || matched?.emoji || '📦', expiryDate, hasEndDate: !!expiryDate, ...defaultPhotoReminder(expiryDate), image: photoDataUrl,
-      recognitionNotice: [result.recognized ? '' : '暫定名稱，請確認物品名稱。', category === 'other' ? '分類暫選「其他」。' : '', printedDate ? '到期日：' + expiryDate + '，請核對包裝。' : '未讀到效期，請手動設定。', typeof result.uncertainty === 'string' ? result.uncertainty.slice(0, 200) : ''].filter(Boolean).join('\n'),
+      recognitionNotice: [result.recognized ? '' : '暫定名稱，請確認物品名稱。', identityNotice, category === 'other' ? '分類暫選「其他」。' : '', printedDate ? '到期日：' + expiryDate + '，請核對包裝。' : '未讀到效期，請手動設定。', typeof result.uncertainty === 'string' ? result.uncertainty.slice(0, 200) : ''].filter(Boolean).join('\n'),
       notes };
   } catch (error) {
     if (error.name === 'AbortError' || controller.signal.aborted) {

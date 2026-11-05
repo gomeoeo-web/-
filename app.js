@@ -119,8 +119,8 @@ const SUB_CATEGORY_CONFIG = {
   fresh: ['牛肉羊肉', '生鮮豬肉', '雞肉禽肉', '海鮮魚類', '蝦蟹貝類', '火鍋肉片', '冷凍調理包', '微波熟食', '水餃湯圓', '生鮮時蔬'],
   medicine: ['眼藥水', '人工淚液', '外用藥膏', '感冒退燒', '消炎止痛', '腸胃整腸', '處方藥', '醫療敷料', '隱眼保養液', '防蚊止癢', '常備成藥'],
   supplement: ['綜合維他命', 'B群活力', '維生素C', '深海魚油', '葉黃素', '活性益生菌', '膠原蛋白', '鈣片D3', '滴雞精', '高蛋白粉', '機能保健'],
-  beauty: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '唇膏口紅', '粉底彩妝', '美甲護理', '香水香氛'],
-  skincare: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '其他保養'],
+  beauty: ['唇膏口紅', '粉底遮瑕', '眼妝眉彩', '腮紅修容', '妝前定妝', '美甲護理', '香水香氛', '美妝工具', '其他美妝'],
+  skincare: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬護理', '護唇保養', '其他保養'],
   pao: ['洗髮沐浴', '潤髮護髮', '牙膏口腔', '洗手香皂', '身體乳液', '護手滋潤', '刮鬍刀具', '女性護理', '毛巾面巾', '日常消耗'],
   cleaning: ['菜瓜布海綿', '菜瓜布', '洗碗精洗劑', '洗衣精洗衣球', '抹布抹巾', '潔廁去垢', '水垢油垢清', '消毒酒精', '除塵防塵', '除濕防潮', '除蟎噴霧', '地板清潔', '疏通清潔'],
   filter: ['清淨機濾網', '淨水器濾芯', '音波牙刷頭', '集水除濕盒', '掃地機主刷邊刷', '吸塵器耗材', '咖啡機除鈣', '冷氣濾網', '通風濾材'],
@@ -146,7 +146,35 @@ const SUB_CATEGORY_CONFIG = {
 // ==========================================
 // 1.5 智慧分類與細項對應辭典 (SMART_KEYWORD_MAP)
 // ==========================================
+// Match product type before ingredients or claims such as 保濕、精華、防曬.
+// Order also separates makeup removal from makeup, and lip care from lip colour.
+const PERSONAL_CARE_RULES = [
+  { keywords: ['卸妝', '洗面乳', '洗顏霜', '洗顏乳', '潔面', '潔顏', '化妝棉', 'cleansing milk'], emoji: '🫧', cat: 'skincare', subCat: '卸妝潔顏', duration: 180 },
+  { keywords: ['粉底刷', '眼影刷', '腮紅刷', '蜜粉刷', '化妝刷', '彩妝刷', '刷具清潔', '粉撲', '美妝蛋', '睫毛夾', '修眉刀', '美妝工具'], emoji: '🖌️', cat: 'beauty', subCat: '美妝工具' },
+  { keywords: ['指甲油', '光療膠', '美甲片', '護甲油', '指緣油', '指甲精華', '美甲'], emoji: '💅', cat: 'beauty', subCat: '美甲護理', duration: 365 },
+  { keywords: ['口紅', '唇釉', '唇蜜', '唇泥', '唇彩', '染唇', '唇線筆'], pattern: /(?:潤色|有色|變色).*(?:護唇|潤唇)|(?:護唇|潤唇).*(?:潤色|有色|變色)/, emoji: '💄', cat: 'beauty', subCat: '唇膏口紅', duration: 365 },
+  { keywords: ['潤唇膏', '護唇膏', '護唇', '潤唇', '唇膜', '唇部精華'], emoji: '🧴', cat: 'skincare', subCat: '護唇保養', duration: 180 },
+  { keywords: ['唇膏'], emoji: '💄', cat: 'beauty', subCat: '唇膏口紅', duration: 365 },
+  { keywords: ['眼影', '眉筆', '眉粉', '染眉', '睫毛膏', '眼線', '眼妝'], emoji: '👁️', cat: 'beauty', subCat: '眼妝眉彩', duration: 365 },
+  { keywords: ['腮紅', '修容', '打亮', '高光粉'], emoji: '🎨', cat: 'beauty', subCat: '腮紅修容', duration: 365 },
+  { keywords: ['粉底', '氣墊', '粉餅', '遮瑕', 'bb霜', 'cc霜'], emoji: '🎨', cat: 'beauty', subCat: '粉底遮瑕', duration: 365 },
+  { keywords: ['妝前乳', '妝前霜', '妝前精華', '飾底乳', '隔離霜', '隔離乳', '蜜粉', '定妝', '定粧'], emoji: '🎨', cat: 'beauty', subCat: '妝前定妝', duration: 365 },
+  { keywords: ['室內香氛', '居家香氛', '擴香', '香氛蠟燭'], emoji: '🌸', cat: 'home', subCat: '香氛擴香' },
+  { keywords: ['香水', '淡香水', '香精', '古龍水', '香氛噴霧', '香膏'], emoji: '🌸', cat: 'beauty', subCat: '香水香氛', duration: 730 },
+  { keywords: ['防曬', '安耐曬', 'sunscreen'], emoji: '☀️', cat: 'skincare', subCat: '防曬護理', duration: 180 },
+  { keywords: ['眼霜', '眼膠', '眼部精華', '眼部修護霜'], emoji: '👁️', cat: 'skincare', subCat: '緊緻眼霜', duration: 180 },
+  { keywords: ['化妝水', '保濕水', '爽膚水', '精華水', '活泉水', '保濕噴霧'], emoji: '💦', cat: 'skincare', subCat: '化妝水噴霧', duration: 180 },
+  { keywords: ['面膜', '泥膜', '凍膜'], emoji: '🧖', cat: 'skincare', subCat: '保濕面膜', duration: 180 },
+  { keywords: ['身體乳', '身體精華'], emoji: '🧴', cat: 'pao', subCat: '身體乳液', duration: 180 },
+  { keywords: ['護手霜', '護足霜'], emoji: '👐', cat: 'pao', subCat: '護手滋潤', duration: 180 },
+  { keywords: ['護髮精華', '頭皮精華'], emoji: '🧴', cat: 'pao', subCat: '潤髮護髮', duration: 180 },
+  { keywords: ['精華液', '小黑瓶', '小棕瓶', '精華露', '安瓶', '精華'], emoji: '💧', cat: 'skincare', subCat: '精華液', duration: 180 },
+  { keywords: ['乳液', '面霜', '乳霜', '保濕霜', '水凝霜', '日霜', '晚霜'], emoji: '🧴', cat: 'skincare', subCat: '乳液面霜', duration: 180 },
+  { keywords: ['保養品', '護膚品', '保濕'], emoji: '🧴', cat: 'skincare', subCat: '其他保養', duration: 180 },
+  { keywords: ['美妝', '彩妝', '化妝品'], emoji: '💄', cat: 'beauty', subCat: '其他美妝', duration: 365 }
+];
 const SMART_KEYWORD_MAP = [
+  ...PERSONAL_CARE_RULES,
   // 車輛 (vehicle)
   { keywords: ['齒輪油', '變速箱油', '差速器油'], emoji: '🛵', cat: 'vehicle', subCat: '齒輪油' },
   { keywords: ['機油', '机油', '機油芯', '換機油', '換油'], emoji: '🚗', cat: 'vehicle', subCat: '機油' },
@@ -276,23 +304,10 @@ const SMART_KEYWORD_MAP = [
     '司康', '馬卡龍', '披薩', 'pizza'
   ], emoji: '🍞', cat: 'food', subCat: '麵包烘焙' },
 
-  // 保養品 (skincare)
-  { keywords: ['精華液', '小黑瓶', '小棕瓶', '精華露', '安瓶', '玻尿酸精華', '抗老精華', '美白精華', '精華'], emoji: '💧', cat: 'skincare', subCat: '精華液', duration: 180 },
-  { keywords: ['乳液', '面霜', '乳霜', '保濕霜', '水凝霜', '日霜', '晚霜'], emoji: '🧴', cat: 'skincare', subCat: '乳液面霜', duration: 180 },
-  { keywords: ['面膜', '保濕面膜', '泥膜', '凍膜', '黑面膜', '早安面膜'], emoji: '🧖', cat: 'skincare', subCat: '保濕面膜', duration: 180 },
-  { keywords: ['卸妝', '卸妝水', '卸妝油', '卸妝乳', '卸妝膏', '眼唇卸妝', '洗面乳', '洗顏霜', '潔面慕斯', '潔顏乳', '化妝棉'], emoji: '🫧', cat: 'skincare', subCat: '卸妝潔顏', duration: 180 },
-  { keywords: ['化妝水', '保濕水', '爽膚水', '精華水', '活泉水', '保濕噴霧'], emoji: '💦', cat: 'skincare', subCat: '化妝水噴霧', duration: 180 },
-  { keywords: ['眼霜', '眼膠', '眼部精華'], emoji: '👁️', cat: 'skincare', subCat: '緊緻眼霜', duration: 180 },
-  { keywords: ['防曬', '隔離', '防曬乳', '防曬露', '隔離霜', '防曬噴霧', '防曬棒', '安耐曬'], emoji: '☀️', cat: 'skincare', subCat: '防曬隔離', duration: 180 },
-  { keywords: ['保養品', '護膚品', '保濕'], emoji: '🧴', cat: 'skincare', subCat: '其他保養', duration: 180 },
-
   // 日用 (pao)
   { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳', '洗髮精', '潤髮乳', 'shampoo'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
-  { keywords: ['護手霜', '護唇膏', '身體乳', '護足霜'], emoji: '👐', cat: 'pao', subCat: '護手霜' },
   { keywords: ['牙膏', '漱口水', '牙線', '牙線棒', 'toothpaste'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
   { keywords: ['刮鬍刀', '刀頭', '刮鬍泡', '電鬍刀'], emoji: '🪒', cat: 'pao', subCat: '刮鬍刀' },
-  { keywords: ['香水', '淡香水', '香氛', '香膏'], emoji: '🌸', cat: 'pao', subCat: '香水' },
-  { keywords: ['唇膏', '口紅', '粉底', '遮瑕', '眼影', '腮紅', '彩妝'], emoji: '💄', cat: 'pao', subCat: '彩妝' },
 
   // 寵物 (pet)
   { keywords: ['貓糧', '狗糧', '飼料', '乾糧', '無穀飼料'], emoji: '🥣', cat: 'pet', subCat: '乾糧' },
@@ -413,12 +428,6 @@ const SMART_KEYWORD_MAP = [
   { keywords: ['滴雞精', '雞精', '蜆精', '燕窩', '人蔘飲', '冬蟲夏草', '補品'], emoji: '🥣', cat: 'supplement', subCat: '滴雞精', duration: 180 },
   { keywords: ['乳清', '高蛋白粉', '分離乳清', '乳清蛋白', 'myprotein', 'on乳清', '肌酸'], emoji: '🥤', cat: 'supplement', subCat: '高蛋白粉', duration: 180 },
 
-  // 美妝 (beauty)
-  { keywords: ['唇膏', '口紅', '唇釉', '潤唇膏', '護唇膏', '唇蜜', '唇泥'], emoji: '💄', cat: 'beauty', subCat: '唇膏口紅', duration: 365 },
-  { keywords: ['粉底', '粉底液', '氣墊', '氣墊粉餅', '蜜粉', '遮瑕', '腮紅', '眼影', '眉筆', '睫毛膏', '眼線筆'], emoji: '🎨', cat: 'beauty', subCat: '粉底彩妝', duration: 365 },
-  { keywords: ['指甲油', '光療膠', '美甲片', '護甲油', '指緣油'], emoji: '💅', cat: 'beauty', subCat: '美甲護理', duration: 365 },
-  { keywords: ['香水', '淡香水', '香精', '古龍水', '香氛噴霧', 'jo malone', 'diptyque', 'chanel香水'], emoji: '🌸', cat: 'beauty', subCat: '香水香氛', duration: 730 },
-
   // 數位 (digital)
   { keywords: ['快充頭', '充電頭', '豆腐頭', 'gan快充', '充電器', '旅充'], emoji: '🔌', cat: 'digital', subCat: '充電器快充', duration: 730 },
   { keywords: ['充電線', '傳輸線', 'type-c', 'lightning線', 'usb線', '編織線', '快充線'], emoji: '🪢', cat: 'digital', subCat: '傳輸充電線', duration: 365 },
@@ -478,7 +487,11 @@ function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
     return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
   }
 
-  // 【最優先判定 1】：乳製品/鮮乳 Priority 1 優先攔截 (包含中英日關鍵字，防止「超高溫瞬間殺菌」或白瓶被誤殺成清潔用品)
+  const lower = text.toLowerCase();
+  const personalCare = PERSONAL_CARE_RULES.find(rule => rule.pattern?.test(lower) || rule.keywords.some(kw => lower.includes(kw)));
+  if (personalCare) return { category: personalCare.cat, subCategory: personalCare.subCat, emoji: personalCare.emoji };
+
+  // Read explicit product types first so 牛奶面膜 and cleansing milk stay in skincare.
   const DAIRY_REGEX = /(鮮乳|鮮奶|牛乳|生乳|全脂|低脂|脱脂|脫脂|保久乳|純鮮乳|瑞穗|光泉|義美|林鳳營|初鹿|milk|乳飲品)/i;
   if (DAIRY_REGEX.test(text)) {
     return { category: 'food', subCategory: '鮮乳', emoji: '🥛' };
@@ -490,7 +503,6 @@ function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
     return { category: 'fashion', subCategory: '太陽眼鏡', emoji: '🕶️' };
   }
 
-  const lower = text.toLowerCase();
   let bestMatch = null;
   let bestLen = 0;
 
@@ -610,7 +622,7 @@ function inferItemLifespanOrUsageDate(name, category, subCategory, baseDate = ne
     snack: { days: 60, label: '常備零食點心' },
     cleaning: { days: 60, label: '清潔日用品' },
     pao: { days: 90, label: '洗沐日化品' },
-    beauty: { days: 180, label: '美妝護膚品' },
+    beauty: { days: 180, label: '美妝品' },
     skincare: { days: 180, label: '保養品' },
     medicine: { days: 180, label: '醫藥常備品' },
     supplement: { days: 180, label: '保健營養品' },
@@ -1861,7 +1873,10 @@ function normalizeCategoryKey(cat) {
 }
 
 if (typeof window !== "undefined") {
- Object.assign(window, { initModel, updateNerStatus, parseWithLocalNER, parseNaturalInput, parseNaturalInputAsync, matchCategoryAndSubCategory, inferItemLifespanOrUsageDate, SMART_KEYWORD_MAP, extractTime, extractDate, extractCleanName, simplifyItemName, renderProgressBar, getItemStatusConfig, DEFAULT_CATEGORIES, SUB_CATEGORY_CONFIG, CATEGORY_MAP_TO_KEY, normalizeCategoryKey });
+ // Preserve the editor's preset detail templates for shared-space editors too.
+ const browserCategories = Object.fromEntries(Object.entries(DEFAULT_CATEGORIES).map(([key, category]) =>
+   [key, {...window.DEFAULT_CATEGORIES?.[key], ...category}]));
+ Object.assign(window, { initModel, updateNerStatus, parseWithLocalNER, parseNaturalInput, parseNaturalInputAsync, matchCategoryAndSubCategory, inferItemLifespanOrUsageDate, SMART_KEYWORD_MAP, extractTime, extractDate, extractCleanName, simplifyItemName, renderProgressBar, getItemStatusConfig, DEFAULT_CATEGORIES: browserCategories, SUB_CATEGORY_CONFIG, CATEGORY_MAP_TO_KEY, normalizeCategoryKey });
  window.applyProgressBarStatus = renderProgressBar;
 }
 

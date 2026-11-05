@@ -2,7 +2,7 @@
 <html lang="zh-TW" data-theme="light" data-screen-fit="plus">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-twKmyUQn7xJFLVQvig3EwaHwS75tqrBt9cAxd0f60J8=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev wss://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-My9Q42aQFKwhBC8cHc3F8CyLJQR9PA7NrkXHgBIWBY8=' 'sha256-BHapD3EI6Oq8c6wC7l16aMf72dep092vUfrasTbFx0E=' 'sha256-vFaaaU2RZPc0ZLMpJSmrApqbpI8xph9ZHEVfw9XC6PI=' 'sha256-ESnGMxomgPPcS+f8TxqQECXGT0E2XI8NhOk776zFygw=' 'sha256-deR8qf1HkYcha2Zo7ouucpHELNZFMKPl79jSTzL/oxQ=' https://challenges.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://expiry-ai.gomeoeo.workers.dev wss://expiry-ai.gomeoeo.workers.dev https://challenges.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://staticimgly.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <script>
     if (/Android/i.test(navigator.userAgent)) {
@@ -8063,6 +8063,7 @@ button *, [role="button"] *, .dock-tab *, .category-chip *, .home-filter-btn *, 
             <div class="ios-field">
               <label for="itemNameInput">物品名稱</label>
               <input type="text" id="itemNameInput" name="itemName" placeholder="例如：汽車機油、Netflix 訂閱、眼藥水..." required>
+              <p id="itemIdentityNotice" class="item-identity-notice" role="status" hidden></p>
             </div>
           </div>
 
@@ -10358,6 +10359,10 @@ var CapacitorBridgeBundle = (() => {
 ];
 
   function matchCategoryAndSubCategory(text, fallbackCat = 'other') {
+    // Use the same rules as smart input and cloud photo confirmation once loaded.
+    if (typeof window.matchCategoryAndSubCategory === 'function') {
+      return window.matchCategoryAndSubCategory(text, fallbackCat);
+    }
   if (!text || typeof text !== 'string') {
     return { category: fallbackCat, subCategory: '', emoji: fallbackCat === 'other' ? '📦' : '📌' };
   }
@@ -10546,13 +10551,9 @@ var CapacitorBridgeBundle = (() => {
       emoji: '🧴',
       items: [
         { name: '沐浴洗髮露', subCat: '洗沐', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, brand: 'Aesop', location: '主臥浴室', notes: '開封後 6 個月內用畢' },
-        { name: '臉部防曬乳', subCat: '防曬', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, brand: '防曬露', location: '化妝台', notes: '防曬成分開封後防護力逐月衰減' },
-        { name: '保濕精華液', subCat: '保養', emoji: '✨', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '開封後避光保存，保持滴管清潔' },
         { name: '滋潤護手霜', subCat: '護手霜', emoji: '👐', duration: 180, hasEndDate: true, warnDays: 14, location: '辦公桌', notes: '隨身保濕滋潤' },
         { name: '含氟牙膏', subCat: '牙膏', emoji: '🪥', duration: 90, hasEndDate: true, warnDays: 7, location: '浴室洗手台', notes: '早晚日常口腔護理' },
         { name: '刮鬍刀頭', subCat: '刮鬍刀', emoji: '🪒', duration: 30, hasEndDate: true, warnDays: 5, location: '淋浴間', notes: '潤滑條褪色或刀片變鈍時及時更換' },
-        { name: '經典淡香水', subCat: '香水', emoji: '🌸', duration: 730, hasEndDate: true, warnDays: 60, location: '更衣室香水盤', notes: '香水避免陽光高溫直射，建議 2~3 年內使用' },
-        { name: '潤唇膏彩妝', subCat: '彩妝', emoji: '💄', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身化妝包', notes: '唇膏開封接觸空氣建議 1 年內更換' }
       ]
     },
     pet: {
@@ -10701,7 +10702,8 @@ var CapacitorBridgeBundle = (() => {
         { name: '溫和卸妝潔顏露', subCat: '卸妝潔顏', emoji: '🧼', duration: 180, hasEndDate: true, warnDays: 14, location: '洗臉台', notes: '每日清潔殘妝' },
         { name: '舒緩化妝水噴霧', subCat: '化妝水噴霧', emoji: '💦', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '妝前補水滋潤' },
         { name: '緊緻眼部修護霜', subCat: '緊緻眼霜', emoji: '👁️', duration: 180, hasEndDate: true, warnDays: 14, location: '化妝台抽屜', notes: '眼霜開封後請儘速用畢' },
-        { name: '臉部防曬隔離乳', subCat: '防曬隔離', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身包/化妝台', notes: '防曬成分開封後防護力逐月衰減，建議一年內換新' },
+        { name: '臉部防曬乳', subCat: '防曬護理', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身包/化妝台' },
+        { name: '無色修護護唇膏', subCat: '護唇保養', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14 },
         { name: '日常保養品', subCat: '其他保養', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14 }
       ]
     },
@@ -10709,16 +10711,15 @@ var CapacitorBridgeBundle = (() => {
       label: '美妝',
       emoji: '💄',
       items: [
-        { name: '保濕修護精華液', subCat: '精華液', emoji: '💧', duration: 180, hasEndDate: true, warnDays: 14, location: '化妝台', notes: '滴管避免直接觸碰皮膚，6個月內用畢' },
-        { name: '滋潤保濕乳霜', subCat: '乳液面霜', emoji: '🧴', duration: 180, hasEndDate: true, warnDays: 14, location: '臥室梳妝台', notes: '面霜開封後旋緊瓶蓋' },
-        { name: '深層補水面膜', subCat: '保濕面膜', emoji: '🧖‍♀️', duration: 180, hasEndDate: true, warnDays: 14, location: '面膜收納盒', notes: '每週定期保養敷臉' },
-        { name: '溫和卸妝潔顏露', subCat: '卸妝潔顏', emoji: '🧼', duration: 180, hasEndDate: true, warnDays: 14, location: '洗臉台', notes: '每日清潔殘妝' },
-        { name: '舒緩化妝水噴霧', subCat: '化妝水噴霧', emoji: '💦', duration: 180, hasEndDate: true, warnDays: 14, location: '梳妝台', notes: '妝前補水滋潤' },
-        { name: '緊緻眼部修護霜', subCat: '緊緻眼霜', emoji: '👁️', duration: 180, hasEndDate: true, warnDays: 14, location: '化妝台抽屜', notes: '眼霜開封後請儘速用畢' },
-        { name: '臉部防曬隔離乳', subCat: '防曬隔離', emoji: '☀️', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身包/化妝台', notes: '防曬成分開封後防護力逐月衰減，建議一年內換新' },
-        { name: '潤唇膏口紅唇彩', subCat: '唇膏口紅', emoji: '💄', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身化妝包', notes: '唇膏開封建議一年內用畢' },
-        { name: '持久粉底彩妝品', subCat: '粉底彩妝', emoji: '🎨', duration: 365, hasEndDate: true, warnDays: 30, location: '彩妝抽屜', notes: '粉底液開封後定期檢視質地與氣味' },
-        { name: '經典淡香水香氛', subCat: '香水香氛', emoji: '🌸', duration: 730, hasEndDate: true, warnDays: 60, location: '香水展示盤', notes: '香水避免陽光高溫直射，建議 2~3 年內使用' }
+        { name: '經典口紅唇彩', subCat: '唇膏口紅', emoji: '💄', duration: 365, hasEndDate: true, warnDays: 30, location: '隨身化妝包' },
+        { name: '持久粉底遮瑕液', subCat: '粉底遮瑕', emoji: '🎨', duration: 365, hasEndDate: true, warnDays: 30, location: '彩妝抽屜' },
+        { name: '日常眼影眉彩', subCat: '眼妝眉彩', emoji: '👁️', duration: 365, hasEndDate: true, warnDays: 30 },
+        { name: '腮紅修容盤', subCat: '腮紅修容', emoji: '🎨', duration: 365, hasEndDate: true, warnDays: 30 },
+        { name: '妝前乳與定妝蜜粉', subCat: '妝前定妝', emoji: '🎨', duration: 365, hasEndDate: true, warnDays: 30 },
+        { name: '指甲油與指緣護理', subCat: '美甲護理', emoji: '💅', duration: 365, hasEndDate: true, warnDays: 30 },
+        { name: '經典淡香水香氛', subCat: '香水香氛', emoji: '🌸', duration: 730, hasEndDate: true, warnDays: 60, location: '香水展示盤' },
+        { name: '化妝刷與美妝蛋', subCat: '美妝工具', emoji: '🖌️', hasEndDate: false },
+        { name: '其他美妝品', subCat: '其他美妝', emoji: '💄', duration: 365, hasEndDate: true, warnDays: 30 }
       ]
     },
     digital: {
@@ -10921,8 +10922,8 @@ var CapacitorBridgeBundle = (() => {
     fresh: ['牛肉羊肉', '生鮮豬肉', '雞肉禽肉', '海鮮魚類', '蝦蟹貝類', '火鍋肉片', '冷凍調理包', '微波熟食', '水餃湯圓', '生鮮時蔬'],
     medicine: ['眼藥水', '人工淚液', '外用藥膏', '感冒退燒', '消炎止痛', '腸胃整腸', '處方藥', '醫療敷料', '隱眼保養液', '防蚊止癢', '常備成藥'],
     supplement: ['綜合維他命', 'B群活力', '維生素C', '深海魚油', '葉黃素', '活性益生菌', '膠原蛋白', '鈣片D3', '滴雞精', '高蛋白粉', '機能保健'],
-    skincare: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '其他保養'],
-    beauty: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '唇膏口紅', '粉底彩妝', '美甲護理', '香水香氛'],
+    skincare: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬護理', '護唇保養', '其他保養'],
+    beauty: ['唇膏口紅', '粉底遮瑕', '眼妝眉彩', '腮紅修容', '妝前定妝', '美甲護理', '香水香氛', '美妝工具', '其他美妝'],
     pao: ['洗髮沐浴', '潤髮護髮', '牙膏口腔', '洗手香皂', '身體乳液', '護手滋潤', '刮鬍刀具', '女性護理', '毛巾面巾', '日常消耗'],
     cleaning: ['菜瓜布海綿', '洗碗精洗劑', '洗衣精洗衣球', '抹布抹巾', '潔廁去垢', '水垢油垢清', '消毒酒精', '除塵防塵', '除濕防潮', '除蟎噴霧', '地板清潔', '疏通清潔'],
     filter: ['清淨機濾網', '淨水器濾芯', '音波牙刷頭', '集水除濕盒', '掃地機主刷邊刷', '吸塵器耗材', '咖啡機除鈣', '冷氣濾網', '通風濾材'],
@@ -13876,24 +13877,21 @@ var CapacitorBridgeBundle = (() => {
 
   // 智慧關鍵字自動配圖與聯動分類 (當輸入名稱時即時觸發)
   itemNameInput.addEventListener('input', function () {
+    document.getElementById('itemIdentityNotice').hidden=true;
     const text = this.value.trim().toLowerCase();
     if (!text) return;
 
     // 若使用者尚未上傳自訂相片且未手動鎖定 emoji，進行自動匹配
     if (!currentUploadedImage && !isManualEmojiSet) {
-      for (const item of SMART_KEYWORD_MAP) {
-        const matched = item.keywords.some(k => text.includes(k.toLowerCase()));
-        if (matched) {
-          itemEmojiInput.value = item.emoji;
-          updateAvatarPreview();
-
-          // 自動帶出建議的一級主分類與二級細項下拉選單
-          if (itemCategorySelect && itemCategorySelect.value !== item.cat) {
-            itemCategorySelect.value = item.cat;
-            populateSubCategoryDropdown(item.cat, item.subCat || '');
-          }
-          break;
+      const matched = matchCategoryAndSubCategory(text);
+      if (matched.category !== 'other' && editorCategories()[matched.category]) {
+        itemEmojiInput.value = matched.emoji;
+        // Refresh the detail even when the product stays in the same category.
+        if (itemCategorySelect && (itemCategorySelect.value !== matched.category || itemSubCategoryInput.value !== matched.subCategory)) {
+          itemCategorySelect.value = matched.category;
+          populateSubCategoryDropdown(matched.category, matched.subCategory || '');
         }
+        updateAvatarPreview();
       }
     }
   });
@@ -14020,7 +14018,8 @@ var CapacitorBridgeBundle = (() => {
         itemSubCategoryInput.value = val;
         const opt = this.options[this.selectedIndex];
         if (opt && opt.dataset.name) {
-          itemNameInput.value = opt.dataset.name;
+          // 細項建議名稱只補入空白欄位，保留手動輸入、既有及辨識名稱。
+          if (!itemNameInput.value.trim()) itemNameInput.value = opt.dataset.name;
           if (opt.dataset.duration) {
             itemDurationInput.value = opt.dataset.duration;
             const startStr = itemStartDateInput.value || getTodayString();
@@ -14194,6 +14193,8 @@ var CapacitorBridgeBundle = (() => {
     syncItemDestination();
   });
   function openAddModal(options = {}) {
+    document.getElementById('itemIdentityNotice').hidden=true;
+    document.getElementById('itemIdentityNotice').textContent='';
     itemSmartTargetId = '';itemSmartParsed = null;
     document.getElementById('itemSmartMode').hidden = true;
     itemImageOperation++;
@@ -14252,6 +14253,8 @@ var CapacitorBridgeBundle = (() => {
   }
 
   function openEditModal(id, scope = 'local', draft = null) {
+    document.getElementById('itemIdentityNotice').hidden=true;
+    document.getElementById('itemIdentityNotice').textContent='';
     itemSmartTargetId = '';itemSmartParsed = null;
     document.getElementById('itemSmartMode').hidden = true;
     itemForm.reset();
@@ -17705,6 +17708,9 @@ function extractCleanName(rawText) {
       openEditModal('',scope,draft);
     }
     itemSmartParsed = {...parsed,destination:origin};
+    const identityNotice=document.getElementById('itemIdentityNotice');
+    identityNotice.textContent=parsed.identityNotice || '';
+    identityNotice.hidden=!parsed.identityNotice;
     itemSmartTargetId = target?.id || '';
     currentNlpParsed = parsed;
     modalTitle.textContent = target ? '確認修改物品' : '確認新增物品';

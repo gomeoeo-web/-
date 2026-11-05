@@ -59,11 +59,13 @@ const ALIAS_MAP={
 
     // 7. 美妝 (beauty) - 經典口紅
     '美妝': 'beauty', 'beauty': 'beauty', '化妝品': 'beauty', '口紅': 'beauty',
-    '精華液': 'beauty', '乳液面霜': 'beauty', '保濕面膜': 'beauty', '卸妝潔顏': 'beauty', '化妝水噴霧': 'beauty',
-    '緊緻眼霜': 'beauty', '防曬隔離': 'beauty', '唇膏口紅': 'beauty', '粉底彩妝': 'beauty', '美甲護理': 'beauty',
-    '香水香氛': 'beauty', '面霜': 'beauty', '面膜': 'beauty', '化妝水': 'beauty', '眼霜': 'beauty',
-    '防曬': 'beauty', '口紅唇彩': 'beauty', '粉底': 'beauty', '香水': 'beauty',
-    '💄': 'beauty', '🧖‍♀️': 'beauty', '💦': 'beauty', '☀️': 'beauty', '🎨': 'beauty', '🌸': 'beauty',
+    '精華液': 'skincare', '乳液面霜': 'skincare', '保濕面膜': 'skincare', '卸妝潔顏': 'skincare', '化妝水噴霧': 'skincare',
+    '緊緻眼霜': 'skincare', '防曬隔離': 'skincare', '防曬護理': 'skincare', '護唇保養': 'skincare', '其他保養': 'skincare',
+    '面霜': 'skincare', '面膜': 'skincare', '化妝水': 'skincare', '眼霜': 'skincare', '防曬': 'skincare',
+    '唇膏口紅': 'beauty', '粉底彩妝': 'beauty', '粉底遮瑕': 'beauty', '眼妝眉彩': 'beauty', '腮紅修容': 'beauty',
+    '妝前定妝': 'beauty', '美甲護理': 'beauty', '美妝工具': 'beauty', '其他美妝': 'beauty',
+    '香水香氛': 'beauty', '口紅唇彩': 'beauty', '粉底': 'beauty', '香水': 'beauty',
+    '💄': 'beauty', '🧖‍♀️': 'skincare', '💦': 'skincare', '☀️': 'skincare', '🎨': 'beauty', '🌸': 'beauty',
 
     // 8. 日用 (pao) - 按壓洗沐瓶
     '日用': 'pao', 'pao': 'pao', '日用品': 'pao', '日化開封': 'pao', '沐浴': 'pao', '洗手乳': 'pao',
@@ -491,7 +493,24 @@ for (const [cat,entries] of Object.entries(SUBTYPE_REFINEMENTS)) {
  for(const [sub,drawing] of Object.entries(entries)) if(sub in SUBTYPE_ART[cat]) SUBTYPE_ART[cat][sub]=drawing;
 }
 
-SUBTYPE_ART.skincare = {...SUBTYPE_ART.beauty, '其他保養': creamArt('#b49ab7','#eadde4')};
+// Keep legacy artwork available for saved items, without copying makeup into skincare.
+SUBTYPE_ART.skincare = Object.fromEntries(
+ ['精華液','乳液面霜','保濕面膜','卸妝潔顏','化妝水噴霧','緊緻眼霜','防曬隔離']
+ .map(sub => [sub,SUBTYPE_ART.beauty[sub]])
+);
+Object.assign(SUBTYPE_ART.skincare, {
+ '防曬護理':SUBTYPE_ART.beauty['防曬隔離'],
+ '護唇保養':tubeArt('#eadde4','#b49ab7'),
+ '其他保養':creamArt('#b49ab7','#eadde4')
+});
+Object.assign(SUBTYPE_ART.beauty, {
+ '粉底遮瑕':SUBTYPE_ART.beauty['粉底彩妝'],
+ '眼妝眉彩':pairArt(REFINED_ART.face,REFINED_ART.pen),
+ '腮紅修容':pairArt(creamArt('#d2919a','#f4d2c5'),REFINED_ART.brush),
+ '妝前定妝':pairArt(tubeArt('#e8d9ea','#ad94b2'),creamArt('#b4a18b','#eee3ce')),
+ '美妝工具':pairArt(REFINED_ART.brush,REFINED_ART.face),
+ '其他美妝':SHAPES.lipstick
+});
 
 function colouredArtwork(artwork,key,detail,cat) {
  const palette=MATERIAL_PALETTES.find(([pattern])=>pattern.test(key+' '+detail))?.[1] || ['#9bbacb','#e3edf1','#536f80'];
