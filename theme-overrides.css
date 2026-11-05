@@ -1412,8 +1412,11 @@ html {
   height: var(--form-control-height);
   font-size: 16px;
 }
-:root body .icon-picker-options { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
-:root body .icon-picker-option { min-height: var(--form-control-height); padding: 12px 16px; gap: 12px; }
+:root body .icon-picker-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
+:root body .icon-picker-dialog header { flex: 0 0 auto; }
+:root body .icon-picker-options { display: flex; flex-direction: column; gap: 8px; padding: 12px; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+:root body .icon-picker-dialog .icon-picker-options { flex: 1 1 auto; }
+:root body .icon-picker-option { flex-shrink: 0; min-height: var(--form-control-height); padding: 12px 16px; gap: 12px; }
 :root body :is(.ios-modal-header, .icon-picker-dialog header) .btn-modal-close { width: 40px; height: 40px; }
 :root body .ios-modal-backdrop :is(input[type="date"], input[type="time"])::-webkit-date-and-time-value {
   text-align: left !important;

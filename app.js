@@ -78,6 +78,7 @@ const DEFAULT_CATEGORIES = {
   medicine: { label: '藥品', emoji: '💊' },
   supplement: { label: '保健', emoji: '💊' },
   beauty: { label: '美妝', emoji: '💄' },
+  skincare: { label: '保養品', emoji: '🧴' },
   pao: { label: '日用', emoji: '🧴' },
   cleaning: { label: '清潔', emoji: '🧽' },
   filter: { label: '耗材', emoji: '🌀' },
@@ -119,6 +120,7 @@ const SUB_CATEGORY_CONFIG = {
   medicine: ['眼藥水', '人工淚液', '外用藥膏', '感冒退燒', '消炎止痛', '腸胃整腸', '處方藥', '醫療敷料', '隱眼保養液', '防蚊止癢', '常備成藥'],
   supplement: ['綜合維他命', 'B群活力', '維生素C', '深海魚油', '葉黃素', '活性益生菌', '膠原蛋白', '鈣片D3', '滴雞精', '高蛋白粉', '機能保健'],
   beauty: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '唇膏口紅', '粉底彩妝', '美甲護理', '香水香氛'],
+  skincare: ['精華液', '乳液面霜', '保濕面膜', '卸妝潔顏', '化妝水噴霧', '緊緻眼霜', '防曬隔離', '其他保養'],
   pao: ['洗髮沐浴', '潤髮護髮', '牙膏口腔', '洗手香皂', '身體乳液', '護手滋潤', '刮鬍刀具', '女性護理', '毛巾面巾', '日常消耗'],
   cleaning: ['菜瓜布海綿', '菜瓜布', '洗碗精洗劑', '洗衣精洗衣球', '抹布抹巾', '潔廁去垢', '水垢油垢清', '消毒酒精', '除塵防塵', '除濕防潮', '除蟎噴霧', '地板清潔', '疏通清潔'],
   filter: ['清淨機濾網', '淨水器濾芯', '音波牙刷頭', '集水除濕盒', '掃地機主刷邊刷', '吸塵器耗材', '咖啡機除鈣', '冷氣濾網', '通風濾材'],
@@ -274,10 +276,18 @@ const SMART_KEYWORD_MAP = [
     '司康', '馬卡龍', '披薩', 'pizza'
   ], emoji: '🍞', cat: 'food', subCat: '麵包烘焙' },
 
+  // 保養品 (skincare)
+  { keywords: ['精華液', '小黑瓶', '小棕瓶', '精華露', '安瓶', '玻尿酸精華', '抗老精華', '美白精華', '精華'], emoji: '💧', cat: 'skincare', subCat: '精華液', duration: 180 },
+  { keywords: ['乳液', '面霜', '乳霜', '保濕霜', '水凝霜', '日霜', '晚霜'], emoji: '🧴', cat: 'skincare', subCat: '乳液面霜', duration: 180 },
+  { keywords: ['面膜', '保濕面膜', '泥膜', '凍膜', '黑面膜', '早安面膜'], emoji: '🧖', cat: 'skincare', subCat: '保濕面膜', duration: 180 },
+  { keywords: ['卸妝', '卸妝水', '卸妝油', '卸妝乳', '卸妝膏', '眼唇卸妝', '洗面乳', '洗顏霜', '潔面慕斯', '潔顏乳', '化妝棉'], emoji: '🫧', cat: 'skincare', subCat: '卸妝潔顏', duration: 180 },
+  { keywords: ['化妝水', '保濕水', '爽膚水', '精華水', '活泉水', '保濕噴霧'], emoji: '💦', cat: 'skincare', subCat: '化妝水噴霧', duration: 180 },
+  { keywords: ['眼霜', '眼膠', '眼部精華'], emoji: '👁️', cat: 'skincare', subCat: '緊緻眼霜', duration: 180 },
+  { keywords: ['防曬', '隔離', '防曬乳', '防曬露', '隔離霜', '防曬噴霧', '防曬棒', '安耐曬'], emoji: '☀️', cat: 'skincare', subCat: '防曬隔離', duration: 180 },
+  { keywords: ['保養品', '護膚品', '保濕'], emoji: '🧴', cat: 'skincare', subCat: '其他保養', duration: 180 },
+
   // 日用 (pao)
   { keywords: ['沐浴', '洗髮', '潤髮', '肥皂', '洗沐', '沐浴乳', '洗髮精', '潤髮乳', 'shampoo'], emoji: '🧴', cat: 'pao', subCat: '洗沐' },
-  { keywords: ['防曬', '隔離', '防曬乳', '防曬露', '防曬噴霧'], emoji: '☀️', cat: 'pao', subCat: '防曬' },
-  { keywords: ['精華', '乳液', '面膜', '化妝水', '保濕', '眼霜', '面霜', '精華液', '保養品', '洗面乳', '潔顏乳', '卸妝水', '卸妝油', '化妝棉'], emoji: '✨', cat: 'pao', subCat: '保養' },
   { keywords: ['護手霜', '護唇膏', '身體乳', '護足霜'], emoji: '👐', cat: 'pao', subCat: '護手霜' },
   { keywords: ['牙膏', '漱口水', '牙線', '牙線棒', 'toothpaste'], emoji: '🪥', cat: 'pao', subCat: '牙膏' },
   { keywords: ['刮鬍刀', '刀頭', '刮鬍泡', '電鬍刀'], emoji: '🪒', cat: 'pao', subCat: '刮鬍刀' },
@@ -404,13 +414,6 @@ const SMART_KEYWORD_MAP = [
   { keywords: ['乳清', '高蛋白粉', '分離乳清', '乳清蛋白', 'myprotein', 'on乳清', '肌酸'], emoji: '🥤', cat: 'supplement', subCat: '高蛋白粉', duration: 180 },
 
   // 美妝 (beauty)
-  { keywords: ['精華液', '小黑瓶', '小棕瓶', '精華露', '安瓶', '玻尿酸精華', '抗老精華', '美白精華'], emoji: '💧', cat: 'beauty', subCat: '精華液', duration: 180 },
-  { keywords: ['乳液', '面霜', '乳霜', '保濕霜', '水凝霜', '日霜', '晚霜'], emoji: '🧴', cat: 'beauty', subCat: '乳液面霜', duration: 180 },
-  { keywords: ['面膜', '保濕面膜', '泥膜', '凍膜', '黑面膜', '早安面膜'], emoji: '🧖', cat: 'beauty', subCat: '保濕面膜', duration: 180 },
-  { keywords: ['卸妝', '卸妝水', '卸妝油', '卸妝乳', '卸妝膏', '眼唇卸妝', '洗面乳', '洗顏霜', '潔面慕斯'], emoji: '🫧', cat: 'beauty', subCat: '卸妝潔顏', duration: 180 },
-  { keywords: ['化妝水', '保濕水', '爽膚水', '精華水', '噴霧', '活泉水', '保濕噴霧'], emoji: '💦', cat: 'beauty', subCat: '化妝水噴霧', duration: 180 },
-  { keywords: ['眼霜', '眼膠', '眼部精華'], emoji: '👁️', cat: 'beauty', subCat: '緊緻眼霜', duration: 180 },
-  { keywords: ['防曬乳', '防曬露', '隔離霜', '防曬噴霧', '防曬棒', '安耐曬'], emoji: '☀️', cat: 'beauty', subCat: '防曬隔離', duration: 180 },
   { keywords: ['唇膏', '口紅', '唇釉', '潤唇膏', '護唇膏', '唇蜜', '唇泥'], emoji: '💄', cat: 'beauty', subCat: '唇膏口紅', duration: 365 },
   { keywords: ['粉底', '粉底液', '氣墊', '氣墊粉餅', '蜜粉', '遮瑕', '腮紅', '眼影', '眉筆', '睫毛膏', '眼線筆'], emoji: '🎨', cat: 'beauty', subCat: '粉底彩妝', duration: 365 },
   { keywords: ['指甲油', '光療膠', '美甲片', '護甲油', '指緣油'], emoji: '💅', cat: 'beauty', subCat: '美甲護理', duration: 365 },
@@ -608,6 +611,7 @@ function inferItemLifespanOrUsageDate(name, category, subCategory, baseDate = ne
     cleaning: { days: 60, label: '清潔日用品' },
     pao: { days: 90, label: '洗沐日化品' },
     beauty: { days: 180, label: '美妝護膚品' },
+    skincare: { days: 180, label: '保養品' },
     medicine: { days: 180, label: '醫藥常備品' },
     supplement: { days: 180, label: '保健營養品' },
     filter: { days: 90, label: '定期更換耗材' },
@@ -1823,7 +1827,8 @@ const CATEGORY_MAP_TO_KEY = {
   '生鮮': 'fresh', 'fresh': 'fresh', '生鮮冷凍': 'fresh', '肉品': 'fresh', '海鮮': 'fresh',
   '藥品': 'medicine', 'medicine': 'medicine',
   '保健': 'supplement', 'supplement': 'supplement', '保健品': 'supplement', '營養品': 'supplement',
-  '美妝': 'beauty', 'beauty': 'beauty', '護膚': 'beauty', '保養': 'beauty', '化妝品': 'beauty',
+  '美妝': 'beauty', 'beauty': 'beauty', '化妝品': 'beauty',
+  '保養品': 'skincare', '保養': 'skincare', '護膚': 'skincare', '護膚品': 'skincare', 'skincare': 'skincare',
   '清潔': 'cleaning', 'cleaning': 'cleaning',
   '保固': 'warranty', 'warranty': 'warranty',
   '耗材': 'filter', 'filter': 'filter',
